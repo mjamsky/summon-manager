@@ -1035,9 +1035,15 @@ function renderCard(c, group, refAC) {
         const url = PFSRD[s] || '#';
         let info = '';
         if (s === 'grab') {
-          const rolls = pr.grabs.map(g=>g.total).join(', ');
+          // Only show grab rolls for attacks that hit (when AC known)
+          let grabs = pr.grabs;
+          if (hasAC) {
+            const hitNames = new Set(pr.rows.filter(r => r.hit_ac >= refAC).map(r => r.name));
+            grabs = grabs.filter(g => hitNames.has(g.atk));
+          }
+          const rolls = grabs.map(g=>g.total).join(', ');
           const maintain = pr.maintain ? ` │ maintain ${pr.maintain.total}` : '';
-          info = ` ${rolls} vs CMD${maintain}`;
+          info = rolls ? ` ${rolls} vs CMD${maintain}` : '';
         } else {
           const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
           if (detail?.desc) {

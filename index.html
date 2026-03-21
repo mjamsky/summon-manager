@@ -72,10 +72,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .roll-table tr.hit td { color: var(--hit); }
 .roll-table tr.miss td { color: var(--miss); }
 .roll-table tr.crit td { color: var(--crit); font-weight: bold; }
-.roll-table .d20 { opacity: 0.6; }
-.roll-table .total { font-weight: bold; font-size: 13px; }
-.roll-table .dmg { font-weight: bold; }
+.roll-table .total { font-weight: bold; font-size: 14px; }
+.roll-table .dmg { font-weight: bold; font-size: 14px; }
 .roll-table .special { font-size: 10px; color: var(--accent); }
+/* Tooltip for breakdown */
+.roll-table td[title] { cursor: help; border-bottom: 1px dotted var(--muted); }
 
 /* AC threshold line */
 .ac-line { border-top: 2px dashed var(--red); }
@@ -661,45 +662,43 @@ function renderCard(c, group, refAC) {
     let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
     let acLineDrawn = false;
 
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>d20</th><th>Total</th><th>Dmg</th><th></th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
-      // Determine crit confirmation against AC
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
-      const critPending = r.critOk && !hasAC; // don't know AC yet
-      // Determine fumble confirmation against AC
-      const fumbleFail = r.nat1 && hasAC && r.fumbleConfTotal < refAC; // reroll missed = CRIT FAIL
-      const fumbleSafe = r.nat1 && hasAC && r.fumbleConfTotal >= refAC; // reroll hit = just a miss
+      const critPending = r.critOk && !hasAC;
+      const fumbleFail = r.nat1 && hasAC && r.fumbleConfTotal < refAC;
+      const fumbleSafe = r.nat1 && hasAC && r.fumbleConfTotal >= refAC;
       const fumblePending = r.nat1 && !hasAC;
-      // Damage: use crit damage only if confirmed
       const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
       if(isHit) { hitDmg += effectiveDmg; hitCount++; }
       let acLine='';
       if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
 
-      // Row class
       let cls = '';
-      if(fumbleFail) cls = 'crit'; // will style red via special tag
+      if(fumbleFail) cls = '';
       else if(critConfirmed) cls = 'crit';
       else if(isHit===true) cls = 'hit';
       else if(isHit===false) cls = 'miss';
 
-      // Tags
+      // Compact tags
       let tag = '';
-      if(critConfirmed) tag = ` <b style="color:var(--crit)">CRIT! [${r.critConf}]=${r.critConfTotal} confirms</b>`;
-      else if(r.critOk && hasAC) tag = ` <span style="color:var(--muted)">threat [${r.critConf}]=${r.critConfTotal} NO confirm</span>`;
-      else if(critPending) tag = ` <span style="color:var(--crit)">THREAT! confirm: [${r.critConf}]=${r.critConfTotal} vs AC?</span>`;
-      else if(fumbleFail) tag = ` <b style="color:var(--miss)">CRIT FAIL! [${r.fumbleConf}]=${r.fumbleConfTotal} misses</b>`;
-      else if(fumbleSafe) tag = ` <span style="color:var(--muted)">nat1, reroll [${r.fumbleConf}]=${r.fumbleConfTotal} hits → just a miss</span>`;
-      else if(fumblePending) tag = ` <span style="color:var(--miss)">NAT 1! fumble check: [${r.fumbleConf}]=${r.fumbleConfTotal} vs AC?</span>`;
-      else if(r.nat20 && !r.critOk) tag = ' NAT20';
+      if(critConfirmed) tag = `<b style="color:var(--crit)">CRIT!</b>`;
+      else if(r.critOk && hasAC) tag = `<span style="color:var(--muted)">no conf</span>`;
+      else if(critPending) tag = `<span style="color:var(--crit)">THREAT</span>`;
+      else if(fumbleFail) tag = `<b style="color:var(--miss)">FUMBLE!</b>`;
+      else if(fumbleSafe) tag = `<span style="color:var(--muted)">nat1</span>`;
+      else if(fumblePending) tag = `<span style="color:var(--miss)">NAT1</span>`;
 
-      const rakeTag=r.isRake?' <span style="color:var(--crit);font-size:9px">[RAKE]</span>':'';
+      const rakeTag=r.isRake?' <span style="color:var(--crit);font-size:9px">RK</span>':'';
       const sp=r.specials.filter(s=>s!=='rake').map(s=>spLink(s)).join(' ');
-      const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?` (${r.dmg} if crit)`:''}`;
+      const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
 
-      if(fumbleFail) cls = ''; // override — custom color via tag
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="d20">[${r.r}]</td><td class="total">${r.total}</td><td class="dmg">${dmgCell}</td><td class="special">${tag} ${sp}</td></tr>`;
+      // Tooltips with full breakdown
+      const atkTip = `d20=[${r.r}] + ${r.bonus} bonus = ${r.total}${r.critOk?' | confirm: ['+r.critConf+']+'+r.bonus+'='+r.critConfTotal:''}${r.nat1?' | fumble: ['+r.fumbleConf+']+'+r.bonus+'='+r.fumbleConfTotal:''}`;
+      const dmgTip = `base: ${r.dmgNoCrit}${r.critOk?' | with crit: '+r.dmg:''}`;
+
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="special">${tag} ${sp}</td></tr>`;
     }
     tableHTML+=`</table>`;
 

@@ -17,6 +17,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 9, flat-footed 17 (natural +8, size -1)",
@@ -68,6 +69,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 12, flat-footed 13 (dex +2, natural +3)",
@@ -119,6 +121,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 11, flat-footed 13 (dex +2, natural +4, size -1)",
@@ -170,6 +173,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 9, flat-footed 15 (natural +6, size -1)",
@@ -221,6 +225,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
@@ -272,6 +277,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 16, flat-footed 13 (dex +5, dodge +1, natural +3)",
@@ -323,6 +329,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 9, flat-footed 18 (dex -1, natural +9)",
@@ -374,6 +381,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 14, flat-footed 13 (dex +3, dodge +1, natural +3)",
@@ -425,6 +433,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 16 (dex +1, natural +6)",
@@ -476,6 +485,12 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Sting-injury; save Fort DC 17; frequency 1/round for 6 rounds; effect 1d2 Strength damage; cure 1 save. The save DC is Constitution-based and includes a +2 racial bonus."
+            }
+          ],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 9, flat-footed 16 (armor +7, size -1)",
@@ -527,6 +542,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 9, flat-footed 17 (natural +8, size -1)",
@@ -578,6 +594,12 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Sting-injury; save Fort DC 18; frequency 1/round for 6 rounds; effect 1d2 Dexterity damage; cure 1 save. The save DC is Constitution-based, and includes a +2 racial bonus."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 10, flat-footed 13 (dex +1, natural +4, size -1)",
@@ -629,6 +651,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 15 (dex +2, natural +6, size -1)",
@@ -680,6 +703,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 10, flat-footed 15 (dex +1, natural +6, size -1)",
@@ -731,6 +755,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 12, flat-footed 12 (dex +3, natural +3, size -1)",
@@ -782,6 +807,12 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Breath Weapon (Su)",
+              "desc": "Each type of mephit can unleash a particular breath weapon every 4 rounds as a standard action. The DC is Constitution-based and includes a +1 racial bonus."
+            }
+          ],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 14, flat-footed 14 (dex +2, dodge +1, natural +3, size +1)",
@@ -833,6 +864,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 10, flat-footed 14 (dex +1, natural +5, size -1)",
@@ -884,6 +916,7 @@
           "cr": "3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 14, flat-footed 11 (dex +4, dodge +1, natural +2, size -1)",
@@ -935,6 +968,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 9, flat-footed 16 (natural +7, size -1)",
@@ -986,6 +1020,12 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Pipes (Su)",
+              "desc": "A satyr can focus and empower his magic by playing haunting melodies on his panpipes. When he plays, all creatures within a 60-foot radius must make a DC 18 Will save or be affected by charm person, fear, sleep, or suggestion, depending on what tune the satyr chooses. A creature that successfully saves against any of the pipes\u2019 effects cannot be affected by the same set of pipes for 24 hours, but can still be affected by the satyr\u2019s other spell-like abilities as normal. The satyr\u2019s use of his pipes does not count toward his uses per day of his spell-like abilities, and if separated from them he may continue to use his standard abilities. The pipes themselves are masterwork, and a satyr can craft a replacement with 1 week of labor. The save DC is Charisma-based."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 13, flat-footed 15 (dex +2, dodge +1, natural +5)",
@@ -1037,6 +1077,7 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
@@ -1088,6 +1129,12 @@
           "cr": "4",
           "source": "AP42",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)\n    desc: Bite-injury; save Fort DC 14; frequency 1/round for 6 rounds; effect 1d3 Con; cure 1 save.\n  - name: Split (Su)",
+              "desc": "An amphisbaena functions normally even if cut in half. If dealt a critical hit with a slashing weapon, the creature is cut in half but continues to function as two separate creatures, each with half the original amphisbaena\u2019s current hit points (rounded down) after the damage from the critical hit is applied. Once split, an amphisbaena cannot be split again. If left alone for 1 minute, the split amphisbaena can rejoin its two halves and become a single whole creature again (add the two creatures\u2019 hit points together). If one of the split creatures is slain, the amphisbaena can regrow the lost portion over the course of 1d3 weeks."
+            }
+          ],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 11, flat-footed 17 (dex +2, natural +8, size -1)",
@@ -1139,6 +1186,12 @@
           "cr": "3",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Tongue (Ex)",
+              "desc": "A giant chameleon can grab a foe with its tongue and draw the victim to its mouth. This tongue attack has a reach of 15 feet. The attack does no damage, but allows the creature to grab. A giant chameleon does not gain the grappled condition while using its tongue in this manner."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
@@ -1190,6 +1243,12 @@
           "cr": "3",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Musk (Ex)",
+              "desc": "Up to twice per day, a giant skunk can spray a stream of noxious musk at a single target within 30 feet as a standard action. With a successful ranged touch attack, the creature struck by this spray must make a DC 17 Fortitude save or be nauseated for 1d6 rounds and then sickened for 1d6 minutes by the horrific stench. A successful save reduces the effect to only 1d4 rounds of being sickened. A creature cannot use the scent ability as long as it is affected by this musk. The save DC is Constitution-based, and includes a +2 racial bonus."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 12, flat-footed 12 (dex +3, natural +3, size -1)",
@@ -1241,6 +1300,12 @@
           "cr": "3",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Air Cyst (Su)\n    desc: Seaweed leshys constantly grow small bulbs filled with air. As a move action, they can detach a bulb and give it to another creature. If consumed as a standard action, this air cyst grants water breathing (as the spell) for 10 minutes. Seaweed leshys can have a maximum of four usable air cysts at any one time, and air cysts regrow at a rate of one per 24 hours.\n  - name: Water Jet (Ex)",
+              "desc": "A seaweed leshy can expel a high-pressure jet of water from its mouth to a range of 30 feet. It must make a ranged touch attack to strike a target-if it hits, the blast deals 1 point of bludgeoning damage (this damage is not modified by Strength). In addition, the creature hit must make a DC 15 Fortitude save or be blinded by the water for 1 round. The save DC is Dexterity-based."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 12, flat-footed 14 (armor +1, dex +1, natural +2, size +1)",
@@ -1292,6 +1357,12 @@
           "cr": "4",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Diseased (Ex)",
+              "desc": "Due to their filthy eating habits and constant exposure to decaying flesh, giant vultures are harbingers of disease-much more so than the standard vulture. Any creature bitten by a giant vulture has a 10% chance of being exposed to filth fever, blinding sickness, or a similar disease. Once this check is made, a victim can no longer be infected by this particular giant vulture, though attacks by different giant vultures are resolved normally and may result in multiple illnesses. While vultures aren\u2019t immune to all diseases, they do gain a +4 racial bonus on all saving throws against such ailments."
+            }
+          ],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 15 (dex +2, natural +6, size -1)",
@@ -1348,6 +1419,12 @@
           "cr": "6",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Stun (Ex)",
+              "desc": "The ankylosaurus\u2019s tail can deliver a powerful, stunning blow. A creature struck by this attack must make a DC 23 save or be dazed for 1 round. If the strike is a critical hit and the target fails its save, it is instead stunned for 1d4 rounds. The save DC is Strength-based."
+            }
+          ],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 8, flat-footed 22 (natural +14, size -2)",
@@ -1399,6 +1476,12 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Flash of Insight (Su)",
+              "desc": "Once per day as an immediate action, a cyclops can peer into an occluded visual spectrum of possible futures, gaining insight that allows it to select the exact result of one die roll before the roll is made. This effect can alter an action taken by the cyclops only, and cannot be applied to the rolls of others."
+            }
+          ],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 8, flat-footed 19 (armor +4, dex -1, natural +7, size -1)",
@@ -1450,6 +1533,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 11, flat-footed 13 (dex +2, natural +4, size -1)",
@@ -1501,6 +1585,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 17, flat-footed 13 (dex +7, dodge +1, natural +4, size -1)",
@@ -1552,6 +1637,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 8, flat-footed 18 (dex -1, natural +10, size -1)",
@@ -1603,6 +1689,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 15, flat-footed 13 (dex +5, dodge +1, natural +4, size -1)",
@@ -1654,6 +1741,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 12, flat-footed 15 (dex +2, dodge +1, natural +6, size -1)",
@@ -1705,6 +1793,12 @@
           "cr": "6",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Superior Two-Weapon Fighting (Ex)",
+              "desc": "An ettin fights with a flail or javelin in each hand. Because each of its two heads controls an arm, the ettin does not take a penalty on attack or damage rolls for attacking with two weapons."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 8, flat-footed 18 (armor +2, dex -1, natural +8, size -1)",
@@ -1756,6 +1850,12 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Gnaw (Ex)",
+              "desc": "If a giant moray begins a round with a grabbed foe, it inflicts automatic bite damage (2d6+9 points of damage). A giant moray eel possesses a second set of jaws in its throat that aid in swallowing-it can make a second bite attack (+11 attack, 1d6+3) against a foe it has already grabbed."
+            }
+          ],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 11, flat-footed 17 (dex +2, natural +8, size -1)",
@@ -1807,6 +1907,7 @@
           "cr": "6",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 12, flat-footed 15 (dex +3, natural +6, size -1)",
@@ -1858,6 +1959,12 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Spikes (Ex)",
+              "desc": "With a snap of its tail, a manticore can loose a volley of four spikes as a standard action (make an attack roll for each spike). This attack has a range of 180 feet with no range increment. All targets must be within 30 feet of each other. The creature can launch only 24 spikes in any 24-hour period."
+            }
+          ],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 15 (dex +2, natural +6, size -1)",
@@ -1909,6 +2016,7 @@
           "cr": "5",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 10, flat-footed 14 (dex +2, natural +6, size -2)",
@@ -1960,6 +2068,7 @@
           "cr": "6",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 9, flat-footed 19 (natural +10, size -1)",
@@ -2011,6 +2120,12 @@
           "cr": "5",
           "source": "AP42",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 17; frequency 1/round for 6 rounds; effect 1d3 Con; cure 2 consecutive saves."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 11, flat-footed 16 (dex +2, natural +7, size -1)",
@@ -2062,6 +2177,12 @@
           "cr": "5",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Animal Telepathy (Su)\n    desc: A giant owl can telepathically communicate with other animals as if under the effects of speak with animals.\n  - name: Insightful Senses (Su)\n    desc: A giant owl\u2019s senses are particularly well honed to sensing danger or locating prey. It adds its Wisdom modifier as an insight bonus (+3 for most giant owls) on its initiative checks.\n  - name: Piercing Stare (Su)",
+              "desc": "Up to three times per day as a swift action, a giant owl can gain the effects of true seeing (as the spell) for 1 round."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 10, flat-footed 16 (dex +2, natural +8, size -2)",
@@ -2113,6 +2234,7 @@
           "cr": "6",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 8, flat-footed 19 (natural +11, size -2)",
@@ -2169,6 +2291,12 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Leap (Ex)\n    desc: A bulette can perform a special kind of pounce attack by jumping into combat. When a bulette charges, it can make a DC 20 Acrobatics check to jump into the air and land next to its enemies. If it makes the Acrobatics check, it can follow up with four claw attacks against foes in reach, but cannot make a bite attack.\n  - name: Savage Bite (Ex)",
+              "desc": "A bulette\u2019s bite is particularly dangerous. It applies 1-1/2 times its Strength modifier to damage inflicted with its bite attack, and threatens a critical hit on a 19-20."
+            }
+          ],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 10, flat-footed 20 (dex +2, natural +12, size -2)",
@@ -2220,6 +2348,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 10, flat-footed 17 (dex +1, natural +8, size -1)",
@@ -2271,6 +2400,7 @@
           "cr": "8",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 15 (dex +2, natural +6, size -1)",
@@ -2322,6 +2452,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 20,
             "AC_breakdown": "20, touch 11, flat-footed 17 (dex +2, dodge +1, natural +9, size -2)",
@@ -2373,6 +2504,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 18, flat-footed 12 (dex +9, dodge +1, natural +4, size -2)",
@@ -2424,6 +2556,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 7, flat-footed 19 (dex -1, natural +12, size -2)",
@@ -2475,6 +2608,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 16, flat-footed 13 (dex +7, dodge +1, natural +5, size -2)",
@@ -2526,6 +2660,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 13, flat-footed 16 (dex +4, dodge +1, natural +8, size -2)",
@@ -2577,6 +2712,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 8, flat-footed 17 (natural +9, size -2)",
@@ -2628,6 +2764,12 @@
           "cr": "8",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 19; frequency 1/round for 6 rounds; effect 1d3 Str; cure 2 saves."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 11, flat-footed 16 (dex +2, natural +7, size -1)",
@@ -2679,6 +2821,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 8, flat-footed 21 (armor +4, dex -1, natural +9, size -1)",
@@ -2730,6 +2873,7 @@
           "cr": "7",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 10, flat-footed 20 (dex +2, natural +12, size -2)",
@@ -2781,6 +2925,12 @@
           "cr": "8",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Improved Rock Catching (Ex)",
+              "desc": "A stone giant gains a +4 racial bonus on its Reflex save when attempting to catch a thrown rock with rock catching. This ability otherwise works like the rock catching ability."
+            }
+          ],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 11, flat-footed 20 (dex +2, natural +11, size -1)",
@@ -2832,6 +2982,7 @@
           "cr": "8",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 7, flat-footed 21 (dex -1, natural +14, size -2)",
@@ -2883,6 +3034,12 @@
           "cr": "6",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Electric Fortitude (Ex)",
+              "desc": "Shambling mounds take no damage from electricity. Instead, any electricity attack used against a shambling mound temporarily increases its Constitution score by 1d4 points. The shambling mound loses these temporary points at the rate of 1 per hour."
+            }
+          ],
           "combat_card": {
             "AC": 19,
             "AC_breakdown": "19, touch 9, flat-footed 19 (natural +10, size -1)",
@@ -2934,6 +3091,7 @@
           "cr": "8",
           "source": "AP55",
           "is_alternate": true,
+          "special_abilities": [],
           "combat_card": {
             "AC": 20,
             "AC_breakdown": "20, touch 8, flat-footed 18 (dex +1, dodge +1, natural +12, size -4)",

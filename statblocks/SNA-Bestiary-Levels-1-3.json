@@ -17,6 +17,12 @@
           "cr": "1/3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Disease (Ex)",
+              "desc": "Filth fever: Bite-injury; save Fort DC 11; onset 1d3 days; frequency 1/day; effect 1d3 Dex damage and 1d3 Con damage; cure 2 consecutive saves. The save DC is Constitution-based."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 14, flat-footed 11 (dex +3, size +1)",
@@ -68,6 +74,7 @@
           "cr": "1/3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 12, flat-footed 12 (dex +1, natural +1, size +1)",
@@ -119,6 +126,12 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Hold Breath (Ex)",
+              "desc": "A dolphin can hold its breath for a number of minutes equal to 6 times its Constitution score before it risks drowning."
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 12, flat-footed 11 (dex +2, natural +1)",
@@ -170,6 +183,7 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 13, flat-footed 12 (dex +2, natural +1, size +1)",
@@ -221,6 +235,12 @@
           "cr": "1/3",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Luminescence (Ex)",
+              "desc": "A fire beetle\u2019s glowing glands provide light in a 10-foot radius. A dead fire beetle\u2019s luminescent glands continue to glow for 1d6 days after its death."
+            }
+          ],
           "combat_card": {
             "AC": 12,
             "AC_breakdown": "12, touch 11, flat-footed 12 (natural +1, size +1)",
@@ -272,6 +292,12 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (EX)",
+              "desc": "Bite-injury; save Fort DC 13; frequency 1/round for 6 rounds; effect 1d3 Dex damage; cure 1 save. The save DC is Constitution-based and includes a +2 racial bonus."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 12 (dex +2, natural +2)",
@@ -323,6 +349,12 @@
           "cr": "1/4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Hatred (Ex)\n    desc: Mites receive a +1 bonus on attack rolls against humanoid creatures of the dwarf or gnome subtype due to special training against these hated foes.\n  - name: Vermin Empathy (Ex)",
+              "desc": "This ability functions as a druid\u2019s wild empathy, save that a mite can only use this ability on vermin. A mite gains a +4 racial bonus on this check. Vermin are normally mindless, but this empathic communication imparts on them a modicum of implanted intelligence, allowing mites to train Medium vermin and use them as mounts. Vermin empathy treats swarms as if they were one creature possessing a single mind-a mite can thus use this ability to influence and direct the actions of swarms with relative ease."
+            }
+          ],
           "combat_card": {
             "AC": 12,
             "AC_breakdown": "12, touch 12, flat-footed 11 (dex +1, size +1)",
@@ -374,6 +406,12 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Injury; save Fort DC 10; frequency 1/round for 6 rounds; effect 1d2 Con damage; cure 1 save"
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 13, flat-footed 12 (dex +1, size +2)",
@@ -425,6 +463,7 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 11,
             "AC_breakdown": "11, touch 11, flat-footed 10 (dex +1)",
@@ -476,6 +515,12 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Attach (Ex)\n    desc: When a stirge hits with a touch attack, its barbed legs latch onto the target, anchoring it in place. An attached stirge is effectively grappling its prey. The stirge loses its Dexterity bonus to AC and has an AC of 12, but holds on with great tenacity and inserts its proboscis into the grappled target\u2019s flesh. A stirge has a +8 racial bonus to maintain its grapple on a foe once it is attached. An attached stirge can be struck with a weapon or grappled itself-if its prey manages to win a grapple check or Escape Artist check against it, the stirge is removed.\n  - name: Blood Drain (Ex)\n    desc: A stirge drains blood at the end of its turn if it is attached to a foe, inflicting 1 point of Constitution damage. Once a stirge has dealt 4 points of Constitution damage, it detaches and flies off to digest the meal. If its victim dies before the stirge\u2019s appetite has been sated, the stirge detaches and seeks a new target.\n  - name: Diseased (Ex)",
+              "desc": "Due to the stagnant swamps in which they live and their contact with the blood of numerous creatures, stirges are harbingers of disease. Any creature subjected to a stirge\u2019s blood drain attack has a 10% chance of being exposed to filth fever, blinding sickness, or a similar disease (Pathfinder RPG Core Rulebook 557). Once this check is made, the victim can no longer be infected by this particular stirge, though attacks by different stirges are resolved normally and may result in multiple illnesses."
+            }
+          ],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 16, flat-footed 12 (dex +4, size +2)",
@@ -527,6 +572,12 @@
           "cr": "1/2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 9; frequency 1/round for 6 rounds; effect 1d2 Con; cure 1 save."
+            }
+          ],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 15, flat-footed 13 (dex +3, natural +1, size +2)",
@@ -583,6 +634,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Sting-injury; save Fort DC 14; frequency 1/round for 4 rounds; effect 1d2 Str; cure 1 save"
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 10, flat-footed 15 (natural +5)",
@@ -634,6 +691,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 14, flat-footed 14 (dex +3, natural +3, size +1)",
@@ -685,6 +743,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 10, flat-footed 17 (dex -1, natural +7, size +1)",
@@ -736,6 +795,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 13, flat-footed 14 (dex +1, dodge +1, natural +3, size +1)",
@@ -787,6 +847,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 17,
             "AC_breakdown": "17, touch 11, flat-footed 17 (natural +6, size +1)",
@@ -838,6 +899,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Tongue (Ex)",
+              "desc": "A giant frog\u2019s tongue is a primary attack with reach equal to three times the frog\u2019s normal reach (15 feet for a Medium giant frog). A giant frog\u2019s tongue deals no damage on a hit, but can be used to grab. A giant frog does not gain the grappled condition while using its tongue in this manner."
+            }
+          ],
           "combat_card": {
             "AC": 12,
             "AC_breakdown": "12, touch 11, flat-footed 11 (dex +1, natural +1)",
@@ -889,6 +956,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 14; frequency 1/round for 4 rounds; effect 1d2 Strength damage; cure 1 save."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 13, flat-footed 11 (dex +3, natural +1)",
@@ -940,6 +1013,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Allergic Reaction (Ex)",
+              "desc": "A goblin dog\u2019s dander is highly irritating to all creatures save those with the goblinoid subtype. A non-goblinoid creature damaged by a goblin dog\u2019s bite, who deals damage to a goblin dog with a natural weapon or unarmed attack, or who otherwise comes into contact with a goblin dog (including attempts to grapple or ride the creature) must make a DC 12 Fortitude save or break out in an itching rash. A creature affected by this rash takes a -2 penalty to Dexterity and Charisma for 1 day (multiple allergic reactions do not stack). Remove disease or any magical healing removes the rash instantly. This is a disease effect. The save DC is Constitution-based."
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 12, flat-footed 11 (dex +2, natural +1)",
@@ -991,6 +1070,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Docile (Ex)",
+              "desc": "Unless specifically trained for combat (see the Handle Animal skill, a horse\u2019s hooves are treated as secondary attacks."
+            }
+          ],
           "combat_card": {
             "AC": 11,
             "AC_breakdown": "11, touch 11, flat-footed 9 (dex +2, size -1)",
@@ -1042,6 +1127,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 12 (dex +2, natural +2)",
@@ -1093,6 +1179,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Ink Cloud (Ex)\n    desc: An octopus can emit a 10-foot-radius sphere of ink once per minute as a free action. The ink provides total concealment in water, and persists for 1 minute.\n  - name: Jet (Ex)\n    desc: An octopus can jet backward once per round as a full-round action, at a speed of 200 feet. It must move in a straight line while jetting, and does not provoke attacks of opportunity when it does so.\n  - name: Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 13; frequency 1/round for 6 rounds; effect 1 Str; cure 1 save."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 14, flat-footed 12 (dex +3, natural +1, size +1)",
@@ -1144,6 +1236,12 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Ink Cloud (Ex)\n    desc: A squid can emit a 5-foot-radius cloud of ink once per minute as a free action while underwater. This cloud provides total concealment. The ink persists for 1 minute.\n  - name: Jet (Ex)",
+              "desc": "A squid can jet in a straight line as a full-round action. It does not provoke attacks of opportunity while jetting."
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 12, flat-footed 11 (dex +2, natural +1)",
@@ -1195,6 +1293,7 @@
           "cr": "1",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 12 (dex +2, natural +2)",
@@ -1246,6 +1345,12 @@
           "cr": "2",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Sudden Charge (Ex)",
+              "desc": "When making a charge attack, an axe beak makes a single bite attack. If successful, it may also attempt to trip its opponent as a free action without provoking an attack of opportunity. If the attempt fails, the axe beak cannot be tripped in return."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 11 (dex +3, natural +2, size -1)",
@@ -1297,6 +1402,7 @@
           "cr": "1",
           "source": "AP32",
           "is_alternate": true,
+          "special_abilities": [],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 13, flat-footed 10 (dex +3)",
@@ -1348,6 +1454,7 @@
           "cr": "2",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 12 (dex +2, natural +2)",
@@ -1399,6 +1506,12 @@
           "cr": "2",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Quills (Ex)",
+              "desc": "Any creature attacking a giant porcupine with light or one-handed melee weapons, natural weapons, or an unarmed strike takes 1d3 points of piercing damage. A creature that grapples a giant porcupine takes 2d4 points of piercing damage each round it does so."
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 11, flat-footed 12 (dex +1, natural +2)",
@@ -1450,6 +1563,12 @@
           "cr": "1",
           "source": "AP42",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 13; frequency 1/round for 6 rounds; effect 1d2 Con; cure 1 save."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 13 (dex +1, natural +3)",
@@ -1506,6 +1625,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Sting-injury; save Fort DC 14; frequency 1/round for 4 rounds; effect 1d2 Str; cure 1 save"
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 10, flat-footed 15 (natural +5)",
@@ -1557,6 +1682,7 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
@@ -1608,6 +1734,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Stampede (Ex)",
+              "desc": "A stampede occurs if three or more creatures with stampede make a trample attack while remaining adjacent to each other. While stampeding, the creatures can trample foes of their size or smaller, and the trample\u2019s save DC increases by +2."
+            }
+          ],
           "combat_card": {
             "AC": 13,
             "AC_breakdown": "13, touch 9, flat-footed 13 (natural +4, size -1)",
@@ -1659,6 +1791,7 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 10, flat-footed 14 (natural +4)",
@@ -1710,6 +1843,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Sprint (Ex)",
+              "desc": "Once per hour, a cheetah can move at 10 times its normal speed (500 feet) when it makes a charge."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 14, flat-footed 11 (dex +4, natural +1)",
@@ -1761,6 +1900,7 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 13, flat-footed 12 (dex +3, natural +2)",
@@ -1812,6 +1952,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Death Roll (Ex)\n    desc: When grappling a foe of its size or smaller, a crocodile can perform a death roll upon making a successful grapple check. As it clings to its foe, it tucks in its legs and rolls rapidly, twisting and wrenching its victim. The crocodile inflicts its bite damage and knocks the creature prone. If successful, the crocodile maintains its grapple.\n  - name: Hold Breath (Ex)\n    desc: A crocodile can hold its breath for a number of rounds equal to 4 times its Constitution score before it risks drowning.\n  - name: Sprint (Ex)",
+              "desc": "Once per minute a crocodile may sprint, increasing its land speed to 40 feet for 1 round."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 10, flat-footed 13 (dex +1, natural +4, size -1)",
@@ -1863,6 +2009,7 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
@@ -1914,6 +2061,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Electricity (Ex)",
+              "desc": "An electric eel can produce a powerful jolt of electricity from its tail, delivering the jolt with a successful touch attack. On a critical hit, the creature struck must make a DC 15 Fortitude save or be stunned for 1d4 rounds. The save DC is Constitution-based."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 13, flat-footed 13 (dex +2, natural +2, size +1)",
@@ -1965,6 +2118,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Water Dependency (Ex)",
+              "desc": "Giant crabs can survive out of the water for 1 hour per point of Constitution. Beyond this limit, a giant crab runs the risk of suffocation, as if it were drowning."
+            }
+          ],
           "combat_card": {
             "AC": 16,
             "AC_breakdown": "16, touch 11, flat-footed 15 (dex +1, natural +5)",
@@ -2016,6 +2175,7 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 14, flat-footed 11 (dex +4, natural +1)",
@@ -2067,6 +2227,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Bite-injury; save Fort DC 14; onset 1 minute; frequency 1/hour for 6 hours; effect 1d2 Dexterity damage; cure 1 save. The save DC is Constitution-based."
+            }
+          ],
           "combat_card": {
             "AC": 15,
             "AC_breakdown": "15, touch 12, flat-footed 13 (dex +2, natural +3)",
@@ -2118,6 +2284,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Keen Scent (Ex)",
+              "desc": "A shark can notice creatures by scent in a 180-foot radius underwater and can detect blood in the water at ranges of up to a mile."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 10, flat-footed 13 (dex +1, natural +4, size -1)",
@@ -2169,6 +2341,12 @@
           "cr": "2",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Rage (Ex)",
+              "desc": "A wolverine that takes damage in combat flies into a rage on its next turn, clawing and biting madly until either it or its opponent is dead. It gains +4 to Strength, +4 to Constitution, and -2 to AC. The creature cannot end its rage voluntarily."
+            }
+          ],
           "combat_card": {
             "AC": 14,
             "AC_breakdown": "14, touch 12, flat-footed 12 (dex +2, natural +2)",

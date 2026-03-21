@@ -522,6 +522,7 @@ function mkCreature(bEntry, aug) {
     space:full.Space||'5 ft.', reach:full.Reach||'5 ft.',
     type:data.type||'', size:data.size||'', cr:data.cr||'',
     pfsrdUrl:data.pfsrd_url||'',
+    specialAbilities: data.special_abilities || [],
     preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
   };
 }
@@ -708,7 +709,18 @@ function renderCard(c, group, refAC) {
 
       const isConditionalRake = r.isRake && r.conditionalOnMaintain;
       const rakeTag=r.isRake?` <span style="color:var(--crit);font-size:9px">${isConditionalRake?'RK*':'RK'}</span>`:'';
-      const sp=r.specials.filter(s=>s!=='rake').map(s=>spLink(s)).join(' ');
+      // Show specials with poison/disease detail from special_abilities
+      const spList = r.specials.filter(s=>s!=='rake');
+      const sp = spList.map(s => {
+        if ((s === 'poison' || s === 'disease') && c.specialAbilities) {
+          const detail = c.specialAbilities.find(a => a.name.toLowerCase().includes(s));
+          if (detail) {
+            const short = detail.desc.length > 60 ? detail.desc.slice(0,60)+'...' : detail.desc;
+            return `<span title="${detail.desc}" style="cursor:help">${spLink(s)} <span style="font-size:9px;color:var(--muted)">${short}</span></span>`;
+          }
+        }
+        return spLink(s);
+      }).join(' ');
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
 
       // Tooltips with full breakdown
@@ -779,6 +791,7 @@ function renderCard(c, group, refAC) {
       ${c.specialQual?`<div class="sb-row"><span class="sb-label">SQ</span><span class="sb-val">${c.specialQual}</span></div>`:''}
       ${c.feats?`<div class="sb-row"><span class="sb-label">Feats</span><span class="sb-val">${c.feats}</span></div>`:''}
     </div>
+    ${c.specialAbilities && c.specialAbilities.length ? `<div class="sb-section">${c.specialAbilities.map(a=>`<div class="sb-row"><span class="sb-label" style="color:var(--crit);min-width:auto">${a.name}</span><span class="sb-val" style="font-size:10px">${a.desc}</span></div>`).join('')}</div>` : ''}
     <div class="sb-section">
       <span>${c.type} | ${c.size} | CR ${c.cr}</span>
       ${c.pfsrdUrl?` | <a href="${c.pfsrdUrl}" target="_blank" onclick="event.stopPropagation()">d20pfsrd</a>`:''}

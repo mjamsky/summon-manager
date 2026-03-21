@@ -289,6 +289,16 @@ def parse_statblock(path: Path) -> dict | None:
     # SQ
     data["sq"] = get("senses", "")
 
+    # Special abilities (poison, disease, web, etc.)
+    data["special_abilities"] = []
+    # Find each "  - name: X\n    desc: Y" block under special_abilities:
+    sa_section = re.search(r'special_abilities:\s*\n((?:  - .*\n(?:    .*\n)*)*)', sb)
+    if sa_section:
+        for m in re.finditer(r'  - name:\s*(.+)\n    desc:\s*(.+?)(?=\n  - |\nsources:|\ndesc_short:|\n[a-z]|\Z)', sa_section.group(1), re.DOTALL):
+            name = m.group(1).strip()
+            desc = m.group(2).strip().replace('\n    ', ' ').replace('\n', ' ')
+            data["special_abilities"].append({"name": name, "desc": desc})
+
     return data
 
 
@@ -435,6 +445,7 @@ def main():
                 "cr": data["cr"],
                 "source": source,
                 "is_alternate": is_alt,
+                "special_abilities": data.get("special_abilities", []),
                 "combat_card": card,
                 "full_statblock": {
                     "Str": data.get("str", 10),

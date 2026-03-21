@@ -17,6 +17,7 @@
           "cr": "10",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 6, flat-footed 18 (natural +12, size -4)",
@@ -68,6 +69,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 6, flat-footed 21 (natural +15, size -4)",
@@ -119,6 +121,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 8, flat-footed 21 (dex +2, natural +15, size -4)",
@@ -170,6 +173,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 25,
             "AC_breakdown": "25, touch 19, flat-footed 14 (dex +10, dodge +1, natural +6, size -2)",
@@ -221,6 +225,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 7, flat-footed 21 (dex -1, natural +14, size -2)",
@@ -272,6 +277,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 17, flat-footed 14 (dex +8, dodge +1, natural +6, size -2)",
@@ -323,6 +329,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 14, flat-footed 17 (dex +5, dodge +1, natural +9, size -2)",
@@ -374,6 +381,12 @@
           "cr": "10",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Heated Rock (Su)",
+              "desc": "Fire giants transfer the heat of their bodies to rocks as part of an attack action when they throw rocks. A heated rock deals 1d6 points of additional fire damage on a hit."
+            }
+          ],
           "combat_card": {
             "AC": 24,
             "AC_breakdown": "24, touch 8, flat-footed 24 (armor +8, dex -1, natural +8, size -1)",
@@ -425,6 +438,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 8, flat-footed 21 (armor +4, dex -1, natural +9, size -1)",
@@ -476,6 +490,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 20,
             "AC_breakdown": "20, touch 11, flat-footed 17 (dex +3, natural +9, size -2)",
@@ -527,6 +542,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 9, flat-footed 20 (dex +1, natural +12, size -2)",
@@ -578,6 +594,7 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 8, flat-footed 20 (dex +2, natural +14, size -4)",
@@ -629,6 +646,12 @@
           "cr": "9",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Powerful Bite (Ex)",
+              "desc": "A tyrannosaurus applies twice its Strength modifier to bite damage."
+            }
+          ],
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 7, flat-footed 20 (dex +1, natural +14, size -4)",
@@ -680,6 +703,7 @@
           "cr": "10",
           "source": "AP42",
           "is_alternate": true,
+          "special_abilities": [],
           "combat_card": {
             "AC": 25,
             "AC_breakdown": "25, touch 9, flat-footed 22 (dex +2, dodge +1, natural +16, size -4)",
@@ -731,6 +755,12 @@
           "cr": "10",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Engulf (Ex)",
+              "desc": "If a giant flytrap begins its turn with an opponent at least two size categories smaller than itself grappled in one of its mouths, it can close its jaws completely around the foe by making a new combat maneuver check (as though attempting to pin the foe). If it succeeds, it engulfs the prey and inflicts 1d8+7 points of damage and 2d6 acid damage as the cavity floods with digestive enzymes. The seal formed is airtight, so an engulfed creature risks suffocation. Engulf is a special form of pinning, and an engulfed creature can escape in the same way as he can from being pinned, but since an engulfed creature is contained wholly inside the plant\u2019s jaws, the flytrap\u2019s victim cannot be targeted by effects or attacks that require line of sight or line of effect. A giant flytrap that is grappling or pinning a foe cannot attack other targets with that bite, but is not otherwise hindered."
+            }
+          ],
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 12, flat-footed 18 (dex +4, natural +10, size -2)",
@@ -782,6 +812,12 @@
           "cr": "9",
           "source": "AP75",
           "is_alternate": true,
+          "special_abilities": [
+            {
+              "name": "Armored Stomach (Ex)",
+              "desc": "A giant snapping turtle\u2019s body is difficult to cut through-its stomach gains a +4 bonus to its AC and has double the normal hit points when determining the success of a creature attempting to cut its way free."
+            }
+          ],
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 4, flat-footed 23 (dex -2, natural +19, size -4)",
@@ -838,6 +874,12 @@
           "cr": "11",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Oversized Weapon (Ex)",
+              "desc": "A cloud giant can wield Gargantuan weapons without penalty. Most favor the use of immense morningstars."
+            }
+          ],
           "combat_card": {
             "AC": 25,
             "AC_breakdown": "25, touch 9, flat-footed 24 (armor +4, dex +1, natural +12, size -2)",
@@ -889,6 +931,7 @@
           "cr": "11",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 28,
             "AC_breakdown": "28, touch 20, flat-footed 16 (dex +11, dodge +1, natural +8, size -2)",
@@ -940,6 +983,7 @@
           "cr": "11",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 7, flat-footed 23 (dex -1, natural +16, size -2)",
@@ -991,6 +1035,7 @@
           "cr": "11",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 26,
             "AC_breakdown": "26, touch 18, flat-footed 16 (dex +9, dodge +1, natural +8, size -2)",
@@ -1042,6 +1087,7 @@
           "cr": "11",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [],
           "combat_card": {
             "AC": 24,
             "AC_breakdown": "24, touch 15, flat-footed 17 (dex +6, dodge +1, natural +9, size -2)",
@@ -1093,6 +1139,12 @@
           "cr": "12",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Poison (Ex)",
+              "desc": "Sting-injury; save Fort DC 25; frequency 1/round for 6 rounds; effect 1d4 Strength damage; cure 3 consecutive saves. The save DC is Constitution-based."
+            }
+          ],
           "combat_card": {
             "AC": 26,
             "AC_breakdown": "26, touch 4, flat-footed 26 (dex -2, natural +22, size -4)",
@@ -1149,6 +1201,12 @@
           "cr": "4",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Invisibility (Su)\n    desc: A pixie remains invisible even when it attacks. This ability is constant, but the pixie can suppress or resume it as a free action.\n  - name: Special Arrows (Su)",
+              "desc": "When a pixie fires an arrow from any bow, it can decide to change the arrow\u2019s properties by sprinkling it with magical pixie dust. Doing so is a free action as long as the pixie is the one who fires the arrow. A pixie can generate a number of uses of dust equal to its Charisma score each day (16 uses per day for most pixies)-the dust is useless to another creature unless the pixie gives the dust freely. In this case, the pixie chooses what effect the dust will have on an arrow when it is applied, and it takes a standard action to apply the dust to the arrow. Once pixie dust is applied to an arrow, the pixie\u2019s chosen effect persists on the arrow for only 1 round. As long as an arrow is altered in this way, it does not inflict damage when it hits-it only causes its new effect. A pixie can choose any one of the following three effects when dusting an arrow. Save DCs are Charisma-based."
+            }
+          ],
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 17, flat-footed 12 (dex +5, dodge +1, natural +1, size +1)",
@@ -1200,6 +1258,12 @@
           "cr": "13",
           "source": "core",
           "is_alternate": false,
+          "special_abilities": [
+            {
+              "name": "Militant (Ex)\n    desc: Storm giants are proficient with all simple and all martial weapons.\n  - name: Water Breathing (Ex)",
+              "desc": "Storm giants can breathe water as well as air."
+            }
+          ],
           "combat_card": {
             "AC": 28,
             "AC_breakdown": "28, touch 10, flat-footed 26 (armor +6, dex +2, natural +12, size -2)",

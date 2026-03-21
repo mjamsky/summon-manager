@@ -838,7 +838,7 @@ function doSummon() {
 
 function summonLions(){
   const bE=B['lion']; if(!bE){alert('Lion not in bestiary');return;}
-  const g={id:`G${nGid++}`,name:'Lion Figurines',src:'figurine',creatures:[],rl:99,casting:false};
+  const g={id:`G${nGid++}`,name:'Lion Figurines',src:'figurine',creatures:[],rl:600,casting:false}; // 1hr/day, 1wk cooldown if killed
   for(let i=0;i<2;i++){const c=mkCreature(bE,false);c.name='Lion';g.creatures.push(c);}
   S.groups.push(g);
   if(S.round===0) S.round=1;
@@ -901,7 +901,7 @@ function render(){
   // Group chips in round bar (bottom)
   let gBar='';
   for(const g of S.groups){
-    const rlTxt=g.src==='figurine'?'∞':`${IC.round('icon-sm')}${g.rl}`;
+    const rlTxt=g.src==='figurine'?'1hr':`${IC.round('icon-sm')}${g.rl}`;
     const gCreature = g.creatures[0]?.name || '?';
     const gLabel = `${g.creatures.length}× ${gCreature}`;
     gBar+=`<span class="group-summary" data-rl="${g.rl}">

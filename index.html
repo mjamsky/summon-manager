@@ -98,7 +98,20 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .icon-hp { color: var(--red); }
 .icon-ac { color: var(--accent); }
 .icon-dmg { color: var(--crit); }
-.icon-pip { display: inline-block; width: 7px; height: 7px; vertical-align: 1px; margin-left: 2px; }
+.icon-pip { display: inline-block; width: 7px; height: 7px; vertical-align: 1px; }
+/* Attack name pip column */
+.atk-pips { display: inline-block; width: 10px; text-align: center; }
+.atk-name { text-transform: lowercase; }
+.atk-rake { color: var(--crit); }
+/* Legend colors match pips */
+.legend-grab { color: var(--accent); }
+.legend-grab .sp-link { color: var(--accent); font-size: 11px; }
+.legend-poison { color: #a0e050; }
+.legend-poison .sp-link { color: #a0e050; font-size: 11px; }
+.legend-trip { color: #f0a050; }
+.legend-trip .sp-link { color: #f0a050; font-size: 11px; }
+.legend-burn { color: #ff6030; }
+.legend-burn .sp-link { color: #ff6030; font-size: 11px; }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
 .hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; }
@@ -954,8 +967,6 @@ function renderCard(c, group, refAC) {
       else if(fumbleSafe) tag = `<span class="tag-muted">nat1</span>`;
       else if(fumblePending) tag = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
 
-      const isConditionalRake = r.isRake && r.conditionalOnMaintain;
-      const rakeTag=r.isRake?` <span class="rake-label">${isConditionalRake?'RK*':'RK'}</span>`:'';
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
       // Running total: show normal/crit when there's an unresolved threat
       let runCell;
@@ -964,7 +975,9 @@ function renderCard(c, group, refAC) {
       else { runCell = runningDmg; }
 
       const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
-      const nameCell = `${r.name}${rakeTag}${spPips}`;
+      const pipCell = spPips ? `<span class="atk-pips">${spPips}</span>` : `<span class="atk-pips"></span>`;
+      const nameCls = r.isRake ? 'atk-name atk-rake' : 'atk-name';
+      const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>`;
 
       if ((isHit || !hasAC) && r.specials.length) {
         for (const s of r.specials.filter(x=>x!=='rake')) {
@@ -1003,10 +1016,18 @@ function renderCard(c, group, refAC) {
           info = ` ${rolls} vs CMD${maintain}`;
         } else {
           const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
-          const dcMatch = detail?.desc?.match(/DC\s*(\d+)/);
-          if (dcMatch) info = ` DC ${dcMatch[1]}`;
+          if (detail?.desc) {
+            const dcMatch = detail.desc.match(/DC\s*(\d+)/);
+            const saveMatch = detail.desc.match(/(Fort|Ref|Will)/);
+            const effectMatch = detail.desc.match(/effect\s+(.+?)(?:;|$)/);
+            const parts = [];
+            if (saveMatch) parts.push(saveMatch[1]);
+            if (dcMatch) parts.push(`DC ${dcMatch[1]}`);
+            if (effectMatch) parts.push(effectMatch[1].trim().replace(/\s*damage\s*/gi,'').slice(0,20));
+            if (parts.length) info = ` ${parts.join(' ')}`;
+          }
         }
-        specialsHTML += `<div class="special-legend ${isTriggered?'triggered':''}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark}${info}</div>`;
+        specialsHTML += `<div class="special-legend legend-${s} ${isTriggered?'triggered':''}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark}${info}</div>`;
       }
       specialsHTML += `</div>`;
     }

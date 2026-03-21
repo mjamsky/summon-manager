@@ -692,7 +692,7 @@ function computeRoll(c) {
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
       specials: raw.specials, isRake: raw.isRake, conditionalOnMaintain: raw.conditionalOnMaintain,
-      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d,
+      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d, buffDmg: b.d, buffAtk: b.a, baseBonus: raw.baseBonus,
     });
   }
 
@@ -1005,7 +1005,8 @@ function renderCard(c, group, refAC) {
         }
       }
 
-      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
+      const buffAtkStr = r.buffAtk ? ` (${r.baseBonus>=0?'+':''}${r.baseBonus} base ${r.buffAtk>=0?'+':''}${r.buffAtk} buffs)` : '';
+      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus}${buffAtkStr} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
       // Atk cell: show CRIT/## or FAIL/## when pending, otherwise attack total
       let atkCell = `${r.total}`;
       if (critPending) atkCell = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
@@ -1017,7 +1018,9 @@ function renderCard(c, group, refAC) {
       const typeShort = dmgType;
       const typeNames = dmgType.split('/').map(t=>({B:'bludg.',S:'slash.',P:'pierc.'})[t]||t).join(', ');
       // Dmg tooltip: show individual rolls
-      const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${r.dmgMod>=0?'+':''}${r.dmgMod}` : '';
+      const baseMod = r.dmgMod - (r.buffDmg||0);
+      const buffPart = r.buffDmg ? ` +${r.buffDmg} buff` : '';
+      const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
       const dmgTip = `${r.dmgDice||'?'}: ${rollStr} (${typeNames})`;
       // Running total tooltip: breakdown by damage type
       const runTip = (runCell && !r.nat1 && !(isHit===false)) ? Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ') : '';

@@ -232,7 +232,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
 .special-legend { color: var(--muted); margin-bottom: 2px; }
 .special-legend .sp-link { font-size: 11px; }
-.legend-active { color: var(--hit); font-weight: bold; }
+.legend-active { color: var(--hit); font-weight: bold; animation: legend-shimmer 2s ease-in-out infinite; }
+@keyframes legend-shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; text-shadow: 0 0 8px var(--hit); }
+}
 
 /* Stat block special abilities */
 .sb-sa-label { color: var(--crit); min-width: auto; }
@@ -401,6 +405,17 @@ const IC = {
   poison: `<svg class="icon-pip icon-poison" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#a0e050"/></svg>`,
   burn: `<svg class="icon-pip icon-burn" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#ff6030"/></svg>`,
 };
+
+// Damage type by attack name (PF1e Universal Monster Rules)
+const DMG_TYPE = {
+  bite:'B/P/S', claw:'B/S', gore:'P', horn:'P', slam:'B', sting:'P',
+  rake:'B/S', hoof:'B', tail:'B', talon:'S', wing:'B', pincers:'B',
+  tentacle:'B', dagger:'P/S', sword:'S', mace:'B',
+};
+function getDmgType(name) {
+  const n = name.toLowerCase().replace(/\s*\d+$/,'');
+  return DMG_TYPE[n] || 'B/P/S';
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  DICE (Crypto)
@@ -590,7 +605,7 @@ function preRoll(c) {
     }
 
     rawRows.push({
-      name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t,
+      name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg,
       critConf, critDmgRaw, fumbleConf, fumbleBonus: atk.bonus,
       cr: atk.cr, cm: atk.cm, specials: atk.sp,
       nat20: r===20, nat1: r===1, threat, isRake: false,
@@ -614,7 +629,7 @@ function preRoll(c) {
       const r = d20();
       const dr = rdice(atk.dmg);
       rawRows.push({
-        name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t,
+        name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg,
         critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:atk.bonus,
         cr:20, cm:2, specials:atk.sp||[],
         nat20:r===20, nat1:r===1, threat:false, isRake:true,
@@ -630,7 +645,7 @@ function preRoll(c) {
     const r = d20();
     const dr = rdice(best.dmg);
     rawRows.push({
-      name:'Haste', r, baseBonus: best.bonus, baseDmg: dr.t,
+      name:'Haste', r, baseBonus: best.bonus, baseDmg: dr.t, dmgDice: best.dmg,
       critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:best.bonus,
       cr:20, cm:2, specials:[],
       nat20:r===20, nat1:r===1, threat:false, isRake:false, isHaste:true,
@@ -676,7 +691,7 @@ function computeRoll(c) {
       nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
-      specials: raw.specials, isRake: raw.isRake, conditionalOnMaintain: raw.conditionalOnMaintain,
+      specials: raw.specials, isRake: raw.isRake, conditionalOnMaintain: raw.conditionalOnMaintain, dmgDice: raw.dmgDice,
     });
   }
 
@@ -943,11 +958,18 @@ function renderCard(c, group, refAC) {
       const fumblePending = r.nat1 && !hasAC;
       const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
       if(isHit) { hitDmg += effectiveDmg; hitCount++; }
-      // Running totals: track both with and without crit for threat display
+      // Running totals: split only when AC unknown and threats exist
       const countForRunning = isHit === true || isHit === null;
       if(countForRunning && !r.nat1) {
-        runningDmg += r.dmgNoCrit;
-        runningDmgCrit += r.dmg;
+        if (hasAC) {
+          // AC set: crit resolution known, use effective damage for both
+          runningDmg += effectiveDmg;
+          runningDmgCrit += effectiveDmg;
+        } else {
+          // No AC: track both possibilities
+          runningDmg += r.dmgNoCrit;
+          runningDmgCrit += r.dmg;
+        }
       }
       let acLine='';
       if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
@@ -992,7 +1014,10 @@ function renderCard(c, group, refAC) {
       else if (critConfirmed) atkCell = `<b class="tag-crit">${r.total} CRIT!</b>`;
       else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE!</b>`;
       else if (fumbleSafe) atkCell = `<span class="tag-muted">${r.total}</span>`;
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg">${dmgCell}</td><td class="running">${runCell}</td></tr>`;
+      const dmgType = getDmgType(r.name);
+      const typeNames = dmgType.split('/').map(t=>({B:'bludg.',S:'slash.',P:'pierc.'})[t]||t).join(', ');
+      const dmgTip = `${r.dmgDice||'?'} (${typeNames})`;
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="running">${runCell}</td></tr>`;
     }
     tableHTML+=`</table>`;
 

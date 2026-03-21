@@ -61,10 +61,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop.open .cdrop-display { border-radius: 3px 3px 0 0; border-color: var(--accent); }
 .cdrop-search { width: 100%; background: var(--bg); border: none; border-bottom: 1px solid var(--border); color: var(--text); padding: 4px 6px; font-family: inherit; font-size: 12px; outline: none; }
 #cdrop-items { --name-col: 140px; }
-.cdrop-item { padding: 3px 6px; cursor: pointer; font-size: 12px; display: grid; grid-template-columns: 24px 62px var(--name-col) 1fr; align-items: center; gap: 0; }
+.cdrop-item { padding: 3px 6px; cursor: pointer; font-size: 12px; display: grid; grid-template-columns: 24px var(--name-col) 1fr auto; align-items: center; gap: 0; }
 .cdrop-item:hover, .cdrop-item.active { background: #333648; }
 .cdrop-item .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0 6px 0 0; }
-.cdrop-item .cdrop-stats { color: var(--muted); white-space: nowrap; font-size: 11px; }
+.cdrop-item .cdrop-stats { color: var(--muted); white-space: nowrap; font-size: 11px; text-align: right; }
 .cdrop-stats .icon { margin-left: 2px; }
 .cdrop-stats .icon-ac { margin-left: 5px; }
 .cdrop-item .cdrop-name { color: var(--text); padding-left: 6px; }
@@ -91,6 +91,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-cmd { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-left: auto; }
 .ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 0 12px; }
 .ccard-meta span { white-space: nowrap; }
+.ccard-meta .meta-right { margin-left: auto; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
 .icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
@@ -195,9 +196,19 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* ── Inline-style replacements ── */
 .label-inline { display: inline; }
-.round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); }
-.settings-toggle { font-size: 11px; color: var(--muted); cursor: pointer; margin-left: auto; }
+/* Title bar */
+.title-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; margin-bottom: 4px; }
+.app-title { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--muted); letter-spacing: 1px; }
+.settings-toggle { font-size: 11px; color: var(--muted); cursor: pointer; }
+
+/* Combat bar (primary actions) */
+.combat-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); }
+.round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 8px; }
 .settings-toggle:hover { color: var(--text); }
+/* Bar hierarchy — left border accent */
+.bar-buffs { border-left: 3px solid var(--green); }
+.bar-summon { border-left: 3px solid var(--crit); }
+.bar-items { border-left: 3px solid var(--muted); }
 .settings-tray { display: none; }
 .settings-tray.open { display: block; }
 .settings-tray .row { margin-bottom: 4px; }
@@ -303,14 +314,19 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 </head>
 <body>
 
-<!-- ═══ Global Controls ═══ -->
-<div class="panel row">
-  <div class="round-display">Rd <span id="disp-rd">0</span></div>
-  <div><label>Reference AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></div>
-  <div><label>&nbsp;</label><button class="act" onclick="reroll()">RE-ROLL ALL</button></div>
-  <div><label>&nbsp;</label><button class="go" onclick="nextRound()">NEXT ROUND</button></div>
-  <div><label>&nbsp;</label><button onclick="clearAll()">CLEAR</button></div>
+<!-- ═══ Title Bar ═══ -->
+<div class="title-bar">
+  <span class="app-title">SNA Combat Manager</span>
   <span class="settings-toggle" onclick="document.getElementById('settings-tray').classList.toggle('open')">⚙ Settings</span>
+</div>
+
+<!-- ═══ Combat Bar (primary) ═══ -->
+<div class="panel combat-bar">
+  <div class="round-display">Rd <span id="disp-rd">0</span></div>
+  <div><label>Ref AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></div>
+  <button class="act" onclick="reroll()">RE-ROLL ALL</button>
+  <button class="go" onclick="nextRound()">NEXT ROUND</button>
+  <button onclick="clearAll()">CLEAR</button>
 </div>
 
 <!-- ═══ Settings Tray (CL + Feats) ═══ -->
@@ -328,7 +344,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 </div>
 
 <!-- ═══ Buffs ═══ -->
-<div class="panel chip-row">
+<div class="panel chip-row bar-buffs">
   <label class="label-inline">Buffs:</label>
   <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
   <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
@@ -342,7 +358,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 </div>
 
 <!-- ═══ Summon Panel ═══ -->
-<div class="panel">
+<div class="panel bar-summon">
   <div class="row">
     <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
       <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
@@ -363,7 +379,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 </div>
 
 <!-- ═══ Quick Items ═══ -->
-<div class="panel row">
+<div class="panel row bar-items">
   <label class="label-inline">Items:</label>
   <button onclick="summonLions()">Lion Figurines (2)</button>
   <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
@@ -545,17 +561,16 @@ function renderCreatureDropdown(filter){
   el.innerHTML=creatureList.filter(c=>!f||c.name.toLowerCase().includes(f)||c.note.toLowerCase().includes(f))
     .map(c=>`<div class="cdrop-item ${c.name===selectedCreature?'active':''}" onclick="selectCreature('${c.name.replace(/'/g,"\\'")}')">
       <span class="tier tier-${c.tier}">${c.tier}</span>
+      <span class="cdrop-name">${c.name}${c.alt?` <span class="cdrop-note">[${c.src}]</span>`:''}</span>
+      ${c.note?`<span class="cdrop-note">│ ${c.note}</span>`:'<span></span>'}
       <span class="cdrop-stats">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span>
-      <span class="cdrop-name">${c.name}</span>
-      ${c.note?`<span class="cdrop-note">│ ${c.note}</span>`:''}
-      ${c.alt?`<span class="cdrop-note">[${c.src}]</span>`:''}
     </div>`).join('');
 }
 function updDropDisplay(){
   const c=creatureList.find(x=>x.name===selectedCreature);
   const el=document.getElementById('cdrop-text');
   if(!el) return;
-  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> <span class="cdrop-stats">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span> ${c.name}`;
+  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> ${c.name} <span class="cdrop-stats" style="margin-left:auto">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span>`;
   else el.textContent='Select...';
 }
 function selectCreature(name){
@@ -1224,7 +1239,7 @@ function renderCard(c, group, refAC) {
     ${abilityHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
     ${togglesHTML}
-    <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span></div>
+    <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span><span class="meta-right">${c.size}</span></div>
     ${sbHTML}
   </div>`;
 }

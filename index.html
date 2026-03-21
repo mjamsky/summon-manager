@@ -88,7 +88,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
 .ccard-cmd { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-left: auto; }
-.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; }
+.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 0 12px; }
+.ccard-meta span { white-space: nowrap; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
 .icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
@@ -913,7 +914,7 @@ function renderCard(c, group, refAC) {
     let acLineDrawn = false;
 
     const triggeredSpecials = new Set();
-    let runningDmg = 0;
+    let runningDmg = 0, runningDmgCrit = 0;
     tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">Atk</th><th class="r">Dmg</th><th class="r" title="Running total damage">${IC.dmg('icon-sm')}</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
@@ -924,9 +925,12 @@ function renderCard(c, group, refAC) {
       const fumblePending = r.nat1 && !hasAC;
       const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
       if(isHit) { hitDmg += effectiveDmg; hitCount++; }
-      // Running total: accumulate damage for all non-miss attacks
+      // Running totals: track both with and without crit for threat display
       const countForRunning = isHit === true || isHit === null;
-      if(countForRunning && !r.nat1) runningDmg += (hasAC ? effectiveDmg : r.dmgNoCrit);
+      if(countForRunning && !r.nat1) {
+        runningDmg += r.dmgNoCrit;
+        runningDmgCrit += r.dmg;
+      }
       let acLine='';
       if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
 
@@ -939,15 +943,19 @@ function renderCard(c, group, refAC) {
       let tag = '';
       if(critConfirmed) tag = `<b class="tag-crit">CRIT!</b>`;
       else if(r.critOk && hasAC) tag = `<span class="tag-muted">no conf</span>`;
-      else if(critPending) tag = `<span class="tag-threat">THREAT</span>`;
+      else if(critPending) tag = `<span class="tag-threat">THREAT <span class="tag-muted">conf ${r.critConfTotal}</span></span>`;
       else if(fumbleFail) tag = `<b class="tag-fumble">FUMBLE!</b>`;
       else if(fumbleSafe) tag = `<span class="tag-muted">nat1</span>`;
-      else if(fumblePending) tag = `<span class="tag-nat1">NAT1</span>`;
+      else if(fumblePending) tag = `<span class="tag-nat1">NAT1 <span class="tag-muted">conf ${r.fumbleConfTotal}</span></span>`;
 
       const isConditionalRake = r.isRake && r.conditionalOnMaintain;
       const rakeTag=r.isRake?` <span class="rake-label">${isConditionalRake?'RK*':'RK'}</span>`:'';
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
-      const runCell = (isHit===false || r.nat1) ? '' : runningDmg;
+      // Running total: show normal/crit when there's an unresolved threat
+      let runCell;
+      if (isHit===false || r.nat1) { runCell = ''; }
+      else if (runningDmg !== runningDmgCrit) { runCell = `${runningDmg}/${runningDmgCrit}`; }
+      else { runCell = runningDmg; }
 
       const spLabels = r.specials.filter(s=>s!=='rake').map(s => `<span class="sp-label-tag">+${s}</span>`).join(' ');
       const nameCell = `${r.name}${rakeTag}${spLabels?' '+spLabels:''}`;
@@ -991,6 +999,9 @@ function renderCard(c, group, refAC) {
     if(pr.maintain) grabParts.push(`Maintain: ${pr.maintain.total} vs CMD`);
     const grabLine = grabParts.length ? `<span class="grab-info">${grabParts.join(' │ ')}</span>` : '';
 
+    // Summary total: show normal/crit split when threats exist
+    const dmgDisplay = runningDmg !== runningDmgCrit ? `${runningDmg}/<span class="tag-crit">${runningDmgCrit}</span>` : `${runningDmg}`;
+
     if(hasAC) {
       summaryHTML=`<div class="roll-summary">
         <table class="roll-summary-table"><tr>
@@ -999,11 +1010,10 @@ function renderCard(c, group, refAC) {
         </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
       </div>`;
     } else {
-      const totNoCrit = pr.rows.reduce((a,r)=>a+r.dmgNoCrit,0);
       summaryHTML=`<div class="roll-summary">
         <table class="roll-summary-table"><tr>
           <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
-          <td class="total-dmg">${totNoCrit}</td>
+          <td class="total-dmg">${dmgDisplay}</td>
         </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
       </div>`;
     }
@@ -1136,7 +1146,7 @@ function renderCard(c, group, refAC) {
     ${abilityHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
     ${togglesHTML}
-    <div class="ccard-meta">Spd ${c.speed} · Reach ${c.reach}</div>
+    <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span></div>
     ${sbHTML}
   </div>`;
 }

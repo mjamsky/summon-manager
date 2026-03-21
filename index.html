@@ -233,7 +233,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .special-legend { color: var(--muted); margin-bottom: 2px; }
 .special-legend.triggered { color: var(--text); }
 .special-legend .sp-link { font-size: 11px; }
-.special-legend.triggered .sp-link { color: var(--hit); }
 
 /* Stat block special abilities */
 .sb-sa-label { color: var(--crit); min-width: auto; }
@@ -1006,7 +1005,7 @@ function renderCard(c, group, refAC) {
       for (const s of allSpecials) {
         const isTriggered = triggeredSpecials.has(s);
         const pip = IC[s] || '';
-        const mark = isTriggered ? ' ✓' : '';
+        const mark = (isTriggered && hasAC) ? ' ✓' : '';
         const sName = s.charAt(0).toUpperCase()+s.slice(1);
         const url = PFSRD[s] || '#';
         let info = '';

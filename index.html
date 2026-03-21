@@ -307,12 +307,25 @@ function updCreatures(){
       const order={S:0,A:1,B:2,C:3,U:4};
       return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
     });
-  sel.innerHTML=available.map(b=>{
+  // Sort: core first, then alternates; within each, by tier
+  const sorted = available.sort((a,b)=>{
+    const aAlt = a.data.is_alternate ? 1 : 0;
+    const bAlt = b.data.is_alternate ? 1 : 0;
+    if (aAlt !== bAlt) return aAlt - bAlt;
+    const ra=lvRatings[a.data.name]?.tier||'U', rb=lvRatings[b.data.name]?.tier||'U';
+    const order={S:0,A:1,B:2,C:3,U:4};
+    return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
+  });
+  sel.innerHTML=sorted.map(b=>{
     const c=b.data.combat_card;
     const rating=lvRatings[b.data.name];
     const t=rating?.tier||'?';
     const tags=rating?.tags?.join(', ')||'';
-    return `<option value="${b.data.name}" class="opt-${t}">${t==='?'?'':'['+t+'] '}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})</option>`;
+    const alt=b.data.is_alternate;
+    const src=b.data.source||'core';
+    const altTag=alt?` [${src}]`:'';
+    const prefix=t==='?'?'':'['+t+'] ';
+    return `<option value="${b.data.name}" class="opt-${t}" ${alt?'style="color:#aa8855"':''}>${prefix}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})${altTag}</option>`;
   }).join('');
 }
 

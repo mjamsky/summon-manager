@@ -15,6 +15,8 @@
           "type": "animal",
           "size": "Gargantuan",
           "cr": "10",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 6, flat-footed 18 (natural +12, size -4)",
@@ -64,6 +66,8 @@
           "type": "animal",
           "size": "Gargantuan",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 6, flat-footed 21 (natural +15, size -4)",
@@ -113,6 +117,8 @@
           "type": "animal",
           "size": "Gargantuan",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 8, flat-footed 21 (dex +2, natural +15, size -4)",
@@ -162,6 +168,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 25,
             "AC_breakdown": "25, touch 19, flat-footed 14 (dex +10, dodge +1, natural +6, size -2)",
@@ -211,6 +219,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 7, flat-footed 21 (dex -1, natural +14, size -2)",
@@ -260,6 +270,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 17, flat-footed 14 (dex +8, dodge +1, natural +6, size -2)",
@@ -309,6 +321,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 14, flat-footed 17 (dex +5, dodge +1, natural +9, size -2)",
@@ -358,6 +372,8 @@
           "type": "humanoid",
           "size": "Large",
           "cr": "10",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 24,
             "AC_breakdown": "24, touch 8, flat-footed 24 (armor +8, dex -1, natural +8, size -1)",
@@ -407,6 +423,8 @@
           "type": "humanoid",
           "size": "Large",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 8, flat-footed 21 (armor +4, dex -1, natural +9, size -1)",
@@ -456,6 +474,8 @@
           "type": "animal",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 20,
             "AC_breakdown": "20, touch 11, flat-footed 17 (dex +3, natural +9, size -2)",
@@ -505,6 +525,8 @@
           "type": "animal",
           "size": "Huge",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 9, flat-footed 20 (dex +1, natural +12, size -2)",
@@ -554,6 +576,8 @@
           "type": "animal",
           "size": "Gargantuan",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 22,
             "AC_breakdown": "22, touch 8, flat-footed 20 (dex +2, natural +14, size -4)",
@@ -603,6 +627,8 @@
           "type": "animal",
           "size": "Gargantuan",
           "cr": "9",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 21,
             "AC_breakdown": "21, touch 7, flat-footed 20 (dex +1, natural +14, size -4)",
@@ -645,6 +671,159 @@
             "Str": 36,
             "Con": 23
           }
+        },
+        {
+          "name": "Giant Anaconda",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-anaconda/",
+          "type": "animal",
+          "size": "Gargantuan",
+          "cr": "10",
+          "source": "AP42",
+          "is_alternate": true,
+          "combat_card": {
+            "AC": 25,
+            "AC_breakdown": "25, touch 9, flat-footed 22 (dex +2, dodge +1, natural +16, size -4)",
+            "HP": 126,
+            "HD": "12d8+72",
+            "Fort": 14,
+            "Ref": 10,
+            "Will": 5,
+            "Speed": "20 ft., climb 20 ft., swim 20 ft.",
+            "Melee": "bite +19 (4d6+19/19-20 plus grab)",
+            "CMB": 26,
+            "CMB_full": "26 (+30 grapple)",
+            "CMD": 39,
+            "CMD_full": "39 (can\u2019t be tripped)",
+            "Special_Attacks": "constrict (4d6+19)",
+            "Special_Qualities": "low-light vision, scent"
+          },
+          "full_statblock": {
+            "Str": 36,
+            "Dex": 14,
+            "Con": 23,
+            "Int": 1,
+            "Wis": 13,
+            "Cha": 2,
+            "BAB": 9,
+            "Feats": "Dodge, Improved Critical (bite), Improved Initiative, Power Attack, Skill Focus (Perception), Weapon Focus (bite)",
+            "Skills": "Climb +21, Perception +22, Swim +21",
+            "Space": "20 ft.",
+            "Reach": "20 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 25,
+            "HP": 150,
+            "HD": "12d8+96",
+            "Fort": 16,
+            "Melee": "bite +21 (4d6+21/19-20 plus grab)",
+            "CMB": 28,
+            "CMD": 43,
+            "Str": 40,
+            "Con": 27
+          }
+        },
+        {
+          "name": "Giant Flytrap",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-flytrap/",
+          "type": "plant",
+          "size": "Huge",
+          "cr": "10",
+          "source": "AP75",
+          "is_alternate": true,
+          "combat_card": {
+            "AC": 22,
+            "AC_breakdown": "22, touch 12, flat-footed 18 (dex +4, natural +10, size -2)",
+            "HP": 149,
+            "HD": "13d8+91",
+            "Fort": 17,
+            "Ref": 8,
+            "Will": 5,
+            "Speed": "10 ft.",
+            "Melee": "4 bites +15 (1d8+7 plus grab)",
+            "CMB": 18,
+            "CMB_full": "18 (+22 grapple)",
+            "CMD": 32,
+            "CMD_full": "32 (can\u2019t be tripped)",
+            "Special_Attacks": "engulf",
+            "Special_Qualities": "low-light vision, tremorsense"
+          },
+          "full_statblock": {
+            "Str": 25,
+            "Dex": 18,
+            "Con": 25,
+            "Int": 1,
+            "Wis": 12,
+            "Cha": 6,
+            "BAB": 9,
+            "Feats": "Cleave, Great Fortitude, Improved Initiative, Power Attack, Skill Focus (Stealth), Vital Strike, Weapon Focus (bite)",
+            "Skills": "Perception +10, Stealth +9",
+            "Space": "15 ft.",
+            "Reach": "15 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 22,
+            "HP": 175,
+            "HD": "13d8+117",
+            "Fort": 19,
+            "Melee": "4 bites +17 (1d8+9 plus grab)",
+            "CMB": 20,
+            "CMD": 36,
+            "Str": 29,
+            "Con": 29
+          }
+        },
+        {
+          "name": "Giant Snapping Turtle",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-snapping-turtle/",
+          "type": "animal",
+          "size": "Gargantuan",
+          "cr": "9",
+          "source": "AP75",
+          "is_alternate": true,
+          "combat_card": {
+            "AC": 23,
+            "AC_breakdown": "23, touch 4, flat-footed 23 (dex -2, natural +19, size -4)",
+            "HP": 115,
+            "HD": "11d8+66",
+            "Fort": 12,
+            "Ref": 5,
+            "Will": 6,
+            "Speed": "20 ft., swim 20 ft.",
+            "Melee": "bite +16 (4d6+16 plus grab)",
+            "CMB": 23,
+            "CMB_full": "23 (+27 grapple)",
+            "CMD": 31,
+            "CMD_full": "31 (35 vs. trip)",
+            "Special_Attacks": "swallow whole (2d8+16 bludgeoning, AC 23, 22 hp)",
+            "Special_Qualities": "low-light vision, scent"
+          },
+          "full_statblock": {
+            "Str": 32,
+            "Dex": 6,
+            "Con": 21,
+            "Int": 1,
+            "Wis": 13,
+            "Cha": 6,
+            "BAB": 8,
+            "Feats": "Improved Initiative, Iron Will, Lunge, Skill Focus (Perception), Toughness, Weapon Focus (bite)",
+            "Skills": "Perception +21, Swim +19",
+            "Space": "20 ft.",
+            "Reach": "15 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 23,
+            "HP": 137,
+            "HD": "11d8+88",
+            "Fort": 14,
+            "Melee": "bite +18 (4d6+18 plus grab)",
+            "CMB": 25,
+            "CMD": 35,
+            "Str": 36,
+            "Con": 25
+          }
         }
       ]
     },
@@ -657,6 +836,8 @@
           "type": "humanoid",
           "size": "Huge",
           "cr": "11",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 25,
             "AC_breakdown": "25, touch 9, flat-footed 24 (armor +4, dex +1, natural +12, size -2)",
@@ -706,6 +887,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "11",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 28,
             "AC_breakdown": "28, touch 20, flat-footed 16 (dex +11, dodge +1, natural +8, size -2)",
@@ -755,6 +938,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "11",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 23,
             "AC_breakdown": "23, touch 7, flat-footed 23 (dex -1, natural +16, size -2)",
@@ -804,6 +989,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "11",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 26,
             "AC_breakdown": "26, touch 18, flat-footed 16 (dex +9, dodge +1, natural +8, size -2)",
@@ -853,6 +1040,8 @@
           "type": "outsider",
           "size": "Huge",
           "cr": "11",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 24,
             "AC_breakdown": "24, touch 15, flat-footed 17 (dex +6, dodge +1, natural +9, size -2)",
@@ -902,6 +1091,8 @@
           "type": "magical beast",
           "size": "Gargantuan",
           "cr": "12",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 26,
             "AC_breakdown": "26, touch 4, flat-footed 26 (dex -2, natural +22, size -4)",
@@ -956,6 +1147,8 @@
           "type": "fey",
           "size": "Small",
           "cr": "4",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 18,
             "AC_breakdown": "18, touch 17, flat-footed 12 (dex +5, dodge +1, natural +1, size +1)",
@@ -1005,6 +1198,8 @@
           "type": "humanoid",
           "size": "Huge",
           "cr": "13",
+          "source": "core",
+          "is_alternate": false,
           "combat_card": {
             "AC": 28,
             "AC_breakdown": "28, touch 10, flat-footed 26 (armor +6, dex +2, natural +12, size -2)",

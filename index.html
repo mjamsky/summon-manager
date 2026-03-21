@@ -716,9 +716,9 @@ function renderCard(c, group, refAC) {
       const rakeTag=r.isRake?` <span style="color:var(--crit);font-size:9px">${isConditionalRake?'RK*':'RK'}</span>`:'';
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
 
-      // Tooltips with full breakdown
-      const atkTip = `d20=[${r.r}] + ${r.bonus} bonus = ${r.total}${r.critOk?' | confirm: ['+r.critConf+']+'+r.bonus+'='+r.critConfTotal:''}${r.nat1?' | fumble: ['+r.fumbleConf+']+'+r.bonus+'='+r.fumbleConfTotal:''}`;
-      const dmgTip = `base: ${r.dmgNoCrit}${r.critOk?' | with crit: '+r.dmg:''}`;
+      // Short special labels on the attack name (e.g., "sting +poison")
+      const spLabels = r.specials.filter(s=>s!=='rake').map(s => `<span style="font-size:9px;color:var(--accent)">+${s}</span>`).join(' ');
+      const nameCell = `${r.name}${rakeTag}${spLabels?' '+spLabels:''}`;
 
       // Track specials triggered by hits for the section below
       if ((isHit || !hasAC) && r.specials.length) {
@@ -727,12 +727,12 @@ function renderCard(c, group, refAC) {
         }
       }
 
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="special">${tag}</td></tr>`;
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total">${r.total}</td><td class="dmg">${dmgCell}</td><td class="special">${tag}</td></tr>`;
     }
     tableHTML+=`</table>`;
 
     // ── Special Attacks section (below rule line) ──
-    // Collect all specials from attacks, show details, color when triggered
+    // Full descriptions, no truncation. Colored when triggered by a hit.
     const allSpecials = new Set();
     pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
 
@@ -740,14 +740,12 @@ function renderCard(c, group, refAC) {
       specialsHTML = `<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;font-size:11px">`;
       for (const s of allSpecials) {
         const isTriggered = triggeredSpecials.has(s);
-        const color = isTriggered ? (hasAC ? 'var(--hit)' : 'var(--accent)') : 'var(--muted)';
-        const activeTag = isTriggered && hasAC ? ' ACTIVE' : '';
-        // Get detail from special abilities
+        const color = isTriggered ? (hasAC ? 'var(--hit)' : 'var(--text)') : 'var(--muted)';
+        const label = isTriggered && hasAC ? 'ACTIVE — ' : '';
         const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
         const desc = detail ? detail.desc : '';
-        const shortDesc = desc.length > 80 ? desc.slice(0,80)+'...' : desc;
-        specialsHTML += `<div style="color:${color}" title="${desc}">
-          ${spLink(s)}${activeTag}${shortDesc ? ': '+shortDesc : ''}
+        specialsHTML += `<div style="color:${color};margin-bottom:2px">
+          <b>${label}${spLink(s)}</b>${desc ? ': '+desc : ''}
         </div>`;
       }
       specialsHTML += `</div>`;

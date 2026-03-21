@@ -350,8 +350,8 @@ function preRoll(c) {
     }
   }
 
-  // Rake attacks
-  if (c.hasRake && c.pouncing && c.rakeAtks.length > 0) {
+  // Rake attacks (triggered by pounce OR started turn grappling)
+  if (c.hasRake && (c.pouncing || c.grappling) && c.rakeAtks.length > 0) {
     for (const atk of c.rakeAtks) {
       const r = d20();
       const dr = rdice(atk.dmg);
@@ -495,7 +495,7 @@ function mkCreature(bEntry, aug) {
     space:full.Space||'5 ft.', reach:full.Reach||'5 ft.',
     type:data.type||'', size:data.size||'', cr:data.cr||'',
     pfsrdUrl:data.pfsrd_url||'',
-    preRoll:null, alive:true, buffOvr:{}, pouncing:false,
+    preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
   };
 }
 
@@ -624,9 +624,11 @@ function renderCard(c, casting, refAC) {
     return `<span class="buff-chip ${off?'off':''}" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`;
   }).join('');
 
-  // Pounce toggle
+  // Pounce toggle + grappling indicator
   const pounceHTML = c.hasPounce ?
-    `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Toggle charge+pounce (adds rake attacks)">${c.pouncing?'POUNCING':'Pounce?'}</span>` : '';
+    `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce?'}</span>` : '';
+  const grapHTML = c.hasRake ?
+    `<span class="pounce-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Started turn grappling: gets rake" style="background:${c.grappling?'var(--accent)':'#2a2a5a'};color:${c.grappling?'#fff':'var(--accent)'}">${c.grappling?'GRAPPLING':'Grapple?'}</span>` : '';
 
   // Roll table — compute from raw rolls + current buffs
   let tableHTML='', summaryHTML='';
@@ -759,7 +761,7 @@ function renderCard(c, casting, refAC) {
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
     <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
-      ${buffHTML} ${pounceHTML}
+      ${buffHTML} ${pounceHTML} ${grapHTML}
     </div>
     ${hpCtrl}
     ${summaryHTML}${tableHTML}
@@ -775,7 +777,8 @@ function dmgC(id,n){const c=findC(id);if(c){c.hp=Math.max(0,c.hp-n);if(c.hp<=0)c
 function healC(id,n){const c=findC(id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.alive=c.hp>0;render();}}
 function hpAdj(id,n){const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,c.hp+n));if(c.hp<=0)c.alive=false;render();}}
 function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;if(val.startsWith('+')||val.startsWith('-')){hpAdj(id,n);}else{const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,n));if(c.hp<=0)c.alive=false;render();}}}
-function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;preRoll(c);render();}}
+function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
+function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
 function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
 function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];reroll();}

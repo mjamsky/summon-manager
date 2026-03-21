@@ -84,7 +84,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
 .ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; }
 .ccard-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; align-self: flex-end; }
-.ccard-id { font-size: 10px; color: var(--muted); position: absolute; top: 6px; right: 8px; }
+.ccard-id { font-size: 10px; color: var(--text); position: absolute; top: 6px; right: 8px; }
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
@@ -94,8 +94,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-meta .meta-right { margin-left: auto; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
-.icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
-.icon-sm { width: 10px; height: 10px; vertical-align: -1px; }
+.icon { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 2px; }
+.icon-sm { width: 10px; height: 10px; vertical-align: -1px; margin: 0 1px; }
 .icon-hp { color: var(--red); }
 .icon-ac { color: var(--accent); }
 .icon-dmg { color: var(--crit); }
@@ -225,6 +225,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .bar-buffs { border-left: 3px solid var(--green); }
 .bar-summon { border-left: 3px solid var(--crit); }
 .bar-items { border-left: 3px solid var(--muted); }
+.bar-dismiss:empty { display: none; }
+.bar-dismiss { border-left: 3px solid var(--red); }
 .settings-tray { display: none; }
 .settings-tray.open { display: block; }
 .settings-tray .row { margin-bottom: 4px; }
@@ -378,6 +380,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
     <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
     <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
   </div>
+  <div class="panel bar-dismiss" id="dismiss-bar"></div>
   <details class="panel">
     <summary class="import-summary">Claude Import (JSON)</summary>
     <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
@@ -923,6 +926,23 @@ function render(){
   }
   document.getElementById('round-groups').innerHTML=gBar;
 
+  // Dismiss bar in setup drawer
+  let dBar='';
+  if(S.groups.length > 0) {
+    dBar='<div class="chip-row"><label class="label-inline">Dismiss:</label>';
+    for(const g of S.groups){
+    const rlTxt=g.src==='figurine'?'1hr':`${g.rl}${IC.countdown('icon-sm')}`;
+      const gCreature = g.creatures[0]?.name || '?';
+      dBar+=`<button class="sm" onclick="dismissG('${g.id}')">${gCreature} ×</button>`;
+    }
+    dBar+='</div>';
+  }
+  document.getElementById('dismiss-bar').innerHTML=dBar;
+
+  // Auto-open setup drawer when no creatures on board
+  const drawer = document.getElementById('setup-drawer');
+  if(S.groups.length === 0 && !drawer.open) drawer.open = true;
+
   document.getElementById('effects-out').innerHTML=S.effects.map(e=>
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
   ).join('');
@@ -953,7 +973,7 @@ function renderCard(c, group, refAC) {
   const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
-  const rlTxt=group.src==='figurine'?'1hr':`${IC.countdown('icon-sm')}${group.rl}`;
+  const rlTxt=group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
   const durBadge = rlTxt;
 
   // Tier for data attribute (dropdown uses it, cards don't display it)

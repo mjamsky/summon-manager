@@ -329,24 +329,38 @@ function preRoll(c) {
     const total = r + atk.bonus + b.a;
     const nat20 = r === 20, nat1 = r === 1;
     const threat = r >= atk.cr;
-    let dmg = 0, critOk = false;
+    let dmg = 0, critOk = false, critConf = 0, critConfTotal = 0;
+    let fumbleConf = 0, fumbleConfTotal = 0, critFail = false;
 
     // Always roll damage (needed for sorted table)
     const dr = rdice(atk.dmg);
     dmg = dr.t + b.d;
 
+    // Crit threat: roll confirmation (we show the roll, hit/miss depends on AC)
     if (threat && !nat1) {
-      const conf = d20() + atk.bonus + b.a;
-      critOk = conf >= total; // confirm vs same total (conservative — should be vs AC but we don't know it)
-      // For crit, just double the base damage
-      if (critOk) { const cr2 = rdice(atk.dmg); dmg += cr2.t + b.d; }
+      critConf = d20();
+      critConfTotal = critConf + atk.bonus + b.a;
+      // Pre-roll crit bonus damage (applied if confirmed)
+      const cr2 = rdice(atk.dmg);
+      critOk = true; // we flag that a crit IS possible; actual confirm depends on AC
+      dmg += cr2.t + b.d; // total includes crit damage; display will show breakdown
     }
 
-    const hit_ac = nat20 ? 999 : nat1 ? 0 : total; // AC threshold this hits
+    // Nat 1 fumble confirmation: reroll, if miss = crit fail
+    if (nat1) {
+      fumbleConf = d20();
+      fumbleConfTotal = fumbleConf + atk.bonus + b.a;
+      // critFail determined at display time based on AC
+    }
+
+    const hit_ac = nat20 ? 999 : nat1 ? 0 : total;
 
     rows.push({
       name: atk.name, r, bonus: atk.bonus + b.a, total,
-      hit_ac, dmg, nat20, nat1, threat, critOk,
+      hit_ac, dmg, dmgNoCrit: dr.t + b.d, // damage without crit for display
+      nat20, nat1, threat, critOk,
+      critConf, critConfTotal, // the confirmation roll
+      fumbleConf, fumbleConfTotal, // the fumble confirmation roll
       specials: atk.sp,
     });
 
@@ -578,29 +592,67 @@ function renderCard(c, casting, refAC) {
     tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>d20</th><th>Total</th><th>Dmg</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
-      if(isHit){hitDmg+=r.dmg;hitCount++;}
+      // Determine crit confirmation against AC
+      const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
+      const critPending = r.critOk && !hasAC; // don't know AC yet
+      // Determine fumble confirmation against AC
+      const fumbleFail = r.nat1 && hasAC && r.fumbleConfTotal < refAC; // reroll missed = CRIT FAIL
+      const fumbleSafe = r.nat1 && hasAC && r.fumbleConfTotal >= refAC; // reroll hit = just a miss
+      const fumblePending = r.nat1 && !hasAC;
+      // Damage: use crit damage only if confirmed
+      const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
+      if(isHit) { hitDmg += effectiveDmg; hitCount++; }
       let acLine='';
       if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
-      const cls=r.critOk?'crit':(isHit===true?'hit':(isHit===false?'miss':''));
-      const tag=r.critOk?' CRIT':r.nat20?' NAT20':r.nat1?' NAT1':'';
+
+      // Row class
+      let cls = '';
+      if(fumbleFail) cls = 'crit'; // will style red via special tag
+      else if(critConfirmed) cls = 'crit';
+      else if(isHit===true) cls = 'hit';
+      else if(isHit===false) cls = 'miss';
+
+      // Tags
+      let tag = '';
+      if(critConfirmed) tag = ` <b style="color:var(--crit)">CRIT! [${r.critConf}]=${r.critConfTotal} confirms</b>`;
+      else if(r.critOk && hasAC) tag = ` <span style="color:var(--muted)">threat [${r.critConf}]=${r.critConfTotal} NO confirm</span>`;
+      else if(critPending) tag = ` <span style="color:var(--crit)">THREAT! confirm: [${r.critConf}]=${r.critConfTotal} vs AC?</span>`;
+      else if(fumbleFail) tag = ` <b style="color:var(--miss)">CRIT FAIL! [${r.fumbleConf}]=${r.fumbleConfTotal} misses</b>`;
+      else if(fumbleSafe) tag = ` <span style="color:var(--muted)">nat1, reroll [${r.fumbleConf}]=${r.fumbleConfTotal} hits → just a miss</span>`;
+      else if(fumblePending) tag = ` <span style="color:var(--miss)">NAT 1! fumble check: [${r.fumbleConf}]=${r.fumbleConfTotal} vs AC?</span>`;
+      else if(r.nat20 && !r.critOk) tag = ' NAT20';
+
       const rakeTag=r.isRake?' <span style="color:var(--crit);font-size:9px">[RAKE]</span>':'';
       const sp=r.specials.filter(s=>s!=='rake').map(s=>spLink(s)).join(' ');
-      const dmgCell = hasAC ? (isHit ? r.dmg : '-') : r.dmg;
+      const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?` (${r.dmg} if crit)`:''}`;
+
+      if(fumbleFail) cls = ''; // override — custom color via tag
       tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="d20">[${r.r}]</td><td class="total">${r.total}</td><td class="dmg">${dmgCell}</td><td class="special">${tag} ${sp}</td></tr>`;
     }
     tableHTML+=`</table>`;
 
     const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total} vs CMD`).join(', ')}</span>`:'';
+    // Count crits and fumbles for summary
+    const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
+    const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
+    const critNote = nCrits ? ` | <span style="color:var(--crit)">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
+    const fumbleNote = nFumbles ? ` | <span style="color:var(--miss)">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
+
     if(hasAC) {
       summaryHTML=`<div class="roll-summary">
         <span>vs AC ${refAC}: <b style="color:var(--hit)">${hitCount}</b>/${totalAtks} hit</span>
-        <span class="total-dmg">${hitDmg} dmg</span>${grabStr}
+        <span class="total-dmg">${hitDmg} dmg</span>${critNote}${fumbleNote}${grabStr}
       </div>`;
     } else {
-      const totAll = pr.rows.reduce((a,r)=>a+r.dmg,0);
+      const totNoCrit = pr.rows.reduce((a,r)=>a+r.dmgNoCrit,0);
+      const totWithCrit = pr.rows.reduce((a,r)=>a+r.dmg,0);
+      const threats = pr.rows.filter(r=>r.critOk).length;
+      const fumbles = pr.rows.filter(r=>r.nat1).length;
+      const tNote = threats ? ` | <span style="color:var(--crit)">${threats} threat${threats>1?'s':''}</span>` : '';
+      const fNote = fumbles ? ` | <span style="color:var(--miss)">${fumbles} nat1${fumbles>1?'s':''}</span>` : '';
       summaryHTML=`<div class="roll-summary">
-        <span>Totals: ${pr.rows.map(r=>r.total).join(', ')}</span>
-        <span class="total-dmg">All hit: ${totAll} dmg</span>${grabStr}
+        <span>All totals: ${pr.rows.map(r=>r.total).join(', ')}</span>
+        <span class="total-dmg">${totNoCrit} dmg${threats?` (${totWithCrit} w/crits)`:''}</span>${tNote}${fNote}${grabStr}
       </div>`;
     }
   }

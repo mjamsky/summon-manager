@@ -53,9 +53,14 @@ Source: Obsidian vault SRD at `~/Documents/Obsidian/Serpent's Skull/Assets/SRD/f
 
 ## Backlog
 
+**Architecture (do first):**
+- CSS/JS separation — move all inline styles out of JS template literals into semantic CSS classes. JS outputs classes + data attributes, CSS handles all presentation. Enables media queries, theming, animations, and much easier iteration.
+
+**Features:**
 - Items sidebar (wand charges, figurine activation, overrideable CL)
 - Claude chat panel for between-turn strategy
 - SNA 7-9 community tier ratings
+- Versatile Summoning templates (Aerial/Aqueous/Chthonic/Dark/Fiery)
 - Wild shape form management
 - Constrict auto-damage on maintained grapple
 

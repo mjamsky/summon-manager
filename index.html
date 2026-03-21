@@ -343,7 +343,10 @@ function preRoll(c) {
 
     if (threat) {
       critConf = d20();
-      critDmgRaw = rdice(atk.dmg).t; // extra damage dice for crit
+      // Crit multiplier: x2 = 1 extra roll, x3 = 2 extra rolls, x4 = 3 extra
+      const extraRolls = (atk.cm || 2) - 1;
+      critDmgRaw = 0;
+      for (let cr = 0; cr < extraRolls; cr++) critDmgRaw += rdice(atk.dmg).t;
     }
     if (r === 1) {
       fumbleConf = d20();
@@ -421,7 +424,8 @@ function computeRoll(c) {
     if (raw.threat) {
       critConfTotal = raw.critConf + bonus;
       critOk = true;
-      dmgWithCrit = dmgBase + raw.critDmgRaw + b.d;
+      const extraMults = (raw.cm || 2) - 1;
+      dmgWithCrit = dmgBase + raw.critDmgRaw + (b.d * extraMults);
     }
     if (raw.nat1) {
       fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a;
@@ -679,6 +683,7 @@ function renderCard(c, group, refAC) {
     let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
     let acLineDrawn = false;
 
+    const triggeredSpecials = new Set();
     tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
@@ -709,29 +714,48 @@ function renderCard(c, group, refAC) {
 
       const isConditionalRake = r.isRake && r.conditionalOnMaintain;
       const rakeTag=r.isRake?` <span style="color:var(--crit);font-size:9px">${isConditionalRake?'RK*':'RK'}</span>`:'';
-      // Show specials with poison/disease detail from special_abilities
-      const spList = r.specials.filter(s=>s!=='rake');
-      const sp = spList.map(s => {
-        if ((s === 'poison' || s === 'disease') && c.specialAbilities) {
-          const detail = c.specialAbilities.find(a => a.name.toLowerCase().includes(s));
-          if (detail) {
-            const short = detail.desc.length > 60 ? detail.desc.slice(0,60)+'...' : detail.desc;
-            return `<span title="${detail.desc}" style="cursor:help">${spLink(s)} <span style="font-size:9px;color:var(--muted)">${short}</span></span>`;
-          }
-        }
-        return spLink(s);
-      }).join(' ');
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
 
       // Tooltips with full breakdown
       const atkTip = `d20=[${r.r}] + ${r.bonus} bonus = ${r.total}${r.critOk?' | confirm: ['+r.critConf+']+'+r.bonus+'='+r.critConfTotal:''}${r.nat1?' | fumble: ['+r.fumbleConf+']+'+r.bonus+'='+r.fumbleConfTotal:''}`;
       const dmgTip = `base: ${r.dmgNoCrit}${r.critOk?' | with crit: '+r.dmg:''}`;
 
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="special">${tag} ${sp}</td></tr>`;
+      // Track specials triggered by hits for the section below
+      if ((isHit || !hasAC) && r.specials.length) {
+        for (const s of r.specials.filter(x=>x!=='rake')) {
+          triggeredSpecials.add(s);
+        }
+      }
+
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}${rakeTag}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="special">${tag}</td></tr>`;
     }
     tableHTML+=`</table>`;
 
-    const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total} vs CMD`).join(', ')}</span>`:'';
+    // ── Special Attacks section (below rule line) ──
+    // Collect all specials from attacks, show details, color when triggered
+    const allSpecials = new Set();
+    pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
+
+    let specialsHTML = '';
+    if (allSpecials.size > 0) {
+      specialsHTML = `<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;font-size:11px">`;
+      for (const s of allSpecials) {
+        const isTriggered = triggeredSpecials.has(s);
+        const color = isTriggered ? (hasAC ? 'var(--hit)' : 'var(--accent)') : 'var(--muted)';
+        const activeTag = isTriggered && hasAC ? ' ACTIVE' : '';
+        // Get detail from special abilities
+        const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
+        const desc = detail ? detail.desc : '';
+        const shortDesc = desc.length > 80 ? desc.slice(0,80)+'...' : desc;
+        specialsHTML += `<div style="color:${color}" title="${desc}">
+          ${spLink(s)}${activeTag}${shortDesc ? ': '+shortDesc : ''}
+        </div>`;
+      }
+      specialsHTML += `</div>`;
+    }
+
+    // Grab/maintain info
+    const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total}`).join(', ')} vs CMD</span>`:'';
     const maintainStr=pr.maintain?` | <span style="color:var(--accent)">Maintain: <b>${pr.maintain.total}</b> vs CMD</span>`:'';
     // Count crits and fumbles for summary
     const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
@@ -817,7 +841,7 @@ function renderCard(c, group, refAC) {
       ${buffHTML} ${pounceHTML} ${grapHTML}
     </div>
     ${hpCtrl}
-    ${summaryHTML}${tableHTML}
+    ${summaryHTML}${tableHTML}${specialsHTML||''}
     ${sbHTML}
   </div>`;
 }

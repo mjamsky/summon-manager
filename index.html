@@ -43,7 +43,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .tier-U { background: #555; color: #aaa; }
 
 /* Feat/buff chips */
-.chip-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none; background: #2a2d3a; border: 1px solid var(--border); transition: all 0.2s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .chip.on { background: #2a4a3a; border-color: var(--green); color: var(--green); box-shadow: 0 0 6px rgba(78, 204, 163, 0.3); }
 
@@ -71,18 +71,18 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-item .cdrop-note { color: var(--muted); font-size: 10px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Creature Cards — flat flex flow, no group wrappers ── */
-.creatures-flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
-.ccard { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 5px; padding: 8px; min-width: 280px; max-width: 400px; flex: 1 1 300px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-.group-tag { font-size: 9px; padding: 1px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 4px; }
-.casting-tag { background: var(--crit); color: #111; padding: 1px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
+.creatures-flow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.ccard { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.group-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 6px; }
+.casting-tag { background: var(--crit); color: #111; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 .ccard.dead { opacity: 0.25; }
 @keyframes cast-pulse {
   0%, 100% { border-color: var(--crit); opacity: 0.7; }
   50% { border-color: #f5c84260; opacity: 0.5; }
 }
 .ccard.casting { border-style: dashed; border-color: var(--crit); animation: cast-pulse 2s ease-in-out infinite; }
-.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-.ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; }
+.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
 /* Inline SVG icons — consistent sizing */
 .icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
@@ -91,10 +91,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .icon-ac { color: var(--accent); }
 .icon-dmg { color: var(--crit); }
 /* HP controls + AC/CMD on same row */
-.hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
+.hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
 .hp-row .ac-cmd { margin-left: auto; font-size: 11px; color: #fff; white-space: nowrap; }
 .hp-row .ac-cmd .stat-label { color: var(--muted); }
-.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 3px; }
+.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; }
 .hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; box-shadow: 0 0 4px var(--green); }
 .hpfill.low { background: var(--crit); box-shadow: 0 0 8px var(--crit); }
 .hpfill.crit { background: var(--red); box-shadow: 0 0 12px var(--red); animation: pulse-hp 1.5s ease-in-out infinite; }
@@ -103,21 +103,22 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   50% { opacity: 0.6; }
 }
 
-/* Buff chips on creature */
-.ccard .buff-chips { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 4px; }
-.ccard .buff-chip { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: #2a4a3a; color: var(--green); cursor: pointer; }
+/* Buff chips on creature — unified with pounce/grapple */
+.ccard .buff-chips { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 4px; }
+.ccard .buff-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #2a4a3a; color: var(--green); cursor: pointer; border: 1px solid transparent; }
 .ccard .buff-chip.off { background: #3a2a2a; color: var(--red); text-decoration: line-through; }
 
 /* ── Sorted Roll Table — THE KEY UX ── */
 .roll-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.roll-table th { text-align: left; font-size: 10px; color: var(--muted); padding: 1px 4px; border-bottom: 1px solid var(--border); }
+.roll-table th { text-align: left; font-size: 10px; color: var(--muted); padding: 2px 4px; border-bottom: 1px solid var(--border); }
+.roll-table th.r { text-align: right; }
 .roll-table td { padding: 2px 4px; }
 .roll-table tr.hit td { color: var(--hit); }
 .roll-table tr.miss td { color: var(--miss); }
 .roll-table tr.crit td { color: var(--crit); font-weight: bold; }
 .roll-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
-.roll-table .total { font-weight: bold; font-size: 14px; }
-.roll-table .dmg { font-weight: bold; font-size: 14px; }
+.roll-table .total { font-weight: bold; font-size: 14px; text-align: right; }
+.roll-table .dmg { font-weight: bold; font-size: 14px; text-align: right; }
 .roll-table .special { font-size: 10px; color: var(--accent); }
 /* Tooltip for breakdown */
 .roll-table td[title] { cursor: help; border-bottom: 1px dotted var(--muted); }
@@ -127,7 +128,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ac-line td { padding-top: 4px; }
 
 /* Roll summary — table-aligned */
-.roll-summary { font-size: 12px; padding: 4px 0; }
+.roll-summary { font-size: 12px; padding: 6px 0 2px; }
 .roll-summary-table { width: 100%; font-size: 12px; border-collapse: collapse; }
 .roll-summary-table td { padding: 1px 4px; }
 .roll-summary-table .total-dmg { color: var(--crit); font-weight: bold; font-size: 14px; text-align: right; }
@@ -166,12 +167,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .hp-inline input { width: 40px; font-size: 12px; text-align: center; padding: 2px; }
 .hp-inline button { padding: 1px 6px; font-size: 11px; }
 
-/* Pounce indicator */
-.pounce-tag { background: #5a3a00; color: var(--crit); padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+/* Pounce/Grapple — same sizing as buff chips */
+.pounce-tag { background: #5a3a00; color: var(--crit); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
 .pounce-tag.active { background: var(--crit); color: #111; }
-
-/* Grapple indicator */
-.grapple-tag { background: #2a2a5a; color: var(--accent); padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+.grapple-tag { background: #2a2a5a; color: var(--accent); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
 .grapple-tag.active { background: var(--accent); color: #fff; }
 
 /* ── Inline-style replacements ── */
@@ -190,12 +189,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .dismiss-btn { margin-left: 4px; }
 
 /* Group summary bar */
-.group-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; font-size: 11px; }
+.group-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-size: 11px; }
 .group-summary { background: var(--card); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); transition: border-color 0.3s; }
 .group-summary[data-rl="1"], .group-summary[data-rl="2"] { border-color: var(--red); color: var(--red); }
 
 /* Creature card rows */
-.buff-pounce-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.buff-pounce-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 
 /* Roll table tags */
 .tag-crit { color: var(--crit); font-weight: bold; }
@@ -206,21 +205,23 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .tag-hit { color: var(--hit); }
 
 /* Rake/special inline labels */
-.rake-label { color: var(--crit); font-size: 9px; }
-.sp-label-tag { font-size: 9px; color: var(--accent); }
+.rake-label { color: var(--crit); font-size: 10px; }
+.sp-label-tag { font-size: 10px; color: var(--accent); }
 
-/* Specials section below roll table */
-.specials-section { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; font-size: 11px; }
-.special-item { margin-bottom: 2px; }
-.special-item.triggered { color: var(--hit); }
+/* Specials section below roll table — inline tags */
+.specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap; }
+.special-item { display: inline; }
+.special-item.triggered { color: var(--hit); font-weight: bold; }
+.special-item.triggered .sp-link { color: var(--hit); font-weight: bold; font-size: 11px; }
 .special-item.untriggered { color: var(--muted); }
+.special-item.untriggered .sp-link { color: var(--muted); font-size: 11px; }
 
 /* Stat block special abilities */
 .sb-sa-label { color: var(--crit); min-width: auto; }
 .sb-sa-val { font-size: 10px; }
 
 /* Key ability section (above roll table) */
-.ability-section { border: 1px solid #3a2a50; background: #1e1a2a; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; font-size: 11px; }
+.ability-section { border: 1px solid #3a2a50; background: #1e1a2a; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 11px; }
 .ability-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .ability-name { color: #c4a0ff; font-weight: bold; }
 .ability-type { color: var(--muted); font-size: 9px; }
@@ -260,7 +261,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   .pounce-tag, .grapple-tag { padding: 4px 10px; min-height: 28px; }
 
   /* Narrower cards to fit more across */
-  .ccard { min-width: 240px; max-width: 360px; flex: 1 1 260px; padding: 6px; }
+  .ccard { min-width: 230px; max-width: 340px; flex: 1 1 240px; padding: 8px 10px; }
+  .creatures-flow { gap: 10px; }
 
   /* Tighter group bar */
   .group-bar { gap: 4px; margin-bottom: 3px; font-size: 10px; }
@@ -837,10 +839,13 @@ function render(){
     for(const g of S.groups){
       const alive=g.creatures.filter(c=>c.alive).length;
       const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
+      // Compact group label: just creature name + count + duration
+      const gCreature = g.creatures[0]?.name || '?';
+      const gLabel = `${g.creatures.length}× ${gCreature}`;
       gBar+=`<span class="group-summary" data-rl="${g.rl}">
-        ${g.name} ${alive}/${g.creatures.length} ${rlTxt}
+        ${gLabel} ${rlTxt}
         ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
-        <button class="sm dismiss-btn" onclick="dismissG('${g.id}')">×</button>
+        <button class="sm dismiss-btn" onclick="dismissG('${g.id}')" title="Dismiss group">×</button>
       </span>`;
     }
     gBar+='</div>';
@@ -910,7 +915,7 @@ function renderCard(c, group, refAC) {
 
     const triggeredSpecials = new Set();
     let runningDmg = 0;
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th title="Running total damage">${IC.dmg('icon-sm')}</th><th></th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">Atk</th><th class="r">Dmg</th><th class="r" title="Running total damage">${IC.dmg('icon-sm')}</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -969,12 +974,7 @@ function renderCard(c, group, refAC) {
       for (const s of allSpecials) {
         const isTriggered = triggeredSpecials.has(s);
         const trigCls = isTriggered ? 'triggered' : 'untriggered';
-        const label = isTriggered && hasAC ? 'ACTIVE — ' : '';
-        const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
-        const desc = detail ? detail.desc : '';
-        specialsHTML += `<div class="special-item ${trigCls}">
-          <b>${label}${spLink(s)}</b>${desc ? ': '+desc : ''}
-        </div>`;
+        specialsHTML += `<span class="special-item ${trigCls}">${spLink(s)}</span> `;
       }
       specialsHTML += `</div>`;
     }
@@ -997,10 +997,9 @@ function renderCard(c, group, refAC) {
     if(hasAC) {
       summaryHTML=`<div class="roll-summary">
         <table class="roll-summary-table"><tr>
-          <td class="summary-label">vs AC ${refAC}: <b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
+          <td class="summary-label"><b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
           <td class="total-dmg">${hitDmg}</td>
-        </tr></table>
-        ${grabLine}
+        </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
       </div>`;
     } else {
       const totNoCrit = pr.rows.reduce((a,r)=>a+r.dmgNoCrit,0);
@@ -1008,8 +1007,7 @@ function renderCard(c, group, refAC) {
         <table class="roll-summary-table"><tr>
           <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
           <td class="total-dmg">${totNoCrit}</td>
-        </tr></table>
-        ${grabLine}
+        </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
       </div>`;
     }
   }

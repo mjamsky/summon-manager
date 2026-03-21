@@ -56,8 +56,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-item:hover, .cdrop-item.active { background: #333648; }
 .cdrop-item .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0 6px 0 0; }
 .cdrop-item .cdrop-stats { color: var(--muted); white-space: nowrap; font-size: 11px; }
-.cdrop-stats .hp-icon { color: var(--red); margin-left: 1px; }
-.cdrop-stats .ac-icon { color: var(--accent); margin-left: 4px; }
+.cdrop-stats .icon { margin-left: 2px; }
+.cdrop-stats .icon-ac { margin-left: 5px; }
 .cdrop-item .cdrop-name { color: var(--text); padding-left: 6px; }
 .cdrop-item .cdrop-note { color: var(--muted); font-size: 10px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -71,7 +71,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
 .ccard-name { font-weight: bold; font-size: 13px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
-.hp-icon-card { color: var(--red); margin-right: 1px; }
+/* Inline SVG icons — consistent sizing */
+.icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
+.icon-sm { width: 10px; height: 10px; vertical-align: -1px; }
+.icon-hp { color: var(--red); }
+.icon-ac { color: var(--accent); }
+.icon-dmg { color: var(--crit); }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
 .hp-row .ac-cmd { margin-left: auto; font-size: 11px; color: #fff; white-space: nowrap; }
@@ -309,6 +314,15 @@ let S = { round:0, groups:[], effects:[], feats:{}, buffs:{} };
 let nGid = 1, nCid = 1;
 
 // ═══════════════════════════════════════════════════════════════
+//  ICONS (inline SVG)
+// ═══════════════════════════════════════════════════════════════
+const IC = {
+  hp: (cls='') => `<svg class="icon icon-hp ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
+  ac: (cls='') => `<svg class="icon icon-ac ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  dmg: (cls='') => `<svg class="icon icon-dmg ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>`,
+};
+
+// ═══════════════════════════════════════════════════════════════
 //  DICE (Crypto)
 // ═══════════════════════════════════════════════════════════════
 const rng = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; };
@@ -436,7 +450,7 @@ function renderCreatureDropdown(filter){
   el.innerHTML=creatureList.filter(c=>!f||c.name.toLowerCase().includes(f)||c.note.toLowerCase().includes(f))
     .map(c=>`<div class="cdrop-item ${c.name===selectedCreature?'active':''}" onclick="selectCreature('${c.name.replace(/'/g,"\\'")}')">
       <span class="tier tier-${c.tier}">${c.tier}</span>
-      <span class="cdrop-stats">${c.hp}<span class="hp-icon">♥</span> ${c.ac}<span class="ac-icon">⛨</span></span>
+      <span class="cdrop-stats">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span>
       <span class="cdrop-name">${c.name}</span>
       ${c.note?`<span class="cdrop-note">│ ${c.note}</span>`:''}
       ${c.alt?`<span class="cdrop-note">[${c.src}]</span>`:''}
@@ -446,7 +460,7 @@ function updDropDisplay(){
   const c=creatureList.find(x=>x.name===selectedCreature);
   const el=document.getElementById('cdrop-text');
   if(!el) return;
-  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> <span class="cdrop-stats">${c.hp}<span class="hp-icon">♥</span> ${c.ac}<span class="ac-icon">⛨</span></span> ${c.name}`;
+  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> <span class="cdrop-stats">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span> ${c.name}`;
   else el.textContent='Select...';
 }
 function selectCreature(name){
@@ -836,7 +850,7 @@ function renderCard(c, group, refAC) {
 
     const triggeredSpecials = new Set();
     let runningDmg = 0;
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th title="Running total damage">💔</th><th></th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th title="Running total damage">${IC.dmg('icon-sm')}</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -1052,12 +1066,12 @@ function renderCard(c, group, refAC) {
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     <div class="ccard-head">
       <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
-      <span class="ccard-hp"><span class="hp-icon-card">♥</span>${c.hp}/${c.maxHp}</span>
+      <span class="ccard-hp">${IC.hp()}${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
     <div class="hp-row">
       ${hpCtrl}
-      <span class="ac-cmd"><span class="stat-label">CMD</span> ${c.cmd} <span class="ac-icon">⛨</span>${c.ac}</span>
+      <span class="ac-cmd"><span class="stat-label">CMD</span> ${c.cmd} ${IC.ac()}${c.ac}</span>
     </div>
     <div class="buff-pounce-row">
       ${buffHTML} ${pounceHTML} ${grapHTML}

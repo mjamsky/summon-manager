@@ -361,7 +361,14 @@ function preRoll(c) {
     }
   }
 
+  // Maintain grapple roll (when grappling, not pouncing)
+  let maintainRoll = null;
+  if (c.grappling && !c.pouncing) {
+    maintainRoll = { d20: d20(), baseCmb: c.cmb + 4 }; // +4 for grab
+  }
+
   // Rake attacks (triggered by pounce OR started turn grappling)
+  // Always pre-roll the dice so they're ready; display handles conditionality
   if (c.hasRake && (c.pouncing || c.grappling) && c.rakeAtks.length > 0) {
     for (const atk of c.rakeAtks) {
       const r = d20();
@@ -371,6 +378,7 @@ function preRoll(c) {
         critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:atk.bonus,
         cr:20, cm:2, specials:atk.sp||[],
         nat20:r===20, nat1:r===1, threat:false, isRake:true,
+        conditionalOnMaintain: c.grappling && !c.pouncing,
       });
     }
   }
@@ -389,7 +397,7 @@ function preRoll(c) {
     });
   }
 
-  c.rawRoll = { rows: rawRows, grabs: rawGrabs };
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)
@@ -427,7 +435,7 @@ function computeRoll(c) {
       nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
-      specials: raw.specials, isRake: raw.isRake,
+      specials: raw.specials, isRake: raw.isRake, conditionalOnMaintain: raw.conditionalOnMaintain,
     });
   }
 
@@ -436,7 +444,15 @@ function computeRoll(c) {
   }
 
   rows.sort((a, b) => b.total - a.total);
-  return { rows, grabs };
+
+  // Compute maintain grapple total
+  let maintain = null;
+  if (c.rawRoll.maintainRoll) {
+    const mr = c.rawRoll.maintainRoll;
+    maintain = { d20: mr.d20, total: mr.d20 + mr.baseCmb + b.a };
+  }
+
+  return { rows, grabs, maintain };
 }
 
 function reroll() {
@@ -690,7 +706,8 @@ function renderCard(c, group, refAC) {
       else if(fumbleSafe) tag = `<span style="color:var(--muted)">nat1</span>`;
       else if(fumblePending) tag = `<span style="color:var(--miss)">NAT1</span>`;
 
-      const rakeTag=r.isRake?' <span style="color:var(--crit);font-size:9px">RK</span>':'';
+      const isConditionalRake = r.isRake && r.conditionalOnMaintain;
+      const rakeTag=r.isRake?` <span style="color:var(--crit);font-size:9px">${isConditionalRake?'RK*':'RK'}</span>`:'';
       const sp=r.specials.filter(s=>s!=='rake').map(s=>spLink(s)).join(' ');
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
 
@@ -703,6 +720,7 @@ function renderCard(c, group, refAC) {
     tableHTML+=`</table>`;
 
     const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total} vs CMD`).join(', ')}</span>`:'';
+    const maintainStr=pr.maintain?` | <span style="color:var(--accent)">Maintain: <b>${pr.maintain.total}</b> vs CMD</span>`:'';
     // Count crits and fumbles for summary
     const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
     const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
@@ -712,7 +730,7 @@ function renderCard(c, group, refAC) {
     if(hasAC) {
       summaryHTML=`<div class="roll-summary">
         <span>vs AC ${refAC}: <b style="color:var(--hit)">${hitCount}</b>/${totalAtks} hit</span>
-        <span class="total-dmg">${hitDmg} dmg</span>${critNote}${fumbleNote}${grabStr}
+        <span class="total-dmg">${hitDmg} dmg</span>${critNote}${fumbleNote}${grabStr}${maintainStr}
       </div>`;
     } else {
       const totNoCrit = pr.rows.reduce((a,r)=>a+r.dmgNoCrit,0);
@@ -723,7 +741,7 @@ function renderCard(c, group, refAC) {
       const fNote = fumbles ? ` | <span style="color:var(--miss)">${fumbles} nat1${fumbles>1?'s':''}</span>` : '';
       summaryHTML=`<div class="roll-summary">
         <span>All totals: ${pr.rows.map(r=>r.total).join(', ')}</span>
-        <span class="total-dmg">${totNoCrit} dmg${threats?` (${totWithCrit} w/crits)`:''}</span>${tNote}${fNote}${grabStr}
+        <span class="total-dmg">${totNoCrit} dmg${threats?` (${totWithCrit} w/crits)`:''}</span>${tNote}${fNote}${grabStr}${maintainStr}
       </div>`;
     }
   }

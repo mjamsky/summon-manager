@@ -676,7 +676,7 @@ function renderCard(c, group, refAC) {
     `<span class="pounce-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Started turn grappling: gets rake" style="background:${c.grappling?'var(--accent)':'#2a2a5a'};color:${c.grappling?'#fff':'var(--accent)'}">${c.grappling?'GRAPPLING':'Grapple?'}</span>` : '';
 
   // Roll table — compute from raw rolls + current buffs
-  let tableHTML='', summaryHTML='';
+  let tableHTML='', summaryHTML='', specialsHTML='';
   const pr = c.rawRoll ? computeRoll(c) : null;
   if(pr && c.alive) {
     const hasAC = refAC > 0;
@@ -736,7 +736,6 @@ function renderCard(c, group, refAC) {
     const allSpecials = new Set();
     pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
 
-    let specialsHTML = '';
     if (allSpecials.size > 0) {
       specialsHTML = `<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;font-size:11px">`;
       for (const s of allSpecials) {

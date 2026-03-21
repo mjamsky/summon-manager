@@ -6,804 +6,558 @@
 <title>SNA Combat Manager</title>
 <style>
 :root {
-  --bg: #1a1a2e;
-  --surface: #16213e;
-  --card: #0f3460;
-  --accent: #e94560;
-  --green: #4ecca3;
-  --yellow: #f0c929;
-  --red: #e94560;
-  --text: #eee;
-  --muted: #8899aa;
-  --hit: #4ecca3;
-  --miss: #e94560;
-  --crit: #f0c929;
+  --bg: #121318; --surface: #1a1c24; --card: #22252e;
+  --border: #2e3140; --text: #e0e0e8; --muted: #7a7f94;
+  --hit: #4ecca3; --miss: #e05570; --crit: #f5c842;
+  --accent: #5b8cf7; --green: #4ecca3; --red: #e05570;
+  /* Tier colors */
+  --tier-s: #f5c842; --tier-a: #5baaff; --tier-b: #8bc34a; --tier-c: #888;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding: 8px;
-}
+body { font-family: 'SF Mono', 'Consolas', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 8px; font-size: 13px; line-height: 1.4; }
 
-/* Top bar */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  background: var(--surface);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-.topbar label { font-size: 13px; color: var(--muted); }
-.topbar input, .topbar select {
-  background: var(--bg);
-  border: 1px solid #334;
-  color: var(--text);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 60px;
-}
-.topbar select { width: auto; }
-.topbar .round-display {
-  font-size: 18px;
-  font-weight: bold;
-  color: var(--accent);
-  margin-left: auto;
-}
-button {
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid #445;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: 0.15s;
-}
-button:hover { background: var(--accent); border-color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); font-weight: bold; }
-button.green { background: var(--green); color: #000; border-color: var(--green); }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
+button { font-family: inherit; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+button:hover { background: #333648; }
+button.act { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+button.go { background: var(--green); border-color: var(--green); color: #111; font-weight: bold; font-size: 14px; padding: 6px 20px; }
+button.sm { padding: 2px 8px; font-size: 11px; }
+select, input[type=number], input[type=text] { font-family: inherit; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 3px; font-size: 12px; }
+select { min-width: 100px; }
+input[type=number] { width: 50px; }
+label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px; }
+.row { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.row > div { display: flex; flex-direction: column; }
 
-/* Buff bar */
-.buff-bar {
-  display: flex;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--surface);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.buff-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #2a3a5a;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.buff-tag.active { background: var(--green); color: #000; }
-.buff-tag .remove { cursor: pointer; opacity: 0.6; }
+/* Tier badges */
+.tier { display: inline-block; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 3px; font-size: 11px; font-weight: bold; margin-right: 4px; }
+.tier-S { background: var(--tier-s); color: #111; }
+.tier-A { background: var(--tier-a); color: #111; }
+.tier-B { background: var(--tier-b); color: #111; }
+.tier-C { background: var(--tier-c); color: #fff; }
+.tier-U { background: #555; color: #aaa; }
 
-/* Creature grid */
-.creature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 8px;
-  margin-bottom: 8px;
-}
+/* Feat/buff chips */
+.chip-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none; background: #2a2d3a; border: 1px solid var(--border); }
+.chip.on { background: #2a4a3a; border-color: var(--green); color: var(--green); }
 
-/* Creature card */
-.creature-card {
-  background: var(--surface);
-  border-radius: 8px;
-  padding: 10px;
-  border: 2px solid transparent;
-  transition: 0.2s;
-}
-.creature-card.dead { opacity: 0.4; border-color: var(--red); }
-.creature-card .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.creature-card .name { font-weight: bold; font-size: 15px; }
-.creature-card .hp-bar-container {
-  background: #112;
-  border-radius: 4px;
-  height: 8px;
-  margin: 4px 0;
-  overflow: hidden;
-}
-.creature-card .hp-bar-fill {
-  height: 100%;
-  background: var(--green);
-  transition: width 0.3s;
-}
-.creature-card .hp-bar-fill.low { background: var(--yellow); }
-.creature-card .hp-bar-fill.critical { background: var(--red); }
-.creature-card .hp-text { font-size: 12px; color: var(--muted); }
+/* Tier select dropdown coloring */
+.opt-S { color: #f5c842; } .opt-A { color: #5baaff; } .opt-B { color: #8bc34a; } .opt-C { color: #888; }
 
-/* Summary line — the key UX element */
-.summary-line {
-  background: var(--card);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin: 6px 0;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.summary-line .all-hit { color: var(--hit); font-weight: bold; }
-.summary-line .all-miss { color: var(--miss); font-weight: bold; }
-.summary-line .mixed { color: var(--yellow); font-weight: bold; }
-.summary-line .dmg { color: var(--crit); font-weight: bold; }
+/* ── Creature Group ── */
+.group { margin-bottom: 8px; }
+.group-head { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+.group-name { font-weight: bold; }
+.group-meta { font-size: 11px; color: var(--muted); }
+.casting-tag { background: var(--crit); color: #111; padding: 1px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 
-/* Attack details (expandable) */
-.attack-details {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s;
-}
-.creature-card.expanded .attack-details { max-height: 500px; }
-.attack-row { padding: 2px 0; }
-.attack-row.hit { color: var(--hit); }
-.attack-row.miss { color: var(--miss); }
-.attack-row.crit { color: var(--crit); font-weight: bold; }
+/* ── Creature Card ── */
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px; }
+.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 8px; }
+.ccard.dead { opacity: 0.25; }
+.ccard.casting { border-style: dashed; border-color: var(--crit); opacity: 0.7; }
+.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.ccard-name { font-weight: bold; font-size: 13px; }
+.ccard-hp { font-size: 12px; color: var(--muted); }
+.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 4px; }
+.hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; }
+.hpfill.low { background: var(--crit); }
+.hpfill.crit { background: var(--red); }
 
-/* Actions row on card */
-.card-actions {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-}
-.card-actions button { font-size: 11px; padding: 3px 8px; }
+/* Buff chips on creature */
+.ccard .buff-chips { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 4px; }
+.ccard .buff-chip { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: #2a4a3a; color: var(--green); cursor: pointer; }
+.ccard .buff-chip.off { background: #3a2a2a; color: var(--red); text-decoration: line-through; }
 
-/* Import panel */
-.import-panel {
-  background: var(--surface);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-.import-panel textarea {
-  width: 100%;
-  height: 60px;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid #334;
-  border-radius: 4px;
-  padding: 8px;
-  font-family: monospace;
-  font-size: 12px;
-  resize: vertical;
-}
+/* ── Sorted Roll Table — THE KEY UX ── */
+.roll-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.roll-table th { text-align: left; font-size: 10px; color: var(--muted); padding: 1px 4px; border-bottom: 1px solid var(--border); }
+.roll-table td { padding: 2px 4px; }
+.roll-table tr.hit td { color: var(--hit); }
+.roll-table tr.miss td { color: var(--miss); }
+.roll-table tr.crit td { color: var(--crit); font-weight: bold; }
+.roll-table .d20 { opacity: 0.6; }
+.roll-table .total { font-weight: bold; font-size: 13px; }
+.roll-table .dmg { font-weight: bold; }
+.roll-table .special { font-size: 10px; color: var(--accent); }
 
-/* Quick summon bar */
-.quick-summon {
-  display: flex;
-  gap: 6px;
-  padding: 8px 12px;
-  background: var(--surface);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.quick-summon select {
-  background: var(--bg);
-  border: 1px solid #334;
-  color: var(--text);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
+/* AC threshold line */
+.ac-line { border-top: 2px dashed var(--red); }
+.ac-line td { padding-top: 4px; }
+
+/* Roll summary */
+.roll-summary { font-size: 12px; padding: 4px 0; display: flex; gap: 12px; flex-wrap: wrap; }
+.roll-summary .total-dmg { color: var(--crit); font-weight: bold; font-size: 14px; }
+.roll-summary .grab-info { color: var(--accent); }
+
+/* ── Actions row ── */
+.ccard-actions { display: flex; gap: 3px; margin-top: 4px; }
+
+/* Effect cards */
+.ecard { background: #2a2040; border: 1px solid #3a3060; border-radius: 5px; padding: 6px 10px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
 </style>
 </head>
 <body>
 
-<!-- Top Bar -->
-<div class="topbar">
-  <label>Target AC:</label>
-  <input type="number" id="target-ac" value="18" min="1" max="50">
-  <label>Caster Lvl:</label>
-  <input type="number" id="caster-level" value="10" min="1" max="20">
-  <label>Augment:</label>
-  <input type="checkbox" id="augment-summon" checked>
-  <button onclick="rollAll()" class="primary">ROLL ALL</button>
-  <button onclick="nextRound()" class="green">NEXT ROUND</button>
-  <button onclick="dismissAll()">DISMISS ALL</button>
-  <span class="round-display">Round <span id="round-num">0</span> | <span id="rounds-left">-</span> left</span>
+<!-- ═══ Global Controls ═══ -->
+<div class="panel row">
+  <div><label>Reference AC</label><input type="number" id="ref-ac" value="18" onchange="render()"></div>
+  <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
+  <div><label>&nbsp;</label><button class="act" onclick="reroll()">RE-ROLL ALL</button></div>
+  <div><label>&nbsp;</label><button class="go" onclick="nextRound()">NEXT ROUND</button></div>
+  <div><label>&nbsp;</label><button onclick="clearAll()">CLEAR</button></div>
+  <div style="margin-left:auto;font-size:18px;font-weight:bold;color:var(--crit)">
+    Rd <span id="disp-rd">0</span>
+  </div>
 </div>
 
-<!-- Buff Bar -->
-<div class="buff-bar">
-  <label style="font-size:12px;color:var(--muted)">Buffs:</label>
-  <div id="buff-tags"></div>
-  <select id="buff-select">
-    <option value="">+ Add Buff...</option>
-    <option value="prayer">Prayer (+1 atk/dmg morale)</option>
-    <option value="bless">Bless (+1 atk morale)</option>
-    <option value="destruction">Destruction Invoc (+4 dmg sacred)</option>
-    <option value="justice">Justice Invoc (+3 atk sacred)</option>
-    <option value="smiting">Smiting Invoc (adamantine)</option>
-    <option value="haste">Haste (+1 atk, extra attack)</option>
-    <option value="flanking">Flanking (+2 atk untyped)</option>
-    <option value="higher_ground">Higher Ground (+1 atk untyped)</option>
-    <option value="heroism">Heroism (+2 atk/saves morale)</option>
-  </select>
+<!-- ═══ Feats ═══ -->
+<div class="panel chip-row">
+  <label style="display:inline">Feats:</label>
+  <span class="chip" data-feat="augment" onclick="tFeat(this)">Augment Summoning</span>
+  <span class="chip" data-feat="superior" onclick="tFeat(this)">Superior Summoning</span>
+  <span class="chip" data-feat="moonlight" onclick="tFeat(this)">Moonlight Summons</span>
+  <span class="chip" data-feat="starlight" onclick="tFeat(this)">Starlight Summons</span>
 </div>
 
-<!-- Quick Summon -->
-<div class="quick-summon">
-  <label style="font-size:12px;color:var(--muted)">Quick Summon:</label>
-  <select id="sna-level">
-    <option value="1">SNA I</option>
-    <option value="2">SNA II</option>
-    <option value="3">SNA III</option>
-    <option value="4" selected>SNA IV</option>
-    <option value="5">SNA V</option>
-    <option value="6">SNA VI</option>
-  </select>
-  <select id="creature-select"><option value="">Loading...</option></select>
-  <label>Count:</label>
-  <input type="number" id="summon-count" value="1" min="1" max="8" style="width:50px;background:var(--bg);border:1px solid #334;color:var(--text);padding:4px;border-radius:4px;">
-  <button onclick="summonCreature()" class="green">SUMMON</button>
-  <span style="font-size:11px;color:var(--muted)" id="summon-hint"></span>
+<!-- ═══ Buffs ═══ -->
+<div class="panel chip-row">
+  <label style="display:inline">Buffs:</label>
+  <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
+  <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
+  <span class="chip" data-buff="destruction" onclick="tBuff(this)">Destruct +4d</span>
+  <span class="chip" data-buff="justice" onclick="tBuff(this)">Justice +3a</span>
+  <span class="chip" data-buff="smiting" onclick="tBuff(this)">Smiting</span>
+  <span class="chip" data-buff="haste" onclick="tBuff(this)">Haste +1a</span>
+  <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
+  <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
+  <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
 </div>
 
-<!-- Import Panel (collapsible) -->
-<details class="import-panel">
-  <summary style="cursor:pointer;color:var(--muted);font-size:13px">Claude Import (paste JSON strategy card)</summary>
-  <textarea id="import-json" placeholder='{"creatures": [{"name": "Leopard", "count": 3}], "buffs": ["prayer", "flanking"], "target_ac": 18}'></textarea>
-  <button onclick="importStrategy()" style="margin-top:6px">Import</button>
-</details>
+<!-- ═══ Summon Panel ═══ -->
+<div class="panel">
+  <div class="row">
+    <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
+      <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
+      <option value="4" selected>4th</option><option value="5">5th</option><option value="6">6th</option>
+      <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
+    </select></div>
+    <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
+    <div style="flex:1"><label>Creature</label><select id="inp-creature" style="width:100%"></select></div>
+    <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
+  </div>
+</div>
 
-<!-- Creature Grid -->
-<div class="creature-grid" id="creature-grid"></div>
+<!-- ═══ Quick Items ═══ -->
+<div class="panel row">
+  <label style="display:inline">Items:</label>
+  <button onclick="summonLions()">Lion Figurines (2)</button>
+  <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
+  <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
+</div>
 
-<!-- Log -->
-<details style="margin-top:8px">
-  <summary style="cursor:pointer;color:var(--muted);font-size:13px">Combat Log</summary>
-  <pre id="combat-log" style="background:var(--surface);padding:10px;border-radius:8px;font-size:11px;max-height:300px;overflow-y:auto;margin-top:6px"></pre>
+<!-- ═══ Creatures ═══ -->
+<div id="creatures-out"></div>
+
+<!-- ═══ Effects ═══ -->
+<div id="effects-out"></div>
+
+<!-- ═══ Import ═══ -->
+<details class="panel">
+  <summary style="cursor:pointer;color:var(--muted);font-size:11px">Claude Import (JSON)</summary>
+  <textarea id="inp-import" style="width:100%;height:40px;background:var(--bg);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:11px;padding:4px;margin-top:4px;border-radius:3px" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
+  <button class="sm" onclick="doImport()" style="margin-top:3px">Import</button>
 </details>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// BESTIARY DATA — loaded from JSON files
+//  STATE
 // ═══════════════════════════════════════════════════════════════
+let B = {}; // bestiary: name -> {data, sna_level}
+let R = {}; // ratings: level -> name -> {tier, tags, note}
+let S = { round:0, groups:[], effects:[], feats:{}, buffs:{} };
+let nGid = 1, nCid = 1;
 
-let BESTIARY = {}; // name -> {data, sna_level, augmented}
-let creatures = []; // active creatures
-let buffs = {};
-let roundNum = 0;
-let maxRounds = 0;
+// ═══════════════════════════════════════════════════════════════
+//  DICE (Crypto)
+// ═══════════════════════════════════════════════════════════════
+const rng = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; };
+const dd = s => (rng() % s) + 1;
+const d20 = () => dd(20);
+function rdice(n) {
+  const m = n.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  if (!m) return {t:0,r:[],m:0};
+  const [nc,sc,mc] = [+m[1],+m[2],+(m[3]||0)];
+  const rolls = Array.from({length:nc},()=>dd(sc));
+  return {t:Math.max(1,rolls.reduce((a,b)=>a+b,0)+mc), r:rolls, m:mc};
+}
 
-// Buff definitions
-const BUFF_DEFS = {
-  prayer:       { attack: 1, damage: 1, saves: 1, type: 'morale', label: 'Prayer +1 atk/dmg' },
-  bless:        { attack: 1, damage: 0, saves: 0, type: 'morale', label: 'Bless +1 atk' },
-  destruction:  { attack: 0, damage: 4, saves: 0, type: 'sacred', label: 'Destruction +4 dmg' },
-  justice:      { attack: 3, damage: 0, saves: 0, type: 'sacred', label: 'Justice +3 atk' },
-  smiting:      { attack: 0, damage: 0, saves: 0, type: 'special', label: 'Smiting (adamantine)', adamantine: true },
-  haste:        { attack: 1, damage: 0, saves: 0, type: 'haste', label: 'Haste +1 atk +extra', extraAttack: true },
-  flanking:     { attack: 2, damage: 0, saves: 0, type: 'untyped', label: 'Flanking +2 atk' },
-  higher_ground:{ attack: 1, damage: 0, saves: 0, type: 'untyped_hg', label: 'Higher Ground +1' },
-  heroism:      { attack: 2, damage: 0, saves: 2, type: 'morale', label: 'Heroism +2 atk/saves' },
+// ═══════════════════════════════════════════════════════════════
+//  BUFFS
+// ═══════════════════════════════════════════════════════════════
+const BD = {
+  prayer:{a:1,d:1,s:1,ty:'morale'},bless:{a:1,d:0,s:0,ty:'morale'},
+  destruction:{a:0,d:4,s:0,ty:'sacred'},justice:{a:3,d:0,s:0,ty:'sacred'},
+  smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ty:'haste',extra:1},
+  flanking:{a:2,d:0,s:0,ty:'u'},heroism:{a:2,d:0,s:2,ty:'morale'},
+  fh4:{a:0,d:0,s:0,ty:'sp',fh:4},
 };
-
-// ═══════════════════════════════════════════════════════════════
-// CRYPTOGRAPHIC DICE
-// ═══════════════════════════════════════════════════════════════
-
-function rollD(sides) {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return (arr[0] % sides) + 1;
-}
-
-function rollD20() { return rollD(20); }
-
-function rollDice(notation) {
-  const m = notation.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-  if (!m) return { total: 0, rolls: [], mod: 0 };
-  const num = parseInt(m[1]), sides = parseInt(m[2]), mod = parseInt(m[3] || '0');
-  const rolls = Array.from({length: num}, () => rollD(sides));
-  return { total: Math.max(1, rolls.reduce((a,b) => a+b, 0) + mod), rolls, mod };
-}
-
-// ═══════════════════════════════════════════════════════════════
-// BUFF SYSTEM — stacking rules
-// ═══════════════════════════════════════════════════════════════
-
-function getBuffBonuses() {
-  // PF1e stacking: same type doesn't stack (take highest), untyped always stacks
-  const byType = {};
-  for (const [id, active] of Object.entries(buffs)) {
-    if (!active) continue;
-    const def = BUFF_DEFS[id];
-    if (!def) continue;
-    const t = def.type;
-    if (t === 'untyped' || t === 'untyped_hg' || t === 'special') {
-      // Untyped stacks
-      if (!byType[t]) byType[t] = { attack: 0, damage: 0, saves: 0, extraAttack: false, adamantine: false };
-      byType[t].attack += def.attack;
-      byType[t].damage += def.damage;
-      byType[t].saves += def.saves;
-      if (def.extraAttack) byType[t].extraAttack = true;
-      if (def.adamantine) byType[t].adamantine = true;
+function bTotal(overrides) {
+  const by = {};
+  for (const [id,on] of Object.entries(S.buffs)) {
+    if (!on) continue;
+    if (overrides && overrides[id] === false) continue;
+    const def = BD[id]; if (!def) continue;
+    const t = def.ty;
+    if (t==='u'||t==='sp'||t==='haste') {
+      by[id] = by[id]||{a:0,d:0,s:0,extra:0,fh:0};
+      by[id].a+=def.a; by[id].d+=def.d; by[id].s+=def.s;
+      if(def.extra) by[id].extra=1; if(def.fh) by[id].fh=def.fh;
     } else {
-      // Typed: take highest per category
-      if (!byType[t] || def.attack > (byType[t].attack||0)) {
-        byType[t] = { ...byType[t], attack: Math.max(def.attack, byType[t]?.attack||0) };
-      }
-      byType[t].damage = Math.max(def.damage, byType[t]?.damage||0);
-      byType[t].saves = Math.max(def.saves, byType[t]?.saves||0);
-      if (def.extraAttack) byType[t].extraAttack = true;
-      if (def.adamantine) byType[t].adamantine = true;
+      by[t]=by[t]||{a:0,d:0,s:0,extra:0,fh:0};
+      by[t].a=Math.max(by[t].a,def.a); by[t].d=Math.max(by[t].d,def.d);
+      by[t].s=Math.max(by[t].s,def.s);
+      if(def.extra) by[t].extra=1; if(def.fh) by[t].fh=Math.max(by[t].fh,def.fh);
     }
   }
-  // Sum across types
-  let total = { attack: 0, damage: 0, saves: 0, extraAttack: false, adamantine: false };
-  for (const v of Object.values(byType)) {
-    total.attack += v.attack || 0;
-    total.damage += v.damage || 0;
-    total.saves += v.saves || 0;
-    if (v.extraAttack) total.extraAttack = true;
-    if (v.adamantine) total.adamantine = true;
-  }
-  return total;
+  const r={a:0,d:0,s:0,extra:0,fh:0};
+  for(const v of Object.values(by)){r.a+=v.a;r.d+=v.d;r.s+=v.s;if(v.extra)r.extra=1;r.fh=Math.max(r.fh,v.fh||0);}
+  return r;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MELEE LINE PARSER
+//  MELEE PARSER
 // ═══════════════════════════════════════════════════════════════
-
-function parseMeleeLine(melee) {
-  if (!melee || melee.toLowerCase() === 'none') return [];
-  const attacks = [];
-  // Split on commas not inside parens
-  const segments = [];
-  let depth = 0, current = '';
-  for (const ch of melee) {
-    if (ch === '(') { depth++; current += ch; }
-    else if (ch === ')') { depth--; current += ch; }
-    else if (ch === ',' && depth === 0) { segments.push(current.trim()); current = ''; }
-    else current += ch;
-  }
-  if (current.trim()) segments.push(current.trim());
-
-  for (const seg of segments) {
-    const parenMatch = seg.match(/\(([^)]+)\)/);
-    let damage = '1d4', specials = [], critRange = 20, critMult = 2;
-    if (parenMatch) {
-      const pc = parenMatch[1];
-      const dm = pc.match(/^(\d+d\d+(?:[+-]\d+)?)/);
-      if (dm) damage = dm[1];
-      const cr = pc.match(/\/(\d+)[–-]20/);
-      if (cr) critRange = parseInt(cr[1]);
-      const cm = pc.match(/[×x](\d+)/);
-      if (cm) critMult = parseInt(cm[1]);
-      const plusMatches = pc.toLowerCase().matchAll(/plus\s+(\w+(?:\s+\w+)?)/g);
-      for (const pm of plusMatches) specials.push(pm[1].trim());
-      for (const kw of ['grab','trip','poison','constrict','rake','rend','attach','burn'])
-        if (pc.toLowerCase().includes(kw) && !specials.includes(kw)) specials.push(kw);
+function parseMelee(str) {
+  if(!str||str.toLowerCase()==='none') return [];
+  const atks=[], segs=[]; let depth=0, cur='';
+  for(const ch of str){if(ch==='('){depth++;cur+=ch;}else if(ch===')'){depth--;cur+=ch;}else if(ch===','&&depth===0){segs.push(cur.trim());cur='';}else cur+=ch;}
+  if(cur.trim())segs.push(cur.trim());
+  for(const seg of segs){
+    const pm=seg.match(/\(([^)]+)\)/);let dmg='1d4',sp=[],cr=20,cm=2;
+    if(pm){const pc=pm[1];const dm=pc.match(/^(\d+d\d+(?:[+-]\d+)?)/);if(dm)dmg=dm[1];
+      const c1=pc.match(/\/(\d+)[–-]20/);if(c1)cr=+c1[1];const c2=pc.match(/[×x](\d+)/);if(c2)cm=+c2[1];
+      for(const kw of['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push'])if(pc.toLowerCase().includes(kw))sp.push(kw);
     }
-    const before = parenMatch ? seg.slice(0, seg.indexOf('(')).trim() : seg.trim();
-    const nm = before.match(/^(?:(\d+)\s+)?([\w\s]+?)\s+([+-]?\d+)\s*$/);
-    if (nm) {
-      const count = nm[1] ? parseInt(nm[1]) : 1;
-      const rawName = nm[2].trim();
-      const bonus = parseInt(nm[3]);
-      const name = count > 1 ? rawName.replace(/s$/, '') : rawName;
-      for (let i = 0; i < count; i++) {
-        attacks.push({
-          name: count > 1 ? `${name} ${i+1}` : name,
-          bonus, damage, critRange, critMult, specials: [...specials]
-        });
-      }
+    const bef=pm?seg.slice(0,seg.indexOf('(')).trim():seg.trim();
+    const nm=bef.match(/^(?:(\d+)\s+)?([\w\s]+?)\s+([+-]?\d+)\s*$/);
+    if(nm){const cnt=nm[1]?+nm[1]:1,name=nm[2].trim().replace(/s$/,''),bonus=+nm[3];
+      for(let i=0;i<cnt;i++)atks.push({name:cnt>1?`${name} ${i+1}`:name,bonus,dmg,cr,cm,sp:[...sp]});
     }
   }
-  return attacks;
+  return atks;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PRE-ROLL ENGINE — the core table-speed feature
+//  TIER LOGIC
 // ═══════════════════════════════════════════════════════════════
+function tierOpts(slot) {
+  const o=[{id:'top',lbl:`1x SNA ${slot}`,sna:slot,expr:'1'}];
+  if(slot>=2) o.push({id:'lower',lbl:`1d3 SNA ${slot-1}`,sna:slot-1,expr:'1d3'});
+  if(slot>=3) o.push({id:'lowest',lbl:`1d4+1 SNA ${slot-2}`,sna:slot-2,expr:'1d4+1'});
+  return o;
+}
+function rollCount(expr){if(expr==='1')return 1;let t=rdice(expr).t;if(S.feats.superior)t++;return t;}
 
-function preRollCreature(creature, targetAC) {
-  const buffBonus = getBuffBonuses();
-  const attacks = creature.attacks || [];
-  const results = [];
-  let totalDmg = 0;
-  let minRoll = 99, maxRoll = 0;
-  let allHit = true, allMiss = true;
-  let grabResults = [];
+function updTiers(){
+  const slot=+document.getElementById('inp-slot').value;
+  const sel=document.getElementById('inp-tier');
+  const opts=tierOpts(slot);
+  sel.innerHTML=opts.map(o=>`<option value="${o.id}">${o.lbl}${S.feats.superior&&o.expr!=='1'?' (+1 sup)':''}</option>`).join('');
+  updCreatures();
+}
 
-  // Main attacks
-  for (const atk of attacks) {
-    const d20 = rollD20();
-    const totalAtk = d20 + atk.bonus + buffBonus.attack;
-    const hit = d20 === 20 || (totalAtk >= targetAC && d20 !== 1);
-    const critThreat = d20 >= atk.critRange;
-    let dmg = 0, critConfirmed = false;
+function updCreatures(){
+  const slot=+document.getElementById('inp-slot').value;
+  const tierId=document.getElementById('inp-tier').value;
+  const opts=tierOpts(slot);
+  const tier=opts.find(o=>o.id===tierId)||opts[0];
+  const sel=document.getElementById('inp-creature');
+  const lvRatings = R[tier.sna] || {};
+  const available=Object.values(B).filter(b=>b.sna_level===tier.sna)
+    .sort((a,b)=>{
+      const ra=lvRatings[a.data.name]?.tier||'U', rb=lvRatings[b.data.name]?.tier||'U';
+      const order={S:0,A:1,B:2,C:3,U:4};
+      return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
+    });
+  sel.innerHTML=available.map(b=>{
+    const c=b.data.combat_card;
+    const rating=lvRatings[b.data.name];
+    const t=rating?.tier||'?';
+    const tags=rating?.tags?.join(', ')||'';
+    return `<option value="${b.data.name}" class="opt-${t}">${t==='?'?'':'['+t+'] '}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})</option>`;
+  }).join('');
+}
 
-    if (hit) {
-      allMiss = false;
-      const dmgRoll = rollDice(atk.damage);
-      dmg = dmgRoll.total + buffBonus.damage;
-      if (critThreat) {
-        const confirmD20 = rollD20();
-        critConfirmed = (confirmD20 + atk.bonus + buffBonus.attack) >= targetAC;
-        if (critConfirmed) {
-          const critDmg = rollDice(atk.damage);
-          dmg += critDmg.total + buffBonus.damage; // x2 crit
-        }
-      }
-      totalDmg += dmg;
+// ═══════════════════════════════════════════════════════════════
+//  PRE-ROLL — sorted roll table
+// ═══════════════════════════════════════════════════════════════
+function preRoll(c) {
+  const b = bTotal(c.buffOvr);
+  const rows = [];
+  const grabs = [];
 
-      // Pre-roll grab if applicable
-      if (atk.specials.includes('grab') && creature.cmb) {
-        const grabD20 = rollD20();
-        const grabTotal = grabD20 + creature.cmb + 4; // +4 for grab
-        grabResults.push({ attack: atk.name, d20: grabD20, total: grabTotal });
-      }
-    } else {
-      allHit = false;
+  for (const atk of c.attacks) {
+    const r = d20();
+    const total = r + atk.bonus + b.a;
+    const nat20 = r === 20, nat1 = r === 1;
+    const threat = r >= atk.cr;
+    let dmg = 0, critOk = false;
+
+    // Always roll damage (needed for sorted table)
+    const dr = rdice(atk.dmg);
+    dmg = dr.t + b.d;
+
+    if (threat && !nat1) {
+      const conf = d20() + atk.bonus + b.a;
+      critOk = conf >= total; // confirm vs same total (conservative — should be vs AC but we don't know it)
+      // For crit, just double the base damage
+      if (critOk) { const cr2 = rdice(atk.dmg); dmg += cr2.t + b.d; }
     }
 
-    minRoll = Math.min(minRoll, totalAtk);
-    maxRoll = Math.max(maxRoll, totalAtk);
+    const hit_ac = nat20 ? 999 : nat1 ? 0 : total; // AC threshold this hits
 
-    results.push({
-      name: atk.name, d20, bonus: atk.bonus + buffBonus.attack,
-      total: totalAtk, hit, dmg, critThreat, critConfirmed,
-      specials: atk.specials
+    rows.push({
+      name: atk.name, r, bonus: atk.bonus + b.a, total,
+      hit_ac, dmg, nat20, nat1, threat, critOk,
+      specials: atk.sp,
     });
+
+    // Pre-roll grab
+    if (atk.sp.includes('grab') && c.cmb) {
+      const g = d20();
+      grabs.push({ atk: atk.name, d20: g, total: g + c.cmb + 4 + b.a });
+    }
   }
 
-  // Haste extra attack (highest bonus attack repeated)
-  if (buffBonus.extraAttack && attacks.length > 0) {
-    const bestAtk = attacks.reduce((a,b) => a.bonus > b.bonus ? a : b);
-    const d20 = rollD20();
-    const totalAtk = d20 + bestAtk.bonus + buffBonus.attack;
-    const hit = d20 === 20 || (totalAtk >= targetAC && d20 !== 1);
-    let dmg = 0;
-    if (hit) {
-      allMiss = false;
-      dmg = rollDice(bestAtk.damage).total + buffBonus.damage;
-      totalDmg += dmg;
-    } else { allHit = false; }
-    minRoll = Math.min(minRoll, totalAtk);
-    maxRoll = Math.max(maxRoll, totalAtk);
-    results.push({
-      name: 'Haste', d20, bonus: bestAtk.bonus + buffBonus.attack,
-      total: totalAtk, hit, dmg, critThreat: false, critConfirmed: false,
-      specials: []
-    });
+  // Haste extra attack
+  if (b.extra && c.attacks.length > 0) {
+    const best = c.attacks.reduce((a,x) => a.bonus > x.bonus ? a : x);
+    const r = d20(), total = r + best.bonus + b.a;
+    const dr = rdice(best.dmg);
+    const dmg = dr.t + b.d;
+    const hit_ac = r === 20 ? 999 : r === 1 ? 0 : total;
+    rows.push({ name:'Haste', r, bonus:best.bonus+b.a, total, hit_ac, dmg, nat20:r===20, nat1:r===1, threat:false, critOk:false, specials:[] });
   }
 
-  // Build summary
-  let summaryClass, summaryText;
-  if (allHit && results.length > 0) {
-    summaryClass = 'all-hit';
-    summaryText = `ALL HIT (lowest: ${minRoll})`;
-  } else if (allMiss && results.length > 0) {
-    summaryClass = 'all-miss';
-    summaryText = `ALL MISS (highest: ${maxRoll})`;
-  } else {
-    summaryClass = 'mixed';
-    const hits = results.filter(r => r.hit).length;
-    summaryText = `MIXED: ${hits}/${results.length} hit (range: ${minRoll}-${maxRoll})`;
-  }
+  // Sort by total descending (highest rolls first)
+  rows.sort((a, b) => b.total - a.total);
 
+  c.preRoll = { rows, grabs };
+}
+
+function reroll() {
+  for (const g of S.groups) for (const c of g.creatures) if (c.alive) preRoll(c);
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CREATURE CREATION
+// ═══════════════════════════════════════════════════════════════
+function mkCreature(bEntry, aug) {
+  const data = bEntry.data;
+  const card = aug && data.augmented ? data.augmented : data.combat_card;
+  const base = data.combat_card;
+  const specials = (card.Special_Attacks||base.Special_Attacks||'').toLowerCase();
   return {
-    results, totalDmg, summaryClass, summaryText,
-    minRoll, maxRoll, grabResults,
-    allHit, allMiss
+    id:`C${nCid++}`, name:data.name, hp:card.HP||10, maxHp:card.HP||10,
+    ac:card.AC||10, attacks:parseMelee(card.Melee||base.Melee||''), aug,
+    cmb:card.CMB||base.CMB||0, cmd:card.CMD||base.CMD||10,
+    specials, preRoll:null, alive:true, buffOvr:{},
   };
 }
 
+function doSummon() {
+  const slot=+document.getElementById('inp-slot').value;
+  const cl=+document.getElementById('inp-cl').value||10;
+  const tierId=document.getElementById('inp-tier').value;
+  const opts=tierOpts(slot);
+  const tier=opts.find(o=>o.id===tierId)||opts[0];
+  const name=document.getElementById('inp-creature').value;
+  if(!name) return;
+  const bE=B[name.toLowerCase()]; if(!bE) return;
+  const count=rollCount(tier.expr);
+  const aug=!!S.feats.augment;
+  const g={id:`G${nGid++}`,name:`SNA ${slot}: ${count}x ${name}`,src:'sna',
+    creatures:[],rl:cl,casting:true,slot};
+  for(let i=0;i<count;i++) g.creatures.push(mkCreature(bE,aug));
+  S.groups.push(g);
+  if(S.round===0) S.round=1;
+  for(const c of g.creatures) preRoll(c);
+  render();
+}
+
+function summonLions(){
+  const bE=B['lion']; if(!bE){alert('Lion not in bestiary');return;}
+  const g={id:`G${nGid++}`,name:'Lion Figurines',src:'figurine',creatures:[],rl:99,casting:false};
+  for(let i=0;i<2;i++){const c=mkCreature(bE,false);c.name='Lion';g.creatures.push(c);}
+  S.groups.push(g);
+  if(S.round===0) S.round=1;
+  for(const c of g.creatures) preRoll(c);
+  render();
+}
+
 // ═══════════════════════════════════════════════════════════════
-// CREATURE MANAGEMENT
+//  EFFECTS
 // ═══════════════════════════════════════════════════════════════
+function addEffect(type){
+  const cl=+document.getElementById('inp-cl').value||10;
+  if(type==='sphere') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (wand)',rl:3,dc:13,dmg:'3d6',save:'Ref half',note:'CL3 wand. Move action to reposition.'});
+  if(type==='sphere_cast') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (cast)',rl:cl,dc:10+2+5,dmg:'3d6',save:'Ref half',note:`CL${cl}. Move action to reposition.`});
+  if(S.round===0) S.round=1;
+  render();
+}
 
-function summonCreature() {
-  const sel = document.getElementById('creature-select');
-  const name = sel.value;
-  if (!name || !BESTIARY[name.toLowerCase()]) return;
+function rollEffect(eid){
+  const e=S.effects.find(x=>x.id===eid);if(!e)return;
+  const r=rdice(e.dmg);
+  alert(`${e.name}: ${r.t} damage (${r.r.join('+')}${r.m>=0?'+':''}${r.m}) — DC ${e.dc} ${e.save}`);
+}
 
-  const count = parseInt(document.getElementById('summon-count').value) || 1;
-  const augmented = document.getElementById('augment-summon').checked;
-  const casterLevel = parseInt(document.getElementById('caster-level').value) || 10;
-  const info = BESTIARY[name.toLowerCase()];
-  const card = augmented && info.data.augmented ? info.data.augmented : info.data.combat_card;
-  const baseCard = info.data.combat_card;
+// ═══════════════════════════════════════════════════════════════
+//  ROUND
+// ═══════════════════════════════════════════════════════════════
+function nextRound(){
+  S.round++;
+  for(const g of S.groups){if(g.casting){g.casting=false;}else{g.rl--;}}
+  S.groups=S.groups.filter(g=>{if(g.rl<=0&&g.src==='sna'){g.creatures.forEach(c=>{c.alive=false;});return false;}return true;});
+  S.effects=S.effects.filter(e=>{e.rl--;return e.rl>0;});
+  // Fast healing
+  const fh=bTotal({}).fh;
+  if(fh>0) for(const g of S.groups) for(const c of g.creatures) if(c.alive&&c.hp<c.maxHp) c.hp=Math.min(c.maxHp,c.hp+fh);
+  reroll();
+}
 
-  maxRounds = casterLevel;
-  if (roundNum === 0) roundNum = 1;
+// ═══════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════
+function render(){
+  document.getElementById('disp-rd').textContent=S.round;
+  document.querySelectorAll('.chip[data-feat]').forEach(el=>el.classList.toggle('on',!!S.feats[el.dataset.feat]));
+  document.querySelectorAll('.chip[data-buff]').forEach(el=>el.classList.toggle('on',!!S.buffs[el.dataset.buff]));
+  updTiers();
 
-  for (let i = 0; i < count; i++) {
-    const id = `${name.slice(0,3).toUpperCase()}${creatures.length + 1}`;
-    const melee = card.Melee || baseCard.Melee || '';
-    const attacks = parseMeleeLine(melee);
-
-    creatures.push({
-      id, name: info.data.name, hp: card.HP || baseCard.HP || 10,
-      maxHp: card.HP || baseCard.HP || 10,
-      ac: card.AC || baseCard.AC || 10,
-      attacks, augmented,
-      cmb: card.CMB || baseCard.CMB || 0,
-      cmd: card.CMD || baseCard.CMD || 10,
-      preRoll: null, alive: true,
-      specials: (card.Special_Attacks || baseCard.Special_Attacks || '').toLowerCase(),
-    });
+  const refAC = +document.getElementById('ref-ac').value || 18;
+  const area=document.getElementById('creatures-out');
+  let h='';
+  for(const g of S.groups){
+    const alive=g.creatures.filter(c=>c.alive).length;
+    const rlTxt=g.src==='figurine'?'permanent':`${g.rl} rd${g.rl!==1?'s':''}`;
+    h+=`<div class="panel group"><div class="group-head">
+      <span class="group-name">${g.name}</span>
+      <span class="group-meta">${alive}/${g.creatures.length} | ${rlTxt}</span>
+      ${g.casting?`<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest('${g.id}')">MANIFEST</button>`:''}
+      <button class="sm" onclick="dismissG('${g.id}')" style="margin-left:auto">Dismiss</button>
+    </div><div class="cgrid">`;
+    for(const c of g.creatures) h+=renderCard(c,g.casting,refAC);
+    h+=`</div></div>`;
   }
+  area.innerHTML=h;
 
-  updateUI();
-  rollAll();
-  log(`Summoned ${count}x ${name} (${augmented ? 'augmented' : 'base'}, ${casterLevel} rounds)`);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// UI RENDERING
-// ═══════════════════════════════════════════════════════════════
-
-function renderCreatureCard(c) {
-  const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp * 100) : 0;
-  const hpClass = hpPct > 50 ? '' : hpPct > 25 ? 'low' : 'critical';
-  const pr = c.preRoll;
-
-  let summaryHTML = '';
-  let detailsHTML = '';
-
-  if (pr) {
-    summaryHTML = `
-      <div class="summary-line">
-        <span class="${pr.summaryClass}">${pr.summaryText}</span>
-        ${pr.totalDmg > 0 ? ` | <span class="dmg">${pr.totalDmg} damage</span>` : ''}
-        ${pr.grabResults.length > 0 ? ` | Grab CMB: ${pr.grabResults.map(g => g.total).join(', ')}` : ''}
-      </div>`;
-
-    detailsHTML = pr.results.map(r => {
-      const cls = r.critConfirmed ? 'crit' : r.hit ? 'hit' : 'miss';
-      const critTag = r.critConfirmed ? ' CRIT!' : r.critThreat && r.hit ? ' (threat, not confirmed)' : '';
-      return `<div class="attack-row ${cls}">
-        ${r.name}: [${r.d20}]+${r.bonus}=${r.total} ${r.hit ? 'HIT' : 'MISS'}${r.hit ? ` → ${r.dmg} dmg` : ''}${critTag}
-      </div>`;
-    }).join('');
-
-    if (pr.grabResults.length > 0) {
-      detailsHTML += pr.grabResults.map(g =>
-        `<div class="attack-row" style="color:var(--yellow)">Grab (${g.attack}): [${g.d20}]+CMB=${g.total}</div>`
-      ).join('');
-    }
-  }
-
-  return `
-    <div class="creature-card ${c.alive ? '' : 'dead'}" id="card-${c.id}" onclick="toggleExpand('${c.id}')">
-      <div class="header">
-        <span class="name">${c.id}: ${c.name}</span>
-        <span class="hp-text">${c.hp}/${c.maxHp} HP | AC ${c.ac}</span>
-      </div>
-      <div class="hp-bar-container">
-        <div class="hp-bar-fill ${hpClass}" style="width:${hpPct}%"></div>
-      </div>
-      ${summaryHTML}
-      <div class="attack-details">${detailsHTML}</div>
-      <div class="card-actions">
-        <button onclick="event.stopPropagation(); adjustHP('${c.id}', -1)">Damage</button>
-        <button onclick="event.stopPropagation(); adjustHP('${c.id}', 1)">Heal</button>
-        <button onclick="event.stopPropagation(); dismissCreature('${c.id}')">Dismiss</button>
-      </div>
-    </div>`;
-}
-
-function updateUI() {
-  const grid = document.getElementById('creature-grid');
-  grid.innerHTML = creatures.filter(c => c.alive).map(renderCreatureCard).join('');
-  document.getElementById('round-num').textContent = roundNum;
-  document.getElementById('rounds-left').textContent = maxRounds > 0 ? (maxRounds - roundNum + 1) : '-';
-  renderBuffs();
-}
-
-function renderBuffs() {
-  const container = document.getElementById('buff-tags');
-  container.innerHTML = Object.entries(buffs)
-    .filter(([_, active]) => active)
-    .map(([id]) => {
-      const def = BUFF_DEFS[id];
-      return `<span class="buff-tag active" onclick="toggleBuff('${id}')">${def?.label || id} <span class="remove">×</span></span>`;
-    }).join('');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ACTIONS
-// ═══════════════════════════════════════════════════════════════
-
-function rollAll() {
-  const ac = parseInt(document.getElementById('target-ac').value) || 18;
-  for (const c of creatures) {
-    if (!c.alive) continue;
-    c.preRoll = preRollCreature(c, ac);
-  }
-  updateUI();
-}
-
-function nextRound() {
-  roundNum++;
-  if (maxRounds > 0 && roundNum > maxRounds) {
-    creatures.forEach(c => { c.alive = false; });
-    log(`Round ${roundNum}: All summons expired!`);
-  } else {
-    log(`Round ${roundNum}`);
-  }
-  // Auto pre-roll next round
-  const ac = parseInt(document.getElementById('target-ac').value) || 18;
-  for (const c of creatures) {
-    if (!c.alive) continue;
-    c.preRoll = preRollCreature(c, ac);
-  }
-  updateUI();
-}
-
-function adjustHP(id, direction) {
-  const c = creatures.find(x => x.id === id);
-  if (!c) return;
-  const amount = parseInt(prompt(`${direction > 0 ? 'Heal' : 'Damage'} amount:`) || '0');
-  if (!amount) return;
-  c.hp = Math.max(0, Math.min(c.maxHp, c.hp + (direction * amount)));
-  if (c.hp <= 0) c.alive = false;
-  log(`${c.name} (${c.id}): ${direction > 0 ? 'healed' : 'took'} ${amount} → ${c.hp}/${c.maxHp}`);
-  updateUI();
-}
-
-function dismissCreature(id) {
-  const c = creatures.find(x => x.id === id);
-  if (c) { c.alive = false; c.hp = 0; log(`Dismissed ${c.name} (${id})`); }
-  updateUI();
-}
-
-function dismissAll() {
-  creatures.forEach(c => { c.alive = false; c.hp = 0; });
-  roundNum = 0; maxRounds = 0;
-  log('All creatures dismissed');
-  updateUI();
-}
-
-function toggleExpand(id) {
-  document.getElementById(`card-${id}`)?.classList.toggle('expanded');
-}
-
-function toggleBuff(id) {
-  buffs[id] = !buffs[id];
-  renderBuffs();
-  rollAll(); // Re-roll with new buffs
-}
-
-// Buff select handler
-document.getElementById('buff-select').addEventListener('change', function() {
-  if (this.value) {
-    buffs[this.value] = true;
-    this.value = '';
-    renderBuffs();
-    if (creatures.some(c => c.alive)) rollAll();
-  }
-});
-
-// AC change handler — auto re-roll
-document.getElementById('target-ac').addEventListener('change', () => {
-  if (creatures.some(c => c.alive)) rollAll();
-});
-
-// ═══════════════════════════════════════════════════════════════
-// IMPORT
-// ═══════════════════════════════════════════════════════════════
-
-function importStrategy() {
-  try {
-    const json = JSON.parse(document.getElementById('import-json').value);
-    // Clear existing
-    creatures.length = 0;
-    buffs = {};
-    roundNum = 0;
-
-    // Set target AC
-    if (json.target_ac) document.getElementById('target-ac').value = json.target_ac;
-
-    // Add buffs
-    if (json.buffs) {
-      for (const b of json.buffs) buffs[b] = true;
-    }
-
-    // Summon creatures
-    if (json.creatures) {
-      for (const spec of json.creatures) {
-        document.getElementById('creature-select').value = spec.name;
-        document.getElementById('summon-count').value = spec.count || 1;
-        summonCreature();
-      }
-    }
-
-    log(`Imported strategy: ${JSON.stringify(json).slice(0, 100)}`);
-  } catch (e) {
-    alert('Invalid JSON: ' + e.message);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// COMBAT LOG
-// ═══════════════════════════════════════════════════════════════
-
-function log(msg) {
-  const el = document.getElementById('combat-log');
-  const ts = new Date().toLocaleTimeString();
-  el.textContent = `[${ts}] ${msg}\n` + el.textContent;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// BESTIARY LOADING
-// ═══════════════════════════════════════════════════════════════
-
-async function loadBestiary() {
-  const files = [
-    'statblocks/SNA-Bestiary-Levels-1-3.json',
-    'statblocks/SNA-Bestiary-Levels-4-6.json',
-    'statblocks/SNA-Bestiary-Levels-7-9.json',
-  ];
-  for (const file of files) {
-    try {
-      const resp = await fetch(file);
-      const data = await resp.json();
-      for (const level of data.levels || []) {
-        for (const creature of level.creatures || []) {
-          BESTIARY[creature.name.toLowerCase()] = {
-            data: creature, sna_level: level.sna_level
-          };
-        }
-      }
-    } catch (e) {
-      console.warn(`Failed to load ${file}:`, e);
-    }
-  }
-
-  // Populate creature select
-  updateCreatureSelect();
-  log(`Bestiary loaded: ${Object.keys(BESTIARY).length} creatures`);
-}
-
-function updateCreatureSelect() {
-  const level = parseInt(document.getElementById('sna-level').value);
-  const sel = document.getElementById('creature-select');
-  const available = Object.values(BESTIARY)
-    .filter(b => b.sna_level === level)
-    .sort((a,b) => a.data.name.localeCompare(b.data.name));
-
-  sel.innerHTML = available.map(b =>
-    `<option value="${b.data.name}">${b.data.name} (AC ${b.data.combat_card.AC}, HP ${b.data.combat_card.HP})</option>`
+  document.getElementById('effects-out').innerHTML=S.effects.map(e=>
+    `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
   ).join('');
-
-  // Update hint
-  document.getElementById('summon-hint').textContent =
-    `${available.length} creatures at SNA ${level}`;
 }
 
-document.getElementById('sna-level').addEventListener('change', updateCreatureSelect);
+function renderCard(c, casting, refAC) {
+  const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
+  const hpCls=pct>50?'':pct>25?'low':'crit';
+  const cls=!c.alive?'dead':casting?'casting':'';
+  const pr=c.preRoll;
 
-// Init
-loadBestiary();
+  // Per-creature buff chips
+  const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
+  const buffHTML = activeBuffs.map(([id])=>{
+    const off = c.buffOvr[id]===false;
+    return `<span class="buff-chip ${off?'off':''}" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`;
+  }).join('');
+
+  let tableHTML='', summaryHTML='';
+  if(pr && c.alive) {
+    let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
+    let acLineDrawn = false;
+
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>d20</th><th>Total</th><th>Dmg</th><th></th></tr>`;
+    for(const r of pr.rows){
+      const isHit = r.hit_ac >= refAC;
+      if(isHit){hitDmg+=r.dmg;hitCount++;}
+      // Draw AC line when we cross the threshold
+      let acLine='';
+      if(!acLineDrawn && !isHit){ acLineDrawn=true; acLine=' ac-line'; }
+      const cls=r.critOk?'crit':isHit?'hit':'miss';
+      const tag=r.critOk?' CRIT':r.nat20?' NAT20':r.nat1?' NAT1':'';
+      const sp=r.specials.length?r.specials.map(s=>`+${s}`).join(' '):'';
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${r.name}</td><td class="d20">[${r.r}]</td><td class="total">${r.total}</td><td class="dmg">${isHit?r.dmg:'-'}</td><td class="special">${tag} ${sp}</td></tr>`;
+    }
+    tableHTML+=`</table>`;
+
+    // Grab info
+    const grabStr=pr.grabs.length?` | <span class="grab-info">Grab: ${pr.grabs.map(g=>`${g.total}`).join(', ')}</span>`:'';
+
+    summaryHTML=`<div class="roll-summary">
+      <span>vs AC ${refAC}: <b style="color:var(--hit)">${hitCount}</b>/${totalAtks} hit</span>
+      <span class="total-dmg">${hitDmg} dmg</span>${grabStr}
+    </div>`;
+  }
+
+  return `<div class="ccard ${cls}">
+    <div class="ccard-head"><span class="ccard-name">${c.id}: ${c.name}${c.aug?' (aug)':''}</span><span class="ccard-hp">${c.hp}/${c.maxHp} AC${c.ac}</span></div>
+    <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
+    <div class="buff-chips">${buffHTML}</div>
+    ${summaryHTML}${tableHTML}
+    <div class="ccard-actions">
+      <button class="sm" onclick="event.stopPropagation();const a=prompt('Damage:');if(a)dmgC('${c.id}',+a)">-HP</button>
+      <button class="sm" onclick="event.stopPropagation();const a=prompt('Heal:');if(a)healC('${c.id}',+a)">+HP</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function dmgC(id,n){for(const g of S.groups){const c=g.creatures.find(x=>x.id===id);if(c){c.hp=Math.max(0,c.hp-n);if(c.hp<=0)c.alive=false;render();return;}}}
+function healC(id,n){for(const g of S.groups){const c=g.creatures.find(x=>x.id===id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.alive=c.hp>0;render();return;}}}
+function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
+function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
+function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];reroll();}
+function tBuff(el){S.buffs[el.dataset.buff]=!S.buffs[el.dataset.buff];reroll();}
+function togCBuff(cid,bid){
+  for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
+    if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;preRoll(c);render();return;}}
+}
+function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;render();}
+function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);
+  if(j.ac)document.getElementById('ref-ac').value=j.ac;
+  if(j.buffs)for(const b of j.buffs)S.buffs[b]=true;
+  if(j.slot)document.getElementById('inp-slot').value=j.slot;
+  if(j.tier){updTiers();document.getElementById('inp-tier').value=j.tier;}
+  updCreatures();
+  if(j.creature){document.getElementById('inp-creature').value=j.creature;doSummon();}
+  render();
+}catch(e){alert('Bad JSON: '+e.message);}}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+async function init(){
+  // Load bestiary
+  for(const f of['statblocks/SNA-Bestiary-Levels-1-3.json','statblocks/SNA-Bestiary-Levels-4-6.json','statblocks/SNA-Bestiary-Levels-7-9.json']){
+    try{const data=await(await fetch(f)).json();
+      for(const lv of data.levels||[])for(const cr of lv.creatures||[])B[cr.name.toLowerCase()]={data:cr,sna_level:lv.sna_level};
+    }catch(e){console.warn(f,e);}
+  }
+  // Load ratings
+  try{const data=await(await fetch('creature-ratings.json')).json();
+    for(const[lv,creatures] of Object.entries(data.ratings||{})){
+      R[+lv]={};
+      for(const[name,info] of Object.entries(creatures)) R[+lv][name]=info;
+    }
+  }catch(e){console.warn('ratings',e);}
+  updTiers();
+  render();
+}
+init();
 </script>
 </body>
 </html>

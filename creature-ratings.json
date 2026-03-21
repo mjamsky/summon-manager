@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "source": "RPGBot Pathfinder 1e SNA Guide + Quick Lookup Table best picks",
+    "url": "https://rpgbot.net/pathfinder/characters/summon_natures_ally/",
+    "rating_key": {
+      "S": "Best in class — go-to pick for this level",
+      "A": "Recommended — strong general choice",
+      "B": "Situational — good in specific scenarios",
+      "C": "Weak — rarely worth summoning",
+      "?": "Unrated — no community consensus yet"
+    },
+    "note": "Levels V-IX need community rating data added"
+  },
+  "ratings": {
+    "1": {
+      "Eagle":            { "tier": "A", "tags": ["damage", "fly"],     "note": "3 attacks + flight. Best damage at SNA I" },
+      "Stirge":           { "tier": "A", "tags": ["drain", "touch"],    "note": "Touch +7, Con drain stacks with multiples" },
+      "Mite":             { "tier": "A", "tags": ["utility", "scout"],  "note": "Only intelligent option. Speaks Undercommon" },
+      "Giant Centipede":  { "tier": "B", "tags": ["poison", "block"],   "note": "Fast + climb + poison. Blocks corridors" },
+      "Poisonous Frog":   { "tier": "B", "tags": ["poison"],           "note": "Poison stacking with multiple summons" },
+      "Dolphin":          { "tier": "B", "tags": ["aquatic", "sense"],  "note": "Blindsight 120ft. Only aquatic option" },
+      "Viper":            { "tier": "B", "tags": ["poison", "climb"],   "note": "Faster than frog, climb + swim" },
+      "Dog":              { "tier": "B", "tags": ["scent"],             "note": "Scent ability for tracking" },
+      "Dire Rat":         { "tier": "B", "tags": ["disease", "fast"],   "note": "Disease + 40ft speed + climb + swim" },
+      "Fire Beetle":      { "tier": "C", "tags": ["light"],            "note": "Glows. Torches cost a copper." },
+      "Pony":             { "tier": "C", "tags": ["mount"],            "note": "Duration too short for mount use" }
+    },
+    "2": {
+      "Small Earth Elemental": { "tier": "A", "tags": ["melee", "tank"],  "note": "Best melee stats. Earth glide utility" },
+      "Small Air Elemental":   { "tier": "A", "tags": ["fly", "control"], "note": "Perfect fly + whirlwind. Great mobility" },
+      "Giant Spider":          { "tier": "A", "tags": ["control", "web"], "note": "Repeatable web (touch +5). Area denial" },
+      "Squid":                 { "tier": "A", "tags": ["aquatic", "grab"],"note": "Go-to underwater grappler" },
+      "Giant Frog":            { "tier": "B", "tags": ["grab", "tongue"], "note": "Tongue touch attack + swallow whole" },
+      "Hyena":                 { "tier": "B", "tags": ["trip"],           "note": "Better wolf. Still unreliable trip" },
+      "Small Fire Elemental":  { "tier": "B", "tags": ["fire"],          "note": "Burn damage, immune to fire" },
+      "Small Water Elemental": { "tier": "B", "tags": ["aquatic"],       "note": "Vortex + drench" },
+      "Wolf":                  { "tier": "C", "tags": ["trip"],           "note": "+2 attack unreliable for trip" },
+      "Giant Ant":             { "tier": "C", "tags": ["carry"],          "note": "Fast but attacks worthless" },
+      "Goblin Dog":            { "tier": "C", "tags": [],                 "note": "Pitiful attacks" },
+      "Horse":                 { "tier": "C", "tags": ["mount"],          "note": "Duration too short" },
+      "Octopus":               { "tier": "C", "tags": ["aquatic"],        "note": "Worse squid" }
+    },
+    "3": {
+      "Leopard":          { "tier": "S", "tags": ["damage", "pounce"],   "note": "BEST DPS. Pounce + rake = 5 attacks on charge" },
+      "Crocodile":        { "tier": "A", "tags": ["grab", "control"],    "note": "Grab + death roll. Locks down one foe" },
+      "Aurochs":          { "tier": "A", "tags": ["trample", "aoe"],     "note": "Trample is all you need. AoE damage" },
+      "Constrictor Snake":{ "tier": "B", "tags": ["grab", "swim"],       "note": "Good grappler, dual movement" },
+      "Cheetah":          { "tier": "B", "tags": ["fast", "trip"],       "note": "Fast + 3 attacks + trip. 1d3 hyenas may trip better" },
+      "Dire Bat":         { "tier": "B", "tags": ["fly", "sense"],       "note": "Blindsense finds invisible. Otherwise meh" },
+      "Giant Crab":       { "tier": "B", "tags": ["grab"],              "note": "Two grab chances. Crocodile still better" },
+      "Wolverine":        { "tier": "B", "tags": ["damage"],            "note": "Good damage once rage triggers" },
+      "Shark":            { "tier": "B", "tags": ["aquatic", "damage"],  "note": "Decent damage underwater" },
+      "Ape":              { "tier": "C", "tags": ["climb"],             "note": "Weak attack bonus (+3)" },
+      "Boar":             { "tier": "C", "tags": ["tank"],              "note": "Ferocity not enough to compensate" },
+      "Giant Ant Soldier":{ "tier": "C", "tags": ["poison"],            "note": "Weak attack bonus" },
+      "Electric Eel":     { "tier": "C", "tags": ["aquatic"],           "note": "Terrible even underwater" },
+      "Monitor Lizard":   { "tier": "C", "tags": ["poison"],            "note": "Slow onset poison. Croc is better" }
+    },
+    "4": {
+      "Satyr":            { "tier": "S", "tags": ["control", "pipes"],   "note": "BEST. Pipes = area save-or-suck (sleep/fear/charm)" },
+      "Griffon":          { "tier": "A", "tags": ["damage", "fly", "pounce"], "note": "Flying pounce monster. Great DPS" },
+      "Tiger":            { "tier": "A", "tags": ["damage", "grab", "rake"], "note": "Grab + rake. Trades flight for melee power" },
+      "Giant Scorpion":   { "tier": "A", "tags": ["grab", "poison"],    "note": "Grab claws + Con poison. Horrifying" },
+      "Grizzly Bear":     { "tier": "A", "tags": ["grab", "tank"],      "note": "Grab + high HP. Durable grappler" },
+      "Owlbear":          { "tier": "A", "tags": ["grab", "damage"],    "note": "Like bear but better attack/CMB" },
+      "Medium Air Elemental": { "tier": "A", "tags": ["fly","control"], "note": "Whirlwind DC now meaningful" },
+      "Bison":            { "tier": "A", "tags": ["trample", "aoe"],    "note": "Improved trample over aurochs" },
+      "Giant Ant Drone":  { "tier": "A", "tags": ["fly", "grab"],       "note": "Fly + grab = lift & drop enemies" },
+      "Deinonychus":      { "tier": "B", "tags": ["damage", "pounce"],  "note": "4 attacks + pounce. Griffon usually better" },
+      "Dire Ape":         { "tier": "B", "tags": ["rend", "climb"],     "note": "3 attacks + rend. Poor AC" },
+      "Dire Boar":        { "tier": "B", "tags": ["tank"],              "note": "Big HP + Ferocity. Not versatile" },
+      "Giant Wasp":       { "tier": "B", "tags": ["fly", "poison"],     "note": "Ant drone is usually better" },
+      "Mephit":           { "tier": "C", "tags": ["utility"],           "note": "Weak breaths, marginal SLAs" },
+      "Lion":             { "tier": "C", "tags": ["damage"],            "note": "Worse tiger" },
+      "Dire Wolf":        { "tier": "C", "tags": ["trip"],              "note": "Unreliable trip, little damage" },
+      "Giant Stag Beetle":{ "tier": "C", "tags": [],                    "note": "No idea how this is CR 4" },
+      "Pteranodon":       { "tier": "C", "tags": ["fly"],               "note": "Terrible. No idea how CR 3" },
+      "Rhinoceros":       { "tier": "C", "tags": ["charge"],            "note": "One-trick charge pony" }
+    },
+    "5": {
+      "Dire Lion":        { "tier": "A", "tags": ["damage", "grab", "pounce"], "note": "Pounce + grab + rake. Bigger leopard" },
+      "Giant Moray Eel":  { "tier": "B", "tags": ["aquatic", "grab"],   "note": "Aquatic grappler" },
+      "Ankylosaurus":     { "tier": "A", "tags": ["tank", "stun"],      "note": "Huge HP, stun on hit. Wall of meat" },
+      "Woolly Rhinoceros":{ "tier": "B", "tags": ["trample", "charge"], "note": "Powerful trample + charge" },
+      "Orca":             { "tier": "B", "tags": ["aquatic", "damage"], "note": "Huge aquatic damage" },
+      "Large Elemental":  { "tier": "A", "tags": ["versatile"],         "note": "All elements now serious threats" }
+    },
+    "6": {
+      "Dire Tiger":       { "tier": "S", "tags": ["damage", "grab", "pounce", "rake"], "note": "BEST. Pounce + grab + rake. Murder machine" },
+      "Dire Bear":        { "tier": "A", "tags": ["grab", "tank"],      "note": "Massive HP + grab" },
+      "Elephant":         { "tier": "A", "tags": ["trample", "tank"],   "note": "Huge trample + very durable" },
+      "Huge Elemental":   { "tier": "A", "tags": ["versatile"],         "note": "All elements very powerful now" },
+      "Giant Octopus":    { "tier": "B", "tags": ["aquatic", "grab"],   "note": "8 tentacles + grab + ink" }
+    }
+  }
+}

@@ -57,6 +57,7 @@ Source: Obsidian vault SRD at `~/Documents/Obsidian/Serpent's Skull/Assets/SRD/f
 - CSS/JS separation — move all inline styles (31 instances) out of JS template literals into semantic CSS classes. JS outputs classes + data attributes, CSS handles all presentation. Enables media queries, theming, animations, and much easier iteration.
 - State persistence — localStorage save/restore so closing the tab doesn't lose active summons mid-combat
 - Effect damage rendering inline (not `alert()` popup)
+- Dead creatures: collapse to single line, click to expand, REVIVE button to restore with HP input (for retcons/corrections)
 
 **Features:**
 - Items sidebar (wand charges, figurine activation, overrideable CL)

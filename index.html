@@ -42,8 +42,24 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none; background: #2a2d3a; border: 1px solid var(--border); }
 .chip.on { background: #2a4a3a; border-color: var(--green); color: var(--green); }
 
-/* Tier select dropdown coloring */
-.opt-S { color: #f5c842; } .opt-A { color: #5baaff; } .opt-B { color: #8bc34a; } .opt-C { color: #888; }
+/* Custom creature dropdown */
+.cdrop { position: relative; flex: 1; }
+.cdrop-display { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 3px 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; min-height: 24px; }
+.cdrop-display .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0; flex-shrink: 0; }
+.cdrop-display::after { content: '▾'; margin-left: auto; color: var(--muted); }
+.cdrop-list { display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 320px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 4px 4px; z-index: 100; }
+.cdrop.open .cdrop-list { display: block; }
+.cdrop.open .cdrop-display { border-radius: 3px 3px 0 0; border-color: var(--accent); }
+.cdrop-search { width: 100%; background: var(--bg); border: none; border-bottom: 1px solid var(--border); color: var(--text); padding: 4px 6px; font-family: inherit; font-size: 12px; outline: none; }
+#cdrop-items { --name-col: 140px; }
+.cdrop-item { padding: 3px 6px; cursor: pointer; font-size: 12px; display: grid; grid-template-columns: 24px 62px var(--name-col) 1fr; align-items: center; gap: 0; }
+.cdrop-item:hover, .cdrop-item.active { background: #333648; }
+.cdrop-item .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0 6px 0 0; }
+.cdrop-item .cdrop-stats { color: var(--muted); white-space: nowrap; font-size: 11px; }
+.cdrop-stats .hp-icon { color: var(--red); margin-left: 1px; }
+.cdrop-stats .ac-icon { color: var(--accent); margin-left: 4px; }
+.cdrop-item .cdrop-name { color: var(--text); padding-left: 6px; }
+.cdrop-item .cdrop-note { color: var(--muted); font-size: 10px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Creature Cards — flat flex flow, no group wrappers ── */
 .creatures-flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
@@ -52,10 +68,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .casting-tag { background: var(--crit); color: #111; padding: 1px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 .ccard.dead { opacity: 0.25; }
 .ccard.casting { border-style: dashed; border-color: var(--crit); opacity: 0.7; }
-.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
 .ccard-name { font-weight: bold; font-size: 13px; }
-.ccard-hp { font-size: 12px; color: var(--muted); }
-.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 4px; }
+.ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
+.ccard-stats { font-size: 11px; color: #fff; margin-bottom: 3px; }
+.ccard-stats .stat-label { color: var(--muted); }
+.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 3px; }
 .hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; }
 .hpfill.low { background: var(--crit); }
 .hpfill.crit { background: var(--red); }
@@ -82,10 +100,17 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ac-line { border-top: 2px dashed var(--red); }
 .ac-line td { padding-top: 4px; }
 
-/* Roll summary */
-.roll-summary { font-size: 12px; padding: 4px 0; display: flex; gap: 12px; flex-wrap: wrap; }
-.roll-summary .total-dmg { color: var(--crit); font-weight: bold; font-size: 14px; }
-.roll-summary .grab-info { color: var(--accent); }
+/* Roll summary — table-aligned */
+.roll-summary { font-size: 12px; padding: 4px 0; }
+.roll-summary-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+.roll-summary-table td { padding: 1px 4px; }
+.roll-summary-table .total-dmg { color: var(--crit); font-weight: bold; font-size: 14px; text-align: right; }
+.roll-summary-table .grab-info { color: var(--accent); font-size: 11px; }
+.roll-summary-table .summary-label { color: var(--muted); }
+
+/* Running total column */
+.roll-table .running { font-size: 11px; color: var(--muted); text-align: right; }
+.roll-table tr.hit .running { color: var(--hit); font-weight: bold; }
 
 /* ── Actions row ── */
 .ccard-actions { display: flex; gap: 3px; margin-top: 4px; }
@@ -118,34 +143,106 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Pounce indicator */
 .pounce-tag { background: #5a3a00; color: var(--crit); padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
 .pounce-tag.active { background: var(--crit); color: #111; }
+
+/* Grapple indicator */
+.grapple-tag { background: #2a2a5a; color: var(--accent); padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+.grapple-tag.active { background: var(--accent); color: #fff; }
+
+/* ── Inline-style replacements ── */
+.label-inline { display: inline; }
+.round-display { font-size: 18px; font-weight: bold; color: var(--crit); }
+.settings-toggle { font-size: 11px; color: var(--muted); cursor: pointer; margin-left: auto; }
+.settings-toggle:hover { color: var(--text); }
+.settings-tray { display: none; }
+.settings-tray.open { display: block; }
+.settings-tray .row { margin-bottom: 4px; }
+.flex-grow { flex: 1; }
+.flex-grow select { width: 100%; }
+.import-summary { cursor: pointer; color: var(--muted); font-size: 11px; }
+.import-textarea { width: 100%; height: 40px; background: var(--bg); color: var(--text); border: 1px solid var(--border); font-family: inherit; font-size: 11px; padding: 4px; margin-top: 4px; border-radius: 3px; }
+.import-btn { margin-top: 3px; }
+.dismiss-btn { margin-left: 4px; }
+
+/* Group summary bar */
+.group-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; font-size: 11px; }
+.group-summary { background: var(--card); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); }
+
+/* Creature card rows */
+.buff-pounce-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+
+/* Roll table tags */
+.tag-crit { color: var(--crit); font-weight: bold; }
+.tag-threat { color: var(--crit); }
+.tag-fumble { color: var(--miss); font-weight: bold; }
+.tag-nat1 { color: var(--miss); }
+.tag-muted { color: var(--muted); }
+.tag-hit { color: var(--hit); }
+
+/* Rake/special inline labels */
+.rake-label { color: var(--crit); font-size: 9px; }
+.sp-label-tag { font-size: 9px; color: var(--accent); }
+
+/* Specials section below roll table */
+.specials-section { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; font-size: 11px; }
+.special-item { margin-bottom: 2px; }
+.special-item.triggered { color: var(--hit); }
+.special-item.untriggered { color: var(--muted); }
+
+/* Stat block special abilities */
+.sb-sa-label { color: var(--crit); min-width: auto; }
+.sb-sa-val { font-size: 10px; }
+
+/* Key ability section (above roll table) */
+.ability-section { border: 1px solid #3a2a50; background: #1e1a2a; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; font-size: 11px; }
+.ability-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ability-name { color: #c4a0ff; font-weight: bold; }
+.ability-type { color: var(--muted); font-size: 9px; }
+.ability-dc { color: var(--crit); font-weight: bold; }
+.ability-detail { color: var(--muted); font-size: 10px; }
+
+/* Dead creature — rotated sideways */
+.ccard.dead { opacity: 1; transform-origin: top left; transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+  transform: rotate(-90deg) translateX(-100%); width: 280px; min-width: 0; height: auto; }
+.ccard.dead .ccard-head { opacity: 0.5; }
+.ccard.dead .hpbar { opacity: 0.3; }
+.dead-bar { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.dead-label { font-size: 10px; color: var(--red); font-weight: bold; }
+.revive-btn { font-size: 10px; padding: 1px 8px; background: #2a3a2a; border-color: var(--green); color: var(--green); }
+.revive-btn:hover { background: #3a4a3a; }
+/* Wrapper to reserve correct layout space for rotated card */
+.dead-wrap { display: inline-block; vertical-align: top; }
+
 </style>
 </head>
 <body>
 
 <!-- ═══ Global Controls ═══ -->
 <div class="panel row">
+  <div class="round-display">Rd <span id="disp-rd">0</span></div>
   <div><label>Reference AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></div>
-  <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
   <div><label>&nbsp;</label><button class="act" onclick="reroll()">RE-ROLL ALL</button></div>
   <div><label>&nbsp;</label><button class="go" onclick="nextRound()">NEXT ROUND</button></div>
   <div><label>&nbsp;</label><button onclick="clearAll()">CLEAR</button></div>
-  <div style="margin-left:auto;font-size:18px;font-weight:bold;color:var(--crit)">
-    Rd <span id="disp-rd">0</span>
-  </div>
+  <span class="settings-toggle" onclick="document.getElementById('settings-tray').classList.toggle('open')">⚙ Settings</span>
 </div>
 
-<!-- ═══ Feats ═══ -->
-<div class="panel chip-row">
-  <label style="display:inline">Feats:</label>
-  <span class="chip" data-feat="augment" onclick="tFeat(this)">Augment Summoning</span>
-  <span class="chip" data-feat="superior" onclick="tFeat(this)">Superior Summoning</span>
-  <span class="chip" data-feat="moonlight" onclick="tFeat(this)">Moonlight Summons</span>
-  <span class="chip" data-feat="starlight" onclick="tFeat(this)">Starlight Summons</span>
+<!-- ═══ Settings Tray (CL + Feats) ═══ -->
+<div class="panel settings-tray" id="settings-tray">
+  <div class="row">
+    <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
+  </div>
+  <div class="chip-row">
+    <label class="label-inline">Feats:</label>
+    <span class="chip" data-feat="augment" onclick="tFeat(this)">Augment Summoning</span>
+    <span class="chip" data-feat="superior" onclick="tFeat(this)">Superior Summoning</span>
+    <span class="chip" data-feat="moonlight" onclick="tFeat(this)">Moonlight Summons</span>
+    <span class="chip" data-feat="starlight" onclick="tFeat(this)">Starlight Summons</span>
+  </div>
 </div>
 
 <!-- ═══ Buffs ═══ -->
 <div class="panel chip-row">
-  <label style="display:inline">Buffs:</label>
+  <label class="label-inline">Buffs:</label>
   <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
   <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
   <span class="chip" data-buff="destruction" onclick="tBuff(this)">Destruct +4d</span>
@@ -166,14 +263,21 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
       <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
     </select></div>
     <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
-    <div style="flex:1"><label>Creature</label><select id="inp-creature" style="width:100%"></select></div>
+    <div class="cdrop" id="creature-drop">
+      <label>Creature</label>
+      <div class="cdrop-display" onclick="toggleCreatureDrop()"><span id="cdrop-text">Select...</span></div>
+      <div class="cdrop-list">
+        <input class="cdrop-search" type="text" placeholder="Search..." oninput="filterCreatures(this.value)">
+        <div id="cdrop-items"></div>
+      </div>
+    </div>
     <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
   </div>
 </div>
 
 <!-- ═══ Quick Items ═══ -->
 <div class="panel row">
-  <label style="display:inline">Items:</label>
+  <label class="label-inline">Items:</label>
   <button onclick="summonLions()">Lion Figurines (2)</button>
   <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
   <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
@@ -187,9 +291,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 <!-- ═══ Import ═══ -->
 <details class="panel">
-  <summary style="cursor:pointer;color:var(--muted);font-size:11px">Claude Import (JSON)</summary>
-  <textarea id="inp-import" style="width:100%;height:40px;background:var(--bg);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:11px;padding:4px;margin-top:4px;border-radius:3px" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
-  <button class="sm" onclick="doImport()" style="margin-top:3px">Import</button>
+  <summary class="import-summary">Claude Import (JSON)</summary>
+  <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
+  <button class="sm import-btn" onclick="doImport()">Import</button>
 </details>
 
 <script>
@@ -290,42 +394,78 @@ function updTiers(){
   updCreatures();
 }
 
+let creatureList = []; // current dropdown items
+let selectedCreature = '';
 function updCreatures(){
   const slot=+document.getElementById('inp-slot').value;
   const tierId=document.getElementById('inp-tier').value;
   const opts=tierOpts(slot);
   const tier=opts.find(o=>o.id===tierId)||opts[0];
-  const sel=document.getElementById('inp-creature');
   const lvRatings = R[tier.sna] || {};
-  const available=Object.values(B).filter(b=>b.sna_level===tier.sna)
+  const sorted=Object.values(B).filter(b=>b.sna_level===tier.sna)
     .sort((a,b)=>{
       const ra=lvRatings[a.data.name]?.tier||'U', rb=lvRatings[b.data.name]?.tier||'U';
       const order={S:0,A:1,B:2,C:3,U:4};
-      return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
+      const tierDiff=(order[ra]??4)-(order[rb]??4);
+      if(tierDiff!==0) return tierDiff;
+      const aAlt=a.data.is_alternate?1:0, bAlt=b.data.is_alternate?1:0;
+      if(aAlt!==bAlt) return aAlt-bAlt;
+      return a.data.name.localeCompare(b.data.name);
     });
-  // Sort: core first, then alternates; within each, by tier
-  const sorted = available.sort((a,b)=>{
-    const aAlt = a.data.is_alternate ? 1 : 0;
-    const bAlt = b.data.is_alternate ? 1 : 0;
-    if (aAlt !== bAlt) return aAlt - bAlt;
-    const ra=lvRatings[a.data.name]?.tier||'U', rb=lvRatings[b.data.name]?.tier||'U';
-    const order={S:0,A:1,B:2,C:3,U:4};
-    return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
-  });
-  // Tier symbols: colored dots that work in <option> elements
-  const tierDot = {S:'★', A:'◆', B:'●', C:'○'};
-  sel.innerHTML=sorted.map(b=>{
+  creatureList = sorted.map(b=>{
     const c=b.data.combat_card;
     const rating=lvRatings[b.data.name];
-    const t=rating?.tier||'';
-    const tags=rating?.tags?.join(', ')||'';
-    const alt=b.data.is_alternate;
-    const src=b.data.source||'core';
-    const altTag=alt?` [${src}]`:'';
-    const prefix=t?(tierDot[t]||'?')+' ':'  ';
-    return `<option value="${b.data.name}">${prefix}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})${altTag}</option>`;
-  }).join('');
+    return {name:b.data.name, hp:c.HP, ac:c.AC, tier:rating?.tier||'U', note:rating?.note||'', alt:b.data.is_alternate, src:b.data.source||'core'};
+  });
+  renderCreatureDropdown('');
+  if(creatureList.length && !creatureList.find(c=>c.name===selectedCreature)) {
+    selectedCreature=creatureList[0].name;
+  }
+  updDropDisplay();
 }
+function renderCreatureDropdown(filter){
+  const el=document.getElementById('cdrop-items');
+  if(!el) return;
+  const f=filter.toLowerCase();
+  // Set name column width based on longest name (approx 7.2px per char in monospace 12px)
+  const maxLen = creatureList.reduce((m,c)=>Math.max(m,c.name.length),0);
+  el.style.setProperty('--name-col', Math.ceil(maxLen * 7.4 + 12) + 'px');
+  el.innerHTML=creatureList.filter(c=>!f||c.name.toLowerCase().includes(f)||c.note.toLowerCase().includes(f))
+    .map(c=>`<div class="cdrop-item ${c.name===selectedCreature?'active':''}" onclick="selectCreature('${c.name.replace(/'/g,"\\'")}')">
+      <span class="tier tier-${c.tier}">${c.tier}</span>
+      <span class="cdrop-stats">${c.hp}<span class="hp-icon">♥</span> ${c.ac}<span class="ac-icon">⛨</span></span>
+      <span class="cdrop-name">${c.name}</span>
+      ${c.note?`<span class="cdrop-note">│ ${c.note}</span>`:''}
+      ${c.alt?`<span class="cdrop-note">[${c.src}]</span>`:''}
+    </div>`).join('');
+}
+function updDropDisplay(){
+  const c=creatureList.find(x=>x.name===selectedCreature);
+  const el=document.getElementById('cdrop-text');
+  if(!el) return;
+  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> <span class="cdrop-stats">${c.hp}<span class="hp-icon">♥</span> ${c.ac}<span class="ac-icon">⛨</span></span> ${c.name}`;
+  else el.textContent='Select...';
+}
+function selectCreature(name){
+  selectedCreature=name;
+  updDropDisplay();
+  document.getElementById('creature-drop').classList.remove('open');
+}
+function toggleCreatureDrop(){
+  const el=document.getElementById('creature-drop');
+  el.classList.toggle('open');
+  if(el.classList.contains('open')){
+    const search=el.querySelector('.cdrop-search');
+    search.value='';
+    renderCreatureDropdown('');
+    setTimeout(()=>search.focus(),0);
+  }
+}
+function filterCreatures(v){ renderCreatureDropdown(v); }
+document.addEventListener('click',e=>{
+  const drop=document.getElementById('creature-drop');
+  if(drop && !drop.contains(e.target)) drop.classList.remove('open');
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  PRE-ROLL — sorted roll table
@@ -527,6 +667,7 @@ function mkCreature(bEntry, aug) {
     type:data.type||'', size:data.size||'', cr:data.cr||'',
     pfsrdUrl:data.pfsrd_url||'',
     specialAbilities: data.special_abilities || [],
+    snaLevel: bEntry.sna_level,
     preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
   };
 }
@@ -537,7 +678,7 @@ function doSummon() {
   const tierId=document.getElementById('inp-tier').value;
   const opts=tierOpts(slot);
   const tier=opts.find(o=>o.id===tierId)||opts[0];
-  const name=document.getElementById('inp-creature').value;
+  const name=selectedCreature;
   if(!name) return;
   const bE=B[name.toLowerCase()]; if(!bE) return;
   const count=rollCount(tier.expr);
@@ -597,6 +738,7 @@ function nextRound(){
 // ═══════════════════════════════════════════════════════════════
 function render(){
   document.getElementById('disp-rd').textContent=S.round;
+  saveState();
   document.querySelectorAll('.chip[data-feat]').forEach(el=>el.classList.toggle('on',!!S.feats[el.dataset.feat]));
   document.querySelectorAll('.chip[data-buff]').forEach(el=>el.classList.toggle('on',!!S.buffs[el.dataset.buff]));
   updTiers();
@@ -614,14 +756,14 @@ function render(){
   // Group summaries as a compact bar above
   let gBar='';
   if(S.groups.length > 0) {
-    gBar='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:11px">';
+    gBar='<div class="group-bar">';
     for(const g of S.groups){
       const alive=g.creatures.filter(c=>c.alive).length;
       const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
-      gBar+=`<span style="background:var(--card);padding:2px 8px;border-radius:4px;border:1px solid var(--border)">
+      gBar+=`<span class="group-summary">
         ${g.name} ${alive}/${g.creatures.length} ${rlTxt}
         ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
-        <button class="sm" onclick="dismissG('${g.id}')" style="margin-left:4px">×</button>
+        <button class="sm dismiss-btn" onclick="dismissG('${g.id}')">×</button>
       </span>`;
     }
     gBar+='</div>';
@@ -662,6 +804,12 @@ function renderCard(c, group, refAC) {
   const srcLabel = group.src==='figurine' ? 'FIG' : group.src==='effect' ? 'EFF' : `SNA${group.slot||'?'}`;
   const groupLabel=`<span class="group-tag">${srcLabel} ${rlTxt}</span>`;
 
+  // Tier badge + rating note
+  const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
+  const cTier = cRating?.tier || '';
+  const tierBadge = cTier ? `<span class="tier tier-${cTier}">${cTier}</span>` : '';
+  const ratingNote = cRating?.note || '';
+
   // Per-creature buff chips
   const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
   const buffHTML = activeBuffs.map(([id])=>{
@@ -673,7 +821,7 @@ function renderCard(c, group, refAC) {
   const pounceHTML = c.hasPounce ?
     `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce?'}</span>` : '';
   const grapHTML = c.hasRake ?
-    `<span class="pounce-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Started turn grappling: gets rake" style="background:${c.grappling?'var(--accent)':'#2a2a5a'};color:${c.grappling?'#fff':'var(--accent)'}">${c.grappling?'GRAPPLING':'Grapple?'}</span>` : '';
+    `<span class="grapple-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Started turn grappling: gets rake">${c.grappling?'GRAPPLING':'Grapple?'}</span>` : '';
 
   // Roll table — compute from raw rolls + current buffs
   let tableHTML='', summaryHTML='', specialsHTML='';
@@ -684,7 +832,8 @@ function renderCard(c, group, refAC) {
     let acLineDrawn = false;
 
     const triggeredSpecials = new Set();
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th></th></tr>`;
+    let runningDmg = 0;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th>Σ</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -694,6 +843,9 @@ function renderCard(c, group, refAC) {
       const fumblePending = r.nat1 && !hasAC;
       const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
       if(isHit) { hitDmg += effectiveDmg; hitCount++; }
+      // Running total: accumulate damage for all non-miss attacks
+      const countForRunning = isHit === true || isHit === null;
+      if(countForRunning && !r.nat1) runningDmg += (hasAC ? effectiveDmg : r.dmgNoCrit);
       let acLine='';
       if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
 
@@ -703,31 +855,30 @@ function renderCard(c, group, refAC) {
       else if(isHit===true) cls = 'hit';
       else if(isHit===false) cls = 'miss';
 
-      // Compact tags
       let tag = '';
-      if(critConfirmed) tag = `<b style="color:var(--crit)">CRIT!</b>`;
-      else if(r.critOk && hasAC) tag = `<span style="color:var(--muted)">no conf</span>`;
-      else if(critPending) tag = `<span style="color:var(--crit)">THREAT</span>`;
-      else if(fumbleFail) tag = `<b style="color:var(--miss)">FUMBLE!</b>`;
-      else if(fumbleSafe) tag = `<span style="color:var(--muted)">nat1</span>`;
-      else if(fumblePending) tag = `<span style="color:var(--miss)">NAT1</span>`;
+      if(critConfirmed) tag = `<b class="tag-crit">CRIT!</b>`;
+      else if(r.critOk && hasAC) tag = `<span class="tag-muted">no conf</span>`;
+      else if(critPending) tag = `<span class="tag-threat">THREAT</span>`;
+      else if(fumbleFail) tag = `<b class="tag-fumble">FUMBLE!</b>`;
+      else if(fumbleSafe) tag = `<span class="tag-muted">nat1</span>`;
+      else if(fumblePending) tag = `<span class="tag-nat1">NAT1</span>`;
 
       const isConditionalRake = r.isRake && r.conditionalOnMaintain;
-      const rakeTag=r.isRake?` <span style="color:var(--crit);font-size:9px">${isConditionalRake?'RK*':'RK'}</span>`:'';
+      const rakeTag=r.isRake?` <span class="rake-label">${isConditionalRake?'RK*':'RK'}</span>`:'';
       const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
+      const runCell = (isHit===false || r.nat1) ? '' : runningDmg;
 
-      // Short special labels on the attack name (e.g., "sting +poison")
-      const spLabels = r.specials.filter(s=>s!=='rake').map(s => `<span style="font-size:9px;color:var(--accent)">+${s}</span>`).join(' ');
+      const spLabels = r.specials.filter(s=>s!=='rake').map(s => `<span class="sp-label-tag">+${s}</span>`).join(' ');
       const nameCell = `${r.name}${rakeTag}${spLabels?' '+spLabels:''}`;
 
-      // Track specials triggered by hits for the section below
       if ((isHit || !hasAC) && r.specials.length) {
         for (const s of r.specials.filter(x=>x!=='rake')) {
           triggeredSpecials.add(s);
         }
       }
 
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total">${r.total}</td><td class="dmg">${dmgCell}</td><td class="special">${tag}</td></tr>`;
+      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | fumble: '+r.fumbleConf:''}`;
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg">${dmgCell}</td><td class="running">${runCell}</td><td class="special">${tag}</td></tr>`;
     }
     tableHTML+=`</table>`;
 
@@ -737,14 +888,14 @@ function renderCard(c, group, refAC) {
     pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
 
     if (allSpecials.size > 0) {
-      specialsHTML = `<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;font-size:11px">`;
+      specialsHTML = `<div class="specials-section">`;
       for (const s of allSpecials) {
         const isTriggered = triggeredSpecials.has(s);
-        const color = isTriggered ? (hasAC ? 'var(--hit)' : 'var(--text)') : 'var(--muted)';
+        const trigCls = isTriggered ? 'triggered' : 'untriggered';
         const label = isTriggered && hasAC ? 'ACTIVE — ' : '';
         const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
         const desc = detail ? detail.desc : '';
-        specialsHTML += `<div style="color:${color};margin-bottom:2px">
+        specialsHTML += `<div class="special-item ${trigCls}">
           <b>${label}${spLink(s)}</b>${desc ? ': '+desc : ''}
         </div>`;
       }
@@ -753,28 +904,35 @@ function renderCard(c, group, refAC) {
 
     // Grab/maintain info
     const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total}`).join(', ')} vs CMD</span>`:'';
-    const maintainStr=pr.maintain?` | <span style="color:var(--accent)">Maintain: <b>${pr.maintain.total}</b> vs CMD</span>`:'';
+    const maintainStr=pr.maintain?` | <span class="grab-info">Maintain: <b>${pr.maintain.total}</b> vs CMD</span>`:'';
     // Count crits and fumbles for summary
     const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
     const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
-    const critNote = nCrits ? ` | <span style="color:var(--crit)">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
-    const fumbleNote = nFumbles ? ` | <span style="color:var(--miss)">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
+    const critNote = nCrits ? ` | <span class="tag-crit">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
+    const fumbleNote = nFumbles ? ` | <span class="tag-fumble">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
+
+    // Build compact summary with grab/maintain on same line
+    const grabParts = [];
+    if(pr.grabs.length) grabParts.push(`${spLink('grab')}: ${pr.grabs.map(g=>g.total).join(', ')} vs CMD`);
+    if(pr.maintain) grabParts.push(`Maintain: ${pr.maintain.total} vs CMD`);
+    const grabLine = grabParts.length ? `<span class="grab-info">${grabParts.join(' │ ')}</span>` : '';
 
     if(hasAC) {
       summaryHTML=`<div class="roll-summary">
-        <span>vs AC ${refAC}: <b style="color:var(--hit)">${hitCount}</b>/${totalAtks} hit</span>
-        <span class="total-dmg">${hitDmg} dmg</span>${critNote}${fumbleNote}${grabStr}${maintainStr}
+        <table class="roll-summary-table"><tr>
+          <td class="summary-label">vs AC ${refAC}: <b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
+          <td class="total-dmg">${hitDmg}</td>
+        </tr></table>
+        ${grabLine}
       </div>`;
     } else {
       const totNoCrit = pr.rows.reduce((a,r)=>a+r.dmgNoCrit,0);
-      const totWithCrit = pr.rows.reduce((a,r)=>a+r.dmg,0);
-      const threats = pr.rows.filter(r=>r.critOk).length;
-      const fumbles = pr.rows.filter(r=>r.nat1).length;
-      const tNote = threats ? ` | <span style="color:var(--crit)">${threats} threat${threats>1?'s':''}</span>` : '';
-      const fNote = fumbles ? ` | <span style="color:var(--miss)">${fumbles} nat1${fumbles>1?'s':''}</span>` : '';
       summaryHTML=`<div class="roll-summary">
-        <span>All totals: ${pr.rows.map(r=>r.total).join(', ')}</span>
-        <span class="total-dmg">${totNoCrit} dmg${threats?` (${totWithCrit} w/crits)`:''}</span>${tNote}${fNote}${grabStr}${maintainStr}
+        <table class="roll-summary-table"><tr>
+          <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
+          <td class="total-dmg">${totNoCrit}</td>
+        </tr></table>
+        ${grabLine}
       </div>`;
     }
   }
@@ -812,7 +970,7 @@ function renderCard(c, group, refAC) {
       ${c.specialQual?`<div class="sb-row"><span class="sb-label">SQ</span><span class="sb-val">${c.specialQual}</span></div>`:''}
       ${c.feats?`<div class="sb-row"><span class="sb-label">Feats</span><span class="sb-val">${c.feats}</span></div>`:''}
     </div>
-    ${c.specialAbilities && c.specialAbilities.length ? `<div class="sb-section">${c.specialAbilities.map(a=>`<div class="sb-row"><span class="sb-label" style="color:var(--crit);min-width:auto">${a.name}</span><span class="sb-val" style="font-size:10px">${a.desc}</span></div>`).join('')}</div>` : ''}
+    ${c.specialAbilities && c.specialAbilities.length ? `<div class="sb-section">${c.specialAbilities.map(a=>`<div class="sb-row"><span class="sb-label sb-sa-label">${a.name}</span><span class="sb-val sb-sa-val">${a.desc}</span></div>`).join('')}</div>` : ''}
     <div class="sb-section">
       <span>${c.type} | ${c.size} | CR ${c.cr}</span>
       ${c.pfsrdUrl?` | <a href="${c.pfsrdUrl}" target="_blank" onclick="event.stopPropagation()">d20pfsrd</a>`:''}
@@ -828,16 +986,65 @@ function renderCard(c, group, refAC) {
     <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',5)" title="+5">+5</button>
   </div>`;
 
+  // Key abilities: non-melee special abilities with DCs/combat actions
+  // Shown as a dedicated section above the roll table
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce']);
+  const keyAbilities = (c.specialAbilities || []).filter(a => {
+    const kw = a.name.split(/[\s(]/)[0].toLowerCase();
+    return !meleeSpecials.has(kw);
+  });
+  let abilityHTML = '';
+  if (keyAbilities.length > 0) {
+    abilityHTML = '<div class="ability-section">';
+    for (const a of keyAbilities) {
+      const dcMatch = a.desc.match(/DC\s*(\d+)/);
+      const dcStr = dcMatch ? `DC ${dcMatch[1]}` : '';
+      const rangeMatch = a.desc.match(/(\d+)[- ](?:foot|ft)/);
+      const rangeStr = rangeMatch ? `${rangeMatch[1]}ft` : '';
+      const saveMatch = a.desc.match(/(Will|Fort|Ref)\s*(?:save)?/i);
+      const saveStr = saveMatch ? saveMatch[1] : '';
+      const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
+      const typeStr = typeMatch ? typeMatch[1] : '';
+      const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
+      // Brief action summary — first sentence only
+      const brief = a.desc.split(/\.\s/)[0].replace(/^[^,]+,\s*/, '').slice(0, 80);
+      abilityHTML += `<div class="ability-row">
+        <span><span class="ability-name">${a.name.split('(')[0].trim()}</span> <span class="ability-type">${typeStr}</span></span>
+        <span class="ability-dc">${info}</span>
+      </div>
+      <div class="ability-detail">${brief}</div>`;
+    }
+    abilityHTML += '</div>';
+  }
+
+  // Dead card — collapsed, rotated sideways with wrapper for layout
+  if (!c.alive) {
+    const deadCard = `<div class="ccard dead">
+      <div class="ccard-head">
+        <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${groupLabel}</span>
+        <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
+      </div>
+      <div class="dead-bar">
+        <span class="dead-label">DEAD</span>
+        <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}')">1 HP</button>
+        <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}',true)">Full</button>
+      </div>
+    </div>`;
+    return `<div class="dead-wrap" style="width:80px;height:280px">${deadCard}</div>`;
+  }
+
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     <div class="ccard-head">
-      <span class="ccard-name">${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
-      <span class="ccard-hp">${c.hp}/${c.maxHp} AC${c.ac} CMD${c.cmd}</span>
+      <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
+      <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
-    <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
+    <div class="ccard-stats"><span class="stat-label">AC</span> ${c.ac} <span class="stat-label">CMD</span> ${c.cmd}</div>
+    ${hpCtrl}
+    <div class="buff-pounce-row">
       ${buffHTML} ${pounceHTML} ${grapHTML}
     </div>
-    ${hpCtrl}
+    ${abilityHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
     ${sbHTML}
   </div>`;
@@ -851,6 +1058,7 @@ function dmgC(id,n){const c=findC(id);if(c){c.hp=Math.max(0,c.hp-n);if(c.hp<=0)c
 function healC(id,n){const c=findC(id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.alive=c.hp>0;render();}}
 function hpAdj(id,n){const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,c.hp+n));if(c.hp<=0)c.alive=false;render();}}
 function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;if(val.startsWith('+')||val.startsWith('-')){hpAdj(id,n);}else{const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,n));if(c.hp<=0)c.alive=false;render();}}}
+function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp:1;preRoll(c);render();}}
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
@@ -861,16 +1069,56 @@ function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
     if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
 }
-function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;render();}
+function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;localStorage.removeItem(SAVE_KEY);render();}
 function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);
   if(j.ac)document.getElementById('ref-ac').value=j.ac;
   if(j.buffs)for(const b of j.buffs)S.buffs[b]=true;
   if(j.slot)document.getElementById('inp-slot').value=j.slot;
   if(j.tier){updTiers();document.getElementById('inp-tier').value=j.tier;}
   updCreatures();
-  if(j.creature){document.getElementById('inp-creature').value=j.creature;doSummon();}
+  if(j.creature){selectedCreature=j.creature;doSummon();}
   render();
 }catch(e){alert('Bad JSON: '+e.message);}}
+
+// ═══════════════════════════════════════════════════════════════
+//  TODO: CONDITIONS (sickened, blind, paralyzed, etc.)
+//  Add per-creature condition toggles once core features stable.
+//  Conditions modify attack/damage/AC/saves — integrate with bTotal().
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE PERSISTENCE (localStorage)
+// ═══════════════════════════════════════════════════════════════
+const SAVE_KEY = 'sna-combat-state';
+function saveState() {
+  try {
+    const data = {
+      S, nGid, nCid,
+      refAC: document.getElementById('ref-ac').value,
+      cl: document.getElementById('inp-cl').value,
+      slot: document.getElementById('inp-slot').value,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch(e) { console.warn('save failed', e); }
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data.S || !data.S.groups) return false;
+    S = data.S;
+    nGid = data.nGid || 1;
+    nCid = data.nCid || 1;
+    if (data.refAC) document.getElementById('ref-ac').value = data.refAC;
+    if (data.cl) document.getElementById('inp-cl').value = data.cl;
+    if (data.slot) document.getElementById('inp-slot').value = data.slot;
+    // Re-link creature attacks (parseMelee results are plain objects, survive JSON)
+    // Re-roll all living creatures to get fresh dice
+    for (const g of S.groups) for (const c of g.creatures) if (c.alive) preRoll(c);
+    return true;
+  } catch(e) { console.warn('load failed', e); localStorage.removeItem(SAVE_KEY); return false; }
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  INIT
@@ -890,6 +1138,7 @@ async function init(){
     }
   }catch(e){console.warn('ratings',e);}
   updTiers();
+  loadState();
   render();
 }
 init();

@@ -81,10 +81,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   50% { border-color: #f5c84260; opacity: 0.5; }
 }
 .ccard.casting { border-style: dashed; border-color: var(--crit); animation: cast-pulse 2s ease-in-out infinite; }
-.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
-.ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
-.ccard-dur { font-size: 9px; color: var(--muted); margin-left: 4px; }
+.ccard-dur { font-size: 9px; color: var(--muted); display: block; margin-bottom: 1px; }
+.ccard-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; gap: 8px; }
+.ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; height: 2.4em; display: flex; align-items: flex-end; overflow: hidden; }
+.ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
@@ -165,10 +165,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .sp-link { color: var(--accent); text-decoration: none; font-size: 10px; }
 .sp-link:hover { text-decoration: underline; }
 
-/* Inline HP edit */
-.hp-inline { display: inline-flex; gap: 3px; align-items: center; }
-.hp-inline input { width: 40px; font-size: 12px; text-align: center; padding: 2px; }
-.hp-inline button { padding: 1px 6px; font-size: 11px; }
+/* Compact HP edit: [−] [input] [+] */
+.hp-compact { display: inline-flex; gap: 2px; align-items: center; }
+.hp-compact input { width: 36px; font-size: 12px; text-align: center; padding: 3px 2px; }
+.hp-compact button { padding: 3px 8px; font-size: 13px; font-weight: bold; }
 
 /* Pounce/Grapple — same sizing as buff chips */
 .pounce-tag { background: #5a3a00; color: var(--crit); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
@@ -254,8 +254,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   button.sm { min-height: 28px; padding: 3px 10px; font-size: 11px; }
   button.go { padding: 8px 20px; }
   .chip { padding: 4px 10px; min-height: 28px; line-height: 20px; }
-  .hp-inline button { min-height: 32px; min-width: 32px; padding: 4px 8px; }
-  .hp-inline input { min-height: 32px; width: 44px; }
+  .hp-compact button { min-height: 36px; min-width: 36px; padding: 4px 10px; }
+  .hp-compact input { min-height: 36px; width: 48px; }
   .pounce-tag, .grapple-tag { padding: 4px 10px; min-height: 28px; }
 
   /* Narrower cards to fit more across */
@@ -881,7 +881,7 @@ function renderCard(c, group, refAC) {
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
   const rlTxt=group.src==='figurine'?'perm':`${group.rl}rd`;
-  const durBadge = `<span class="ccard-dur">${rlTxt}</span>`;
+  const durBadge = rlTxt;
 
   // Tier for data attribute (dropdown uses it, cards don't display it)
   const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
@@ -1048,13 +1048,11 @@ function renderCard(c, group, refAC) {
     </div>
   </div>`;
 
-  // Inline HP controls
-  const hpCtrl = `<div class="hp-inline">
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',-5)" title="-5">-5</button>
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',-1)" title="-1">-1</button>
+  // Compact HP controls: [−] [input] [+]
+  const hpCtrl = `<div class="hp-compact">
+    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',-1)" title="Damage 1">−</button>
     <input type="number" id="hp-${c.id}" value="" placeholder="±" onkeydown="if(event.key==='Enter'){event.stopPropagation();hpSet('${c.id}',this.value);this.value='';}" onclick="event.stopPropagation()">
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',1)" title="+1">+1</button>
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',5)" title="+5">+5</button>
+    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',1)" title="Heal 1">+</button>
   </div>`;
 
   // Key abilities: non-melee special abilities with DCs/combat actions
@@ -1115,9 +1113,13 @@ function renderCard(c, group, refAC) {
     return `<div class="dead-wrap" style="width:80px;height:280px">${deadCard}</div>`;
   }
 
+  // Pounce/Grapple toggles — below attack block, not with buffs
+  const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
+
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
+    <span class="ccard-dur">${durBadge}</span>
     <div class="ccard-head">
-      <span class="ccard-name">${c.name}${durBadge}</span>
+      <span class="ccard-name">${c.name}</span>
       <span class="ccard-hp">${IC.hp()}${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
@@ -1126,10 +1128,11 @@ function renderCard(c, group, refAC) {
       <span class="ac-cmd">${IC.ac()}${c.ac} <span class="stat-label">CMD</span>${c.cmd}</span>
     </div>
     <div class="buff-pounce-row">
-      ${augChip} ${buffHTML} ${pounceHTML} ${grapHTML}
+      ${augChip} ${buffHTML}
     </div>
     ${abilityHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
+    ${togglesHTML}
     <div class="ccard-meta">Spd ${c.speed} · Reach ${c.reach}</div>
     ${sbHTML}
   </div>`;

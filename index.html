@@ -215,13 +215,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .rake-label { color: var(--crit); font-size: 10px; }
 .sp-label-tag { font-size: 10px; color: var(--accent); }
 
-/* Specials section below roll table — inline tags */
-.specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap; }
-.special-item { display: inline; }
-.special-item.triggered { color: var(--hit); font-weight: bold; }
-.special-item.triggered .sp-link { color: var(--hit); font-weight: bold; font-size: 11px; }
-.special-item.untriggered { color: var(--muted); }
-.special-item.untriggered .sp-link { color: var(--muted); font-size: 11px; }
+/* Specials legend below roll table */
+.specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
+.special-legend { color: var(--muted); margin-bottom: 2px; }
+.special-legend.triggered { color: var(--text); }
+.special-legend .sp-link { font-size: 11px; }
+.special-legend.triggered .sp-link { color: var(--hit); }
 
 /* Stat block special abilities */
 .sb-sa-label { color: var(--crit); min-width: auto; }
@@ -985,33 +984,37 @@ function renderCard(c, group, refAC) {
     }
     tableHTML+=`</table>`;
 
-    // ── Special Attacks section (below rule line) ──
-    // Full descriptions, no truncation. Colored when triggered by a hit.
+    // ── Legend section below table: specials with pips + data ──
     const allSpecials = new Set();
     pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
 
-    if (triggeredSpecials.size > 0) {
+    if (allSpecials.size > 0) {
       specialsHTML = `<div class="specials-section">`;
-      for (const s of triggeredSpecials) {
-        specialsHTML += `<span class="special-item triggered">${spLink(s)}✓</span> `;
+      for (const s of allSpecials) {
+        const isTriggered = triggeredSpecials.has(s);
+        const pip = IC[s] || '';
+        const mark = isTriggered ? ' ✓' : '';
+        const sName = s.charAt(0).toUpperCase()+s.slice(1);
+        const url = PFSRD[s] || '#';
+        let info = '';
+        if (s === 'grab') {
+          const rolls = pr.grabs.map(g=>g.total).join(', ');
+          const maintain = pr.maintain ? ` │ maintain ${pr.maintain.total}` : '';
+          info = ` ${rolls} vs CMD${maintain}`;
+        } else {
+          const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
+          const dcMatch = detail?.desc?.match(/DC\s*(\d+)/);
+          if (dcMatch) info = ` DC ${dcMatch[1]}`;
+        }
+        specialsHTML += `<div class="special-legend ${isTriggered?'triggered':''}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark}${info}</div>`;
       }
       specialsHTML += `</div>`;
     }
 
-    // Grab/maintain info
-    const grabStr=pr.grabs.length?` | <span class="grab-info">${spLink('grab')}: ${pr.grabs.map(g=>`${g.total}`).join(', ')} vs CMD</span>`:'';
-    const maintainStr=pr.maintain?` | <span class="grab-info">Maintain: <b>${pr.maintain.total}</b> vs CMD</span>`:'';
-    // Count crits and fumbles for summary
     const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
     const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
     const critNote = nCrits ? ` | <span class="tag-crit">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
     const fumbleNote = nFumbles ? ` | <span class="tag-fumble">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
-
-    // Build compact summary with grab/maintain on same line
-    const grabParts = [];
-    if(pr.grabs.length) grabParts.push(`${IC.grab} ${pr.grabs.map(g=>g.total).join(', ')} vs CMD`);
-    if(pr.maintain) grabParts.push(`Maintain: ${pr.maintain.total} vs CMD`);
-    const grabLine = grabParts.length ? `<span class="grab-info">${grabParts.join(' │ ')}</span>` : '';
 
     // Summary total: show normal/crit split when threats exist
     const dmgDisplay = runningDmg !== runningDmgCrit ? `${runningDmg}/<span class="tag-crit">${runningDmgCrit}</span>` : `${runningDmg}`;
@@ -1021,14 +1024,14 @@ function renderCard(c, group, refAC) {
         <table class="roll-summary-table"><tr>
           <td class="summary-label"><b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
           <td class="total-dmg">${hitDmg}</td>
-        </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
+        </tr></table>
       </div>`;
     } else {
       summaryHTML=`<div class="roll-summary">
         <table class="roll-summary-table"><tr>
           <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
           <td class="total-dmg">${dmgDisplay}</td>
-        </tr>${grabLine?`<tr><td colspan="2" class="grab-info">${grabParts.join(' │ ')}</td></tr>`:''}</table>
+        </tr></table>
       </div>`;
     }
   }

@@ -72,7 +72,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* ── Creature Cards — flat flex flow, no group wrappers ── */
 .creatures-flow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
 .group-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 6px; }
 .casting-tag { background: var(--crit); color: #111; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 .ccard.dead { opacity: 0.25; }
@@ -84,6 +84,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
 .ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; }
 .ccard-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; align-self: flex-end; }
+.ccard-id { font-size: 10px; color: var(--muted); position: absolute; top: 6px; right: 8px; }
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
@@ -97,6 +98,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .icon-hp { color: var(--red); }
 .icon-ac { color: var(--accent); }
 .icon-dmg { color: var(--crit); }
+.icon-pip { display: inline-block; width: 7px; height: 7px; vertical-align: 1px; margin-left: 2px; }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
 .hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; }
@@ -382,6 +384,11 @@ const IC = {
   hp: (cls='') => `<svg class="icon icon-hp ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
   ac: (cls='') => `<svg class="icon icon-ac ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
   dmg: (cls='') => `<svg class="icon icon-dmg ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>`,
+  // Per-attack special icons (small colored pips)
+  grab: `<svg class="icon-pip icon-grab" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="var(--accent)"/></svg>`,
+  trip: `<svg class="icon-pip icon-trip" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#f0a050"/></svg>`,
+  poison: `<svg class="icon-pip icon-poison" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#a0e050"/></svg>`,
+  burn: `<svg class="icon-pip icon-burn" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#ff6030"/></svg>`,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -957,8 +964,8 @@ function renderCard(c, group, refAC) {
       else if (runningDmg !== runningDmgCrit) { runCell = `${runningDmg}/${runningDmgCrit}`; }
       else { runCell = runningDmg; }
 
-      const spLabels = r.specials.filter(s=>s!=='rake').map(s => `<span class="sp-label-tag">+${s}</span>`).join(' ');
-      const nameCell = `${r.name}${rakeTag}${spLabels?' '+spLabels:''}`;
+      const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
+      const nameCell = `${r.name}${rakeTag}${spPips}`;
 
       if ((isHit || !hasAC) && r.specials.length) {
         for (const s of r.specials.filter(x=>x!=='rake')) {
@@ -1002,7 +1009,7 @@ function renderCard(c, group, refAC) {
 
     // Build compact summary with grab/maintain on same line
     const grabParts = [];
-    if(pr.grabs.length) grabParts.push(`${spLink('grab')}: ${pr.grabs.map(g=>g.total).join(', ')} vs CMD`);
+    if(pr.grabs.length) grabParts.push(`${IC.grab} ${pr.grabs.map(g=>g.total).join(', ')} vs CMD`);
     if(pr.maintain) grabParts.push(`Maintain: ${pr.maintain.total} vs CMD`);
     const grabLine = grabParts.length ? `<span class="grab-info">${grabParts.join(' │ ')}</span>` : '';
 
@@ -1135,6 +1142,7 @@ function renderCard(c, group, refAC) {
   const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
+    <span class="ccard-id">${c.id}</span>
     <div class="ccard-namerow">
       <span class="ccard-name">${c.name}</span>
       <span class="ccard-dur">${durBadge}</span>

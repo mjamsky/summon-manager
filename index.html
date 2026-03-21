@@ -45,16 +45,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Tier select dropdown coloring */
 .opt-S { color: #f5c842; } .opt-A { color: #5baaff; } .opt-B { color: #8bc34a; } .opt-C { color: #888; }
 
-/* ── Creature Group ── */
-.group { margin-bottom: 8px; }
-.group-head { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-.group-name { font-weight: bold; }
-.group-meta { font-size: 11px; color: var(--muted); }
+/* ── Creature Cards — flat flex flow, no group wrappers ── */
+.creatures-flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 8px; min-width: 280px; max-width: 400px; flex: 1 1 300px; }
+.group-tag { font-size: 9px; padding: 1px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 4px; }
 .casting-tag { background: var(--crit); color: #111; padding: 1px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
-
-/* ── Creature Card ── */
-.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px; }
-.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 8px; }
 .ccard.dead { opacity: 0.25; }
 .ccard.casting { border-style: dashed; border-color: var(--crit); opacity: 0.7; }
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -316,16 +311,18 @@ function updCreatures(){
     const order={S:0,A:1,B:2,C:3,U:4};
     return (order[ra]||4)-(order[rb]||4) || a.data.name.localeCompare(b.data.name);
   });
+  // Tier symbols: colored dots that work in <option> elements
+  const tierDot = {S:'★', A:'◆', B:'●', C:'○'};
   sel.innerHTML=sorted.map(b=>{
     const c=b.data.combat_card;
     const rating=lvRatings[b.data.name];
-    const t=rating?.tier||'?';
+    const t=rating?.tier||'';
     const tags=rating?.tags?.join(', ')||'';
     const alt=b.data.is_alternate;
     const src=b.data.source||'core';
     const altTag=alt?` [${src}]`:'';
-    const prefix=t==='?'?'':'['+t+'] ';
-    return `<option value="${b.data.name}" class="opt-${t}" ${alt?'style="color:#aa8855"':''}>${prefix}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})${altTag}</option>`;
+    const prefix=t?(tierDot[t]||'?')+' ':'  ';
+    return `<option value="${b.data.name}">${prefix}${b.data.name} (HP${c.HP} AC${c.AC}${tags?' — '+tags:''})${altTag}</option>`;
   }).join('');
 }
 
@@ -585,20 +582,29 @@ function render(){
   const refACval = document.getElementById('ref-ac').value;
   const refAC = refACval === '' ? 0 : parseInt(refACval) || 0;
   const area=document.getElementById('creatures-out');
-  let h='';
+  // Flat flow: all cards in one flex container, group info embedded in each card
+  let h='<div class="creatures-flow">';
   for(const g of S.groups){
-    const alive=g.creatures.filter(c=>c.alive).length;
-    const rlTxt=g.src==='figurine'?'permanent':`${g.rl} rd${g.rl!==1?'s':''}`;
-    h+=`<div class="panel group"><div class="group-head">
-      <span class="group-name">${g.name}</span>
-      <span class="group-meta">${alive}/${g.creatures.length} | ${rlTxt}</span>
-      ${g.casting?`<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest('${g.id}')">MANIFEST</button>`:''}
-      <button class="sm" onclick="dismissG('${g.id}')" style="margin-left:auto">Dismiss</button>
-    </div><div class="cgrid">`;
-    for(const c of g.creatures) h+=renderCard(c,g.casting,refAC);
-    h+=`</div></div>`;
+    const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
+    for(const c of g.creatures) h+=renderCard(c, g, refAC);
   }
-  area.innerHTML=h;
+  h+='</div>';
+  // Group summaries as a compact bar above
+  let gBar='';
+  if(S.groups.length > 0) {
+    gBar='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:11px">';
+    for(const g of S.groups){
+      const alive=g.creatures.filter(c=>c.alive).length;
+      const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
+      gBar+=`<span style="background:var(--card);padding:2px 8px;border-radius:4px;border:1px solid var(--border)">
+        ${g.name} ${alive}/${g.creatures.length} ${rlTxt}
+        ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
+        <button class="sm" onclick="dismissG('${g.id}')" style="margin-left:4px">×</button>
+      </span>`;
+    }
+    gBar+='</div>';
+  }
+  area.innerHTML=gBar+h;
 
   document.getElementById('effects-out').innerHTML=S.effects.map(e=>
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
@@ -625,10 +631,14 @@ function spLink(s) {
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
 
-function renderCard(c, casting, refAC) {
+function renderCard(c, group, refAC) {
+  const casting = group.casting;
   const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
+  const rlTxt=group.src==='figurine'?'perm':`${group.rl}rd`;
+  const srcLabel = group.src==='figurine' ? 'FIG' : group.src==='effect' ? 'EFF' : `SNA${group.slot||'?'}`;
+  const groupLabel=`<span class="group-tag">${srcLabel} ${rlTxt}</span>`;
 
   // Per-creature buff chips
   const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
@@ -769,7 +779,7 @@ function renderCard(c, casting, refAC) {
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     <div class="ccard-head">
-      <span class="ccard-name">${c.id}: ${c.name}${c.aug?' (aug)':''}</span>
+      <span class="ccard-name">${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
       <span class="ccard-hp">${c.hp}/${c.maxHp} AC${c.ac} CMD${c.cmd}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>

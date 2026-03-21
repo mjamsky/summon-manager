@@ -19,7 +19,7 @@
 body { font-family: 'SF Mono', 'Consolas', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 8px; font-size: 13px; line-height: 1.4; }
 
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
-button { font-family: inherit; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s ease; }
+button { font-family: inherit; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 button:hover { background: #333648; }
 button:active { transform: scale(0.96); }
 button.act { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
@@ -44,7 +44,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* Feat/buff chips */
 .chip-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
-.chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none; background: #2a2d3a; border: 1px solid var(--border); transition: all 0.2s ease; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; cursor: pointer; user-select: none; background: #2a2d3a; border: 1px solid var(--border); transition: all 0.2s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .chip.on { background: #2a4a3a; border-color: var(--green); color: var(--green); box-shadow: 0 0 6px rgba(78, 204, 163, 0.3); }
 
 /* Custom creature dropdown */
@@ -245,6 +245,41 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard[data-tier="B"] { border-left-color: var(--tier-b); }
 .ccard[data-tier="C"] { border-left-color: var(--tier-c); }
 
+/* ── iPad / Tablet responsive (≤1024px) ── */
+@media (max-width: 1024px) {
+  body { padding: 4px; font-size: 12px; }
+  .panel { padding: 6px 8px; margin-bottom: 4px; }
+
+  /* Touch-friendly targets: minimum 44px tap zones */
+  button { min-height: 36px; padding: 6px 12px; }
+  button.sm { min-height: 28px; padding: 3px 10px; font-size: 11px; }
+  button.go { padding: 8px 20px; }
+  .chip { padding: 4px 10px; min-height: 28px; line-height: 20px; }
+  .hp-inline button { min-height: 32px; min-width: 32px; padding: 4px 8px; }
+  .hp-inline input { min-height: 32px; width: 44px; }
+  .pounce-tag, .grapple-tag { padding: 4px 10px; min-height: 28px; }
+
+  /* Narrower cards to fit more across */
+  .ccard { min-width: 240px; max-width: 360px; flex: 1 1 260px; padding: 6px; }
+
+  /* Tighter group bar */
+  .group-bar { gap: 4px; margin-bottom: 3px; font-size: 10px; }
+  .group-summary { padding: 2px 6px; }
+
+  /* Creature dropdown touch-friendly */
+  .cdrop-item { padding: 6px 8px; min-height: 36px; }
+  .cdrop-search { padding: 8px; font-size: 14px; }
+  .cdrop-display { min-height: 36px; padding: 6px 8px; }
+
+  /* Summon panel tighter */
+  .row { gap: 6px; }
+}
+
+/* ── Phone / narrow portrait (≤480px) ── */
+@media (max-width: 480px) {
+  .ccard { min-width: unset; flex: 1 1 100%; }
+  .creatures-flow { gap: 4px; }
+}
 </style>
 </head>
 <body>

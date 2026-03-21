@@ -915,7 +915,7 @@ function renderCard(c, group, refAC) {
 
     const triggeredSpecials = new Set();
     let runningDmg = 0, runningDmgCrit = 0;
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">Atk</th><th class="r">Dmg</th><th class="r" title="Running total damage">${IC.dmg('icon-sm')}</th><th></th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">Atk</th><th class="r">Dmg</th><th class="r" title="Running total damage">${IC.dmg('icon-sm')}</th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -966,8 +966,15 @@ function renderCard(c, group, refAC) {
         }
       }
 
-      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | fumble: '+r.fumbleConf:''}`;
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${r.total}</td><td class="dmg">${dmgCell}</td><td class="running">${runCell}</td><td class="special">${tag}</td></tr>`;
+      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
+      // Atk cell: show CRIT/## or FAIL/## when pending, otherwise attack total
+      let atkCell = `${r.total}`;
+      if (critPending) atkCell = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
+      else if (fumblePending) atkCell = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
+      else if (critConfirmed) atkCell = `<b class="tag-crit">${r.total} CRIT!</b>`;
+      else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE!</b>`;
+      else if (fumbleSafe) atkCell = `<span class="tag-muted">${r.total}</span>`;
+      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg">${dmgCell}</td><td class="running">${runCell}</td></tr>`;
     }
     tableHTML+=`</table>`;
 

@@ -943,10 +943,10 @@ function renderCard(c, group, refAC) {
       let tag = '';
       if(critConfirmed) tag = `<b class="tag-crit">CRIT!</b>`;
       else if(r.critOk && hasAC) tag = `<span class="tag-muted">no conf</span>`;
-      else if(critPending) tag = `<span class="tag-threat">THREAT <span class="tag-muted">conf ${r.critConfTotal}</span></span>`;
+      else if(critPending) tag = `<span class="tag-threat">THREAT</span> <span class="tag-muted">conf ${r.critConfTotal}</span>`;
       else if(fumbleFail) tag = `<b class="tag-fumble">FUMBLE!</b>`;
       else if(fumbleSafe) tag = `<span class="tag-muted">nat1</span>`;
-      else if(fumblePending) tag = `<span class="tag-nat1">NAT1 <span class="tag-muted">conf ${r.fumbleConfTotal}</span></span>`;
+      else if(fumblePending) tag = `<span class="tag-nat1">NAT1</span> <span class="tag-muted">reroll ${r.fumbleConfTotal}</span>`;
 
       const isConditionalRake = r.isRake && r.conditionalOnMaintain;
       const rakeTag=r.isRake?` <span class="rake-label">${isConditionalRake?'RK*':'RK'}</span>`:'';

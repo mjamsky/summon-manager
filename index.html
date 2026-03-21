@@ -71,8 +71,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
 .ccard-name { font-weight: bold; font-size: 13px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
-.ccard-stats { font-size: 11px; color: #fff; margin-bottom: 3px; }
-.ccard-stats .stat-label { color: var(--muted); }
+.hp-icon-card { color: var(--red); margin-right: 1px; }
+/* HP controls + AC/CMD on same row */
+.hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
+.hp-row .ac-cmd { margin-left: auto; font-size: 11px; color: #fff; white-space: nowrap; }
+.hp-row .ac-cmd .stat-label { color: var(--muted); }
 .hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 3px; }
 .hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; }
 .hpfill.low { background: var(--crit); }
@@ -833,7 +836,7 @@ function renderCard(c, group, refAC) {
 
     const triggeredSpecials = new Set();
     let runningDmg = 0;
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th>Σ</th><th></th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th>Atk</th><th>Dmg</th><th title="Running total damage">💔</th><th></th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -987,12 +990,25 @@ function renderCard(c, group, refAC) {
   </div>`;
 
   // Key abilities: non-melee special abilities with DCs/combat actions
-  // Shown as a dedicated section above the roll table
+  // Sources: specialAbilities[] AND Special_Attacks text (for whirlwind, trample, etc.)
   const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
     return !meleeSpecials.has(kw);
   });
+  // Also parse Special_Attacks text for abilities not in specialAbilities[]
+  // e.g. "whirlwind (DC 14)" → extract name + DC
+  const saText = c.specialAtks || '';
+  const saTextParsed = [...saText.matchAll(/(\w[\w\s]*?)\s*\(([^)]+)\)/g)];
+  for (const m of saTextParsed) {
+    const name = m[1].trim().toLowerCase();
+    if (meleeSpecials.has(name)) continue;
+    // Skip if already in keyAbilities
+    if (keyAbilities.find(a => a.name.toLowerCase().includes(name))) continue;
+    const pfsrdName = name.replace(/\s+/g, '-');
+    const url = PFSRD[name] || `https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#${pfsrdName}`;
+    keyAbilities.push({ name: m[1].trim(), desc: m[2], _fromText: true, _url: url });
+  }
   let abilityHTML = '';
   if (keyAbilities.length > 0) {
     abilityHTML = '<div class="ability-section">';
@@ -1006,13 +1022,13 @@ function renderCard(c, group, refAC) {
       const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
       const typeStr = typeMatch ? typeMatch[1] : '';
       const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
-      // Brief action summary — first sentence only
-      const brief = a.desc.split(/\.\s/)[0].replace(/^[^,]+,\s*/, '').slice(0, 80);
+      const brief = a._fromText ? '' : a.desc.split(/\.\s/)[0].replace(/^[^,]+,\s*/, '').slice(0, 80);
+      const nameDisp = a._url ? `<a class="ability-name sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">${a.name.split('(')[0].trim()}</a>` : `<span class="ability-name">${a.name.split('(')[0].trim()}</span>`;
       abilityHTML += `<div class="ability-row">
-        <span><span class="ability-name">${a.name.split('(')[0].trim()}</span> <span class="ability-type">${typeStr}</span></span>
+        <span>${nameDisp} <span class="ability-type">${typeStr}</span></span>
         <span class="ability-dc">${info}</span>
       </div>
-      <div class="ability-detail">${brief}</div>`;
+      ${brief ? `<div class="ability-detail">${brief}</div>` : ''}`;
     }
     abilityHTML += '</div>';
   }
@@ -1036,11 +1052,13 @@ function renderCard(c, group, refAC) {
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     <div class="ccard-head">
       <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
-      <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
+      <span class="ccard-hp"><span class="hp-icon-card">♥</span>${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
-    <div class="ccard-stats"><span class="stat-label">AC</span> ${c.ac} <span class="stat-label">CMD</span> ${c.cmd}</div>
-    ${hpCtrl}
+    <div class="hp-row">
+      ${hpCtrl}
+      <span class="ac-cmd"><span class="stat-label">CMD</span> ${c.cmd} <span class="ac-icon">⛨</span>${c.ac}</span>
+    </div>
     <div class="buff-pounce-row">
       ${buffHTML} ${pounceHTML} ${grapHTML}
     </div>

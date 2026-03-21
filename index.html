@@ -99,6 +99,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .icon-hp { color: var(--red); }
 .icon-ac { color: var(--accent); }
 .icon-dmg { color: var(--crit); }
+.icon-round { width: 18px; height: 18px; vertical-align: -3px; color: var(--crit); margin-right: 2px; }
 .icon-pip { display: inline-block; width: 7px; height: 7px; vertical-align: 1px; }
 /* Attack name pip column */
 .atk-pips { display: inline-block; width: 10px; text-align: center; }
@@ -201,9 +202,21 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .app-title { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--muted); letter-spacing: 1px; }
 .settings-toggle { font-size: 11px; color: var(--muted); cursor: pointer; }
 
-/* Combat bar (primary actions) */
+/* Setup drawer */
+.setup-drawer { margin-bottom: 4px; }
+.setup-summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 0; }
+.setup-drawer[open] .setup-summary { margin-bottom: 4px; color: var(--text); }
+.setup-drawer .panel { margin-bottom: 4px; }
+
+/* Combat/Round bar (bottom) */
 .combat-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); }
-.round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 8px; }
+.round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 4px; }
+.round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+#round-groups { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; font-size: 11px; }
+.buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+
+/* Bottom bars stick to bottom */
+.bottom-bar { position: sticky; bottom: 0; z-index: 50; }
 .settings-toggle:hover { color: var(--text); }
 /* Bar hierarchy — left border accent */
 .bar-buffs { border-left: 3px solid var(--green); }
@@ -320,16 +333,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   <span class="settings-toggle" onclick="document.getElementById('settings-tray').classList.toggle('open')">⚙ Settings</span>
 </div>
 
-<!-- ═══ Combat Bar (primary) ═══ -->
-<div class="panel combat-bar">
-  <div class="round-display">Rd <span id="disp-rd">0</span></div>
-  <div><label>Ref AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></div>
-  <button class="act" onclick="reroll()">RE-ROLL ALL</button>
-  <button class="go" onclick="nextRound()">NEXT ROUND</button>
-  <button onclick="clearAll()">CLEAR</button>
-</div>
-
-<!-- ═══ Settings Tray (CL + Feats) ═══ -->
+<!-- ═══ Settings Tray (CL + Feats) — hidden by default ═══ -->
 <div class="panel settings-tray" id="settings-tray">
   <div class="row">
     <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
@@ -343,8 +347,49 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   </div>
 </div>
 
-<!-- ═══ Buffs ═══ -->
-<div class="panel chip-row bar-buffs">
+<!-- ═══ Setup Drawer (Summon + Items) — collapsible ═══ -->
+<details class="setup-drawer" id="setup-drawer">
+  <summary class="panel setup-summary">▸ Summon & Setup</summary>
+  <div class="panel bar-summon">
+    <div class="row">
+      <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
+        <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
+        <option value="4" selected>4th</option><option value="5">5th</option><option value="6">6th</option>
+        <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
+      </select></div>
+      <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
+      <div class="cdrop" id="creature-drop">
+        <label>Creature</label>
+        <div class="cdrop-display" onclick="toggleCreatureDrop()"><span id="cdrop-text">Select...</span></div>
+        <div class="cdrop-list">
+          <input class="cdrop-search" type="text" placeholder="Search..." oninput="filterCreatures(this.value)">
+          <div id="cdrop-items"></div>
+        </div>
+      </div>
+      <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
+    </div>
+  </div>
+  <div class="panel row bar-items">
+    <label class="label-inline">Items:</label>
+    <button onclick="summonLions()">Lion Figurines (2)</button>
+    <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
+    <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
+  </div>
+  <details class="panel">
+    <summary class="import-summary">Claude Import (JSON)</summary>
+    <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
+    <button class="sm import-btn" onclick="doImport()">Import</button>
+  </details>
+</details>
+
+<!-- ═══ Creatures (main viewport) ═══ -->
+<div id="creatures-out"></div>
+
+<!-- ═══ Effects ═══ -->
+<div id="effects-out"></div>
+
+<!-- ═══ Buff Bar (persistent state) ═══ -->
+<div class="panel chip-row bar-buffs bottom-bar">
   <label class="label-inline">Buffs:</label>
   <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
   <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
@@ -355,49 +400,19 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
   <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
   <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
+  <span class="buff-ac-ref"><label>Ref AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
 </div>
 
-<!-- ═══ Summon Panel ═══ -->
-<div class="panel bar-summon">
-  <div class="row">
-    <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
-      <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
-      <option value="4" selected>4th</option><option value="5">5th</option><option value="6">6th</option>
-      <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
-    </select></div>
-    <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
-    <div class="cdrop" id="creature-drop">
-      <label>Creature</label>
-      <div class="cdrop-display" onclick="toggleCreatureDrop()"><span id="cdrop-text">Select...</span></div>
-      <div class="cdrop-list">
-        <input class="cdrop-search" type="text" placeholder="Search..." oninput="filterCreatures(this.value)">
-        <div id="cdrop-items"></div>
-      </div>
-    </div>
-    <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
+<!-- ═══ Round Bar (bottom action bar) ═══ -->
+<div class="panel combat-bar bottom-bar" id="round-bar">
+  <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span id="disp-rd">0</span></div>
+  <div id="round-groups"></div>
+  <div class="round-actions">
+    <button class="act" onclick="reroll()">RE-ROLL ALL</button>
+    <button onclick="clearAll()">CLEAR</button>
+    <button class="go" onclick="nextRound()">NEXT ROUND</button>
   </div>
 </div>
-
-<!-- ═══ Quick Items ═══ -->
-<div class="panel row bar-items">
-  <label class="label-inline">Items:</label>
-  <button onclick="summonLions()">Lion Figurines (2)</button>
-  <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
-  <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
-</div>
-
-<!-- ═══ Creatures ═══ -->
-<div id="creatures-out"></div>
-
-<!-- ═══ Effects ═══ -->
-<div id="effects-out"></div>
-
-<!-- ═══ Import ═══ -->
-<details class="panel">
-  <summary class="import-summary">Claude Import (JSON)</summary>
-  <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
-  <button class="sm import-btn" onclick="doImport()">Import</button>
-</details>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -415,6 +430,7 @@ const IC = {
   hp: (cls='') => `<svg class="icon icon-hp ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`,
   ac: (cls='') => `<svg class="icon icon-ac ${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
   dmg: (cls='') => `<svg class="icon icon-dmg ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>`,
+  round: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
   // Per-attack special icons (small colored pips)
   grab: `<svg class="icon-pip icon-grab" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="var(--accent)"/></svg>`,
   trip: `<svg class="icon-pip icon-trip" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#f0a050"/></svg>`,
@@ -874,32 +890,27 @@ function render(){
   const refACval = document.getElementById('ref-ac').value;
   const refAC = refACval === '' ? 0 : parseInt(refACval) || 0;
   const area=document.getElementById('creatures-out');
-  // Flat flow: all cards in one flex container, group info embedded in each card
+  // Cards fill viewport
   let h='<div class="creatures-flow">';
   for(const g of S.groups){
-    const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
     for(const c of g.creatures) h+=renderCard(c, g, refAC);
   }
   h+='</div>';
-  // Group summaries as a compact bar above
+  area.innerHTML=h;
+
+  // Group chips in round bar (bottom)
   let gBar='';
-  if(S.groups.length > 0) {
-    gBar='<div class="group-bar">';
-    for(const g of S.groups){
-      const alive=g.creatures.filter(c=>c.alive).length;
-      const rlTxt=g.src==='figurine'?'perm':`${g.rl}rd`;
-      // Compact group label: just creature name + count + duration
-      const gCreature = g.creatures[0]?.name || '?';
-      const gLabel = `${g.creatures.length}× ${gCreature}`;
-      gBar+=`<span class="group-summary" data-rl="${g.rl}">
-        ${gLabel} ${rlTxt}
-        ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
-        <button class="sm dismiss-btn" onclick="dismissG('${g.id}')" title="Dismiss group">×</button>
-      </span>`;
-    }
-    gBar+='</div>';
+  for(const g of S.groups){
+    const rlTxt=g.src==='figurine'?'∞':`${IC.round('icon-sm')}${g.rl}`;
+    const gCreature = g.creatures[0]?.name || '?';
+    const gLabel = `${g.creatures.length}× ${gCreature}`;
+    gBar+=`<span class="group-summary" data-rl="${g.rl}">
+      ${gLabel} ${rlTxt}
+      ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
+      <button class="sm dismiss-btn" onclick="dismissG('${g.id}')" title="Dismiss group">×</button>
+    </span>`;
   }
-  area.innerHTML=gBar+h;
+  document.getElementById('round-groups').innerHTML=gBar;
 
   document.getElementById('effects-out').innerHTML=S.effects.map(e=>
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
@@ -931,7 +942,7 @@ function renderCard(c, group, refAC) {
   const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
-  const rlTxt=group.src==='figurine'?'perm':`${group.rl}rd`;
+  const rlTxt=group.src==='figurine'?'∞':`${IC.round('icon-sm')}${group.rl}`;
   const durBadge = rlTxt;
 
   // Tier for data attribute (dropdown uses it, cards don't display it)

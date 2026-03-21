@@ -320,91 +320,119 @@ function updCreatures(){
 //  PRE-ROLL — sorted roll table
 // ═══════════════════════════════════════════════════════════════
 function preRoll(c) {
+  // Store RAW dice rolls — bonuses computed at render time so buff toggles don't re-roll
+  const rawRows = [];
+  const rawGrabs = [];
+
+  for (const atk of c.attacks) {
+    const r = d20();
+    const dr = rdice(atk.dmg);
+    let critConf = 0, critDmgRaw = 0, fumbleConf = 0;
+    const threat = r >= atk.cr && r !== 1;
+
+    if (threat) {
+      critConf = d20();
+      critDmgRaw = rdice(atk.dmg).t; // extra damage dice for crit
+    }
+    if (r === 1) {
+      fumbleConf = d20();
+    }
+
+    rawRows.push({
+      name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t,
+      critConf, critDmgRaw, fumbleConf, fumbleBonus: atk.bonus,
+      cr: atk.cr, cm: atk.cm, specials: atk.sp,
+      nat20: r===20, nat1: r===1, threat, isRake: false,
+    });
+
+    if (atk.sp.includes('grab') && c.cmb) {
+      rawGrabs.push({ atk: atk.name, d20: d20(), baseCmb: c.cmb + 4 });
+    }
+  }
+
+  // Rake attacks
+  if (c.hasRake && c.pouncing && c.rakeAtks.length > 0) {
+    for (const atk of c.rakeAtks) {
+      const r = d20();
+      const dr = rdice(atk.dmg);
+      rawRows.push({
+        name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t,
+        critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:atk.bonus,
+        cr:20, cm:2, specials:atk.sp||[],
+        nat20:r===20, nat1:r===1, threat:false, isRake:true,
+      });
+    }
+  }
+
+  // Haste slot (raw roll, uses best attack bonus)
+  const hasHaste = bTotal(c.buffOvr).extra; // check now but re-eval at render
+  if (c.attacks.length > 0) {
+    const best = c.attacks.reduce((a,x)=>a.bonus>x.bonus?a:x);
+    const r = d20();
+    const dr = rdice(best.dmg);
+    rawRows.push({
+      name:'Haste', r, baseBonus: best.bonus, baseDmg: dr.t,
+      critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:best.bonus,
+      cr:20, cm:2, specials:[],
+      nat20:r===20, nat1:r===1, threat:false, isRake:false, isHaste:true,
+    });
+  }
+
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs };
+}
+
+// Compute display rows from raw rolls + current buffs (called at render time)
+function computeRoll(c) {
+  if (!c.rawRoll) return null;
   const b = bTotal(c.buffOvr);
   const rows = [];
   const grabs = [];
 
-  for (const atk of c.attacks) {
-    const r = d20();
-    const total = r + atk.bonus + b.a;
-    const nat20 = r === 20, nat1 = r === 1;
-    const threat = r >= atk.cr;
-    let dmg = 0, critOk = false, critConf = 0, critConfTotal = 0;
-    let fumbleConf = 0, fumbleConfTotal = 0, critFail = false;
+  for (const raw of c.rawRoll.rows) {
+    // Skip haste row if haste isn't active
+    if (raw.isHaste && !b.extra) continue;
 
-    // Always roll damage (needed for sorted table)
-    const dr = rdice(atk.dmg);
-    dmg = dr.t + b.d;
+    const bonus = raw.baseBonus + b.a;
+    const total = raw.r + bonus;
+    const dmgBase = raw.baseDmg + b.d;
+    let dmgWithCrit = dmgBase;
+    let critOk = false, critConfTotal = 0;
+    let fumbleConfTotal = 0;
 
-    // Crit threat: roll confirmation (we show the roll, hit/miss depends on AC)
-    if (threat && !nat1) {
-      critConf = d20();
-      critConfTotal = critConf + atk.bonus + b.a;
-      // Pre-roll crit bonus damage (applied if confirmed)
-      const cr2 = rdice(atk.dmg);
-      critOk = true; // we flag that a crit IS possible; actual confirm depends on AC
-      dmg += cr2.t + b.d; // total includes crit damage; display will show breakdown
+    if (raw.threat) {
+      critConfTotal = raw.critConf + bonus;
+      critOk = true;
+      dmgWithCrit = dmgBase + raw.critDmgRaw + b.d;
+    }
+    if (raw.nat1) {
+      fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a;
     }
 
-    // Nat 1 fumble confirmation: reroll, if miss = crit fail
-    if (nat1) {
-      fumbleConf = d20();
-      fumbleConfTotal = fumbleConf + atk.bonus + b.a;
-      // critFail determined at display time based on AC
-    }
-
-    const hit_ac = nat20 ? 999 : nat1 ? 0 : total;
+    const hit_ac = raw.nat20 ? 999 : raw.nat1 ? 0 : total;
 
     rows.push({
-      name: atk.name, r, bonus: atk.bonus + b.a, total,
-      hit_ac, dmg, dmgNoCrit: dr.t + b.d, // damage without crit for display
-      nat20, nat1, threat, critOk,
-      critConf, critConfTotal, // the confirmation roll
-      fumbleConf, fumbleConfTotal, // the fumble confirmation roll
-      specials: atk.sp,
+      name: raw.name, r: raw.r, bonus, total, hit_ac,
+      dmg: dmgWithCrit, dmgNoCrit: dmgBase,
+      nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
+      critConf: raw.critConf, critConfTotal,
+      fumbleConf: raw.fumbleConf, fumbleConfTotal,
+      specials: raw.specials, isRake: raw.isRake,
     });
-
-    // Pre-roll grab
-    if (atk.sp.includes('grab') && c.cmb) {
-      const g = d20();
-      grabs.push({ atk: atk.name, d20: g, total: g + c.cmb + 4 + b.a });
-    }
   }
 
-  // Rake attacks (on pounce or grapple — pre-roll them, tagged so we know)
-  if (c.hasRake && c.pouncing && c.rakeAtks.length > 0) {
-    for (const atk of c.rakeAtks) {
-      const r = d20();
-      const total = r + atk.bonus + b.a;
-      const nat20 = r===20, nat1 = r===1;
-      const dr = rdice(atk.dmg);
-      let dmg = dr.t + b.d;
-      const hit_ac = nat20 ? 999 : nat1 ? 0 : total;
-      rows.push({ name:atk.name||'Rake', r, bonus:atk.bonus+b.a, total, hit_ac, dmg,
-        nat20, nat1, threat:false, critOk:false, specials:['rake'], isRake:true });
-    }
+  for (const raw of c.rawRoll.grabs) {
+    grabs.push({ atk: raw.atk, d20: raw.d20, total: raw.d20 + raw.baseCmb + b.a });
   }
 
-  // Haste extra attack
-  if (b.extra && c.attacks.length > 0) {
-    const best = c.attacks.reduce((a,x) => a.bonus > x.bonus ? a : x);
-    const r = d20(), total = r + best.bonus + b.a;
-    const dr = rdice(best.dmg);
-    const dmg = dr.t + b.d;
-    const hit_ac = r === 20 ? 999 : r === 1 ? 0 : total;
-    rows.push({ name:'Haste', r, bonus:best.bonus+b.a, total, hit_ac, dmg, nat20:r===20, nat1:r===1, threat:false, critOk:false, specials:[] });
-  }
-
-  // Sort by total descending (highest rolls first)
   rows.sort((a, b) => b.total - a.total);
-
-  c.preRoll = { rows, grabs };
+  return { rows, grabs };
 }
 
 function reroll() {
   for (const g of S.groups) for (const c of g.creatures) if (c.alive) preRoll(c);
   render();
 }
+// Buff toggle just re-renders — dice stay the same, bonuses recalculate
 
 // ═══════════════════════════════════════════════════════════════
 //  CREATURE CREATION
@@ -419,14 +447,32 @@ function mkCreature(bEntry, aug) {
   const hasRake = specials.includes('rake');
 
   // Parse rake attacks from specials string
+  // Format: "rake (2 claws +7, 1d6+4)" — count name bonus, damage
   let rakeAtks = [];
   if (hasRake) {
     const rm = specials.match(/rake\s*\(([^)]+)\)/);
-    if (rm) { rakeAtks = parseMelee(rm[1]); }
-    else {
-      // Default: 2 claws at same bonus as first claw attack
-      const clawAtk = parseMelee(card.Melee||base.Melee||'').find(a=>a.name.toLowerCase().includes('claw'));
-      if (clawAtk) { rakeAtks = [{...clawAtk,name:'Rake 1'},{...clawAtk,name:'Rake 2'}]; }
+    if (rm) {
+      const rakeStr = rm[1]; // "2 claws +7, 1d6+4"
+      const countM = rakeStr.match(/^(\d+)/);
+      const bonusM = rakeStr.match(/([+-]\d+)/);
+      const dmgM = rakeStr.match(/(\d+d\d+(?:[+-]\d+)?)/);
+      const count = countM ? parseInt(countM[1]) : 2;
+      const bonus = bonusM ? parseInt(bonusM[1]) : 0;
+      const dmgStr = dmgM ? dmgM[1] : '1d4';
+      for (let i = 0; i < count; i++) {
+        rakeAtks.push({name:`Rake ${i+1}`, bonus, dmg:dmgStr, cr:20, cm:2, sp:['rake']});
+      }
+    }
+    if (rakeAtks.length === 0) {
+      // Fallback: use first claw attack stats
+      const allAtks = parseMelee(card.Melee||base.Melee||'');
+      const clawAtk = allAtks.find(a=>a.name.toLowerCase().includes('claw'));
+      if (clawAtk) {
+        rakeAtks = [
+          {name:'Rake 1', bonus:clawAtk.bonus, dmg:clawAtk.dmg, cr:20, cm:2, sp:['rake']},
+          {name:'Rake 2', bonus:clawAtk.bonus, dmg:clawAtk.dmg, cr:20, cm:2, sp:['rake']},
+        ];
+      }
     }
   }
 
@@ -523,7 +569,8 @@ function render(){
   document.querySelectorAll('.chip[data-buff]').forEach(el=>el.classList.toggle('on',!!S.buffs[el.dataset.buff]));
   updTiers();
 
-  const refAC = +document.getElementById('ref-ac').value || 18;
+  const refACval = document.getElementById('ref-ac').value;
+  const refAC = refACval === '' ? 0 : parseInt(refACval) || 0;
   const area=document.getElementById('creatures-out');
   let h='';
   for(const g of S.groups){
@@ -581,9 +628,9 @@ function renderCard(c, casting, refAC) {
   const pounceHTML = c.hasPounce ?
     `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Toggle charge+pounce (adds rake attacks)">${c.pouncing?'POUNCING':'Pounce?'}</span>` : '';
 
-  // Roll table
+  // Roll table — compute from raw rolls + current buffs
   let tableHTML='', summaryHTML='';
-  const pr = c.preRoll;
+  const pr = c.rawRoll ? computeRoll(c) : null;
   if(pr && c.alive) {
     const hasAC = refAC > 0;
     let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
@@ -732,10 +779,10 @@ function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;preRoll(c)
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
 function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
 function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];reroll();}
-function tBuff(el){S.buffs[el.dataset.buff]=!S.buffs[el.dataset.buff];reroll();}
+function tBuff(el){S.buffs[el.dataset.buff]=!S.buffs[el.dataset.buff];render();}
 function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
-    if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;preRoll(c);render();return;}}
+    if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
 }
 function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;render();}
 function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);

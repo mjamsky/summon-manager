@@ -231,8 +231,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Specials legend below roll table */
 .specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
 .special-legend { color: var(--muted); margin-bottom: 2px; }
-.special-legend.triggered { color: var(--text); }
 .special-legend .sp-link { font-size: 11px; }
+.legend-active { color: var(--hit); font-weight: bold; }
 
 /* Stat block special abilities */
 .sb-sa-label { color: var(--crit); min-width: auto; }
@@ -1026,7 +1026,8 @@ function renderCard(c, group, refAC) {
             if (parts.length) info = ` ${parts.join(' ')}`;
           }
         }
-        specialsHTML += `<div class="special-legend legend-${s} ${isTriggered?'triggered':''}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark}${info}</div>`;
+        const infoCls = (isTriggered && hasAC) ? 'legend-active' : '';
+        specialsHTML += `<div class="special-legend legend-${s}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark} <span class="${infoCls}">${info}</span></div>`;
       }
       specialsHTML += `</div>`;
     }

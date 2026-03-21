@@ -134,6 +134,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .roll-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .roll-table th { text-align: left; font-size: 10px; color: var(--muted); padding: 2px 4px; border-bottom: 1px solid var(--border); }
 .roll-table th.r { text-align: right; }
+.roll-table .th-sum { color: var(--crit); font-size: 12px; font-weight: bold; cursor: help; }
 .roll-table td { padding: 2px 4px; }
 .roll-table tr.hit td { color: var(--hit); }
 .roll-table tr.miss td { color: var(--miss); }
@@ -211,6 +212,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Combat/Round bar (bottom) */
 .combat-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); }
 .round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 4px; }
+.round-ac { display: flex; align-items: center; gap: 2px; }
+.round-ac input { width: 40px; }
 .round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 #round-groups { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; font-size: 11px; }
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
@@ -400,12 +403,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
   <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
   <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
-  <span class="buff-ac-ref"><label>Ref AC</label><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
 </div>
 
 <!-- ═══ Round Bar (bottom action bar) ═══ -->
 <div class="panel combat-bar bottom-bar" id="round-bar">
   <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
+  <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
   <div id="round-groups"></div>
   <div class="round-actions">
     <button class="act" onclick="reroll()">RE-ROLL ALL</button>
@@ -430,11 +433,14 @@ const IC = {
   // MDI filled icon set — consistent style on dark backgrounds
   hp: (cls='') => `<svg class="icon icon-hp ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="m12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53z"/></svg>`,
   ac: (cls='') => `<svg class="icon icon-ac ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg>`,
-  dmg: (cls='') => `<svg class="icon icon-dmg ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="m6.2 2.44l11.9 11.9l2.12-2.12l1.41 1.41l-2.47 2.47l3.18 3.18c.39.39.39 1.02 0 1.41l-.71.71a.996.996 0 0 1-1.41 0L17 18.23l-2.44 2.47l-1.41-1.41l2.12-2.12l-11.9-11.9V2.44zM15.89 10l4.74-4.74V2.44H17.8l-4.74 4.74zm-4.95 5l-2.83-2.87l-2.21 2.21l-2.12-2.12l-1.41 1.41l2.47 2.47l-3.18 3.19a.996.996 0 0 0 0 1.41l.71.71c.39.39 1.02.39 1.41 0L7 18.23l2.44 2.47l1.41-1.41l-2.12-2.12z"/></svg>`,
+  // Crossed swords for Attack column
+  atk: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="m6.2 2.44l11.9 11.9l2.12-2.12l1.41 1.41l-2.47 2.47l3.18 3.18c.39.39.39 1.02 0 1.41l-.71.71a.996.996 0 0 1-1.41 0L17 18.23l-2.44 2.47l-1.41-1.41l2.12-2.12l-11.9-11.9V2.44zM15.89 10l4.74-4.74V2.44H17.8l-4.74 4.74zm-4.95 5l-2.83-2.87l-2.21 2.21l-2.12-2.12l-1.41 1.41l2.47 2.47l-3.18 3.19a.996.996 0 0 0 0 1.41l.71.71c.39.39 1.02.39 1.41 0L7 18.23l2.44 2.47l1.41-1.41l-2.12-2.12z"/></svg>`,
+  // Broken heart for Damage column
+  dmg: (cls='') => `<svg class="icon icon-dmg ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="m12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3c.67 0 1.32.12 1.94.33L13 9.35l-4 5zM16.5 3C19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35l-1-7l4.5-5l-2.65-5.08C13.87 3.47 15.17 3 16.5 3"/></svg>`,
   // Cycle/round icon (current round)
   cycle: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg>`,
-  // Hourglass (rounds remaining)
-  countdown: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="M6 2h12v6l-4 4l4 4v6H6v-6l4-4l-4-4zm10 14.5l-4-4l-4 4V20h8zm-4-5l4-4V4H8v3.5zM10 6h4v.75l-2 2l-2-2z"/></svg>`,
+  // Timer/stopwatch (rounds remaining)
+  countdown: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="m19.03 7.39l1.42-1.42c-.45-.51-.9-.97-1.41-1.41L17.62 6c-1.55-1.26-3.5-2-5.62-2a9 9 0 0 0 0 18c5 0 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61M13 14h-2V7h2zm2-13H9v2h6z"/></svg>`,
   // Sigma/sum (running total)
   sum: (cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path fill="currentColor" d="M18 6H8.83l6 6l-6 6H18v2H6v-2l6-6l-6-6V4h12z"/></svg>`,
   // Per-attack special icons (small colored pips)
@@ -907,13 +913,12 @@ function render(){
   // Group chips in round bar (bottom)
   let gBar='';
   for(const g of S.groups){
-    const rlTxt=g.src==='figurine'?'1hr':`${IC.countdown('icon-sm')}${g.rl}`;
+    const rlTxt=g.src==='figurine'?'1hr':`${g.rl}${IC.countdown('icon-sm')}`;
     const gCreature = g.creatures[0]?.name || '?';
     const gLabel = `${g.creatures.length}× ${gCreature}`;
     gBar+=`<span class="group-summary" data-rl="${g.rl}">
       ${gLabel} ${rlTxt}
       ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
-      <button class="sm dismiss-btn" onclick="dismissG('${g.id}')" title="Dismiss group">×</button>
     </span>`;
   }
   document.getElementById('round-groups').innerHTML=gBar;
@@ -982,7 +987,7 @@ function renderCard(c, group, refAC) {
     const triggeredSpecials = new Set();
     let runningDmg = 0, runningDmgCrit = 0;
     const runningByType = {}; // {type: total} for tooltip
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">Atk</th><th class="r">Dmg</th><th class="r" title="Running total damage">${IC.sum('icon-sm icon-dmg')}</th></tr>`;
+    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">${IC.atk('icon-sm')}</th><th class="r">${IC.dmg('icon-sm')}</th><th class="r th-sum" title="Running damage total">Σ</th></tr>`;
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;

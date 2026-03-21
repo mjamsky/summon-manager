@@ -474,10 +474,10 @@
             "Special_Qualities": "darkvision, tremorsense"
           },
           "full_statblock": {
-            "Str": 10,
+            "Str": 19,
             "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Con": 16,
+            "Int": 0,
             "Wis": 10,
             "Cha": 2,
             "BAB": 3,
@@ -495,8 +495,8 @@
             "Melee": "2 claws +8 (1d6+6 plus grab), sting +8 (1d6+6 plus poison)",
             "CMB": 10,
             "CMD": 22,
-            "Str": 14,
-            "Con": 14
+            "Str": 23,
+            "Con": 20
           }
         },
         {
@@ -523,12 +523,12 @@
             "Special_Qualities": "darkvision"
           },
           "full_statblock": {
-            "Str": 10,
+            "Str": 19,
             "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Con": 15,
+            "Int": 0,
             "Wis": 10,
-            "Cha": 2,
+            "Cha": 9,
             "BAB": 5,
             "Feats": "",
             "Skills": "Fly -6, Perception +0",
@@ -544,8 +544,8 @@
             "Melee": "bite +10 (2d8+8)",
             "CMB": 12,
             "CMD": 24,
-            "Str": 14,
-            "Con": 14
+            "Str": 23,
+            "Con": 19
           }
         },
         {
@@ -572,12 +572,12 @@
             "Special_Qualities": "darkvision"
           },
           "full_statblock": {
-            "Str": 10,
-            "Dex": 10,
-            "Con": 10,
-            "Int": 2,
-            "Wis": 10,
-            "Cha": 2,
+            "Str": 18,
+            "Dex": 12,
+            "Con": 18,
+            "Int": 0,
+            "Wis": 13,
+            "Cha": 11,
             "BAB": 3,
             "Feats": "",
             "Skills": "Fly +3, Perception +9",
@@ -593,8 +593,8 @@
             "Melee": "sting +8 (1d8+8 plus poison)",
             "CMB": 10,
             "CMD": 23,
-            "Str": 14,
-            "Con": 14
+            "Str": 22,
+            "Con": 22
           }
         },
         {

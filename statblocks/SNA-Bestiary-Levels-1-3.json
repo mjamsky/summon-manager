@@ -230,11 +230,11 @@
           },
           "full_statblock": {
             "Str": 10,
-            "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Dex": 11,
+            "Con": 11,
+            "Int": 0,
             "Wis": 10,
-            "Cha": 2,
+            "Cha": 7,
             "BAB": 0,
             "Feats": "",
             "Skills": "Fly -2, Perception +0",
@@ -251,7 +251,7 @@
             "CMB": 1,
             "CMD": 13,
             "Str": 14,
-            "Con": 14
+            "Con": 15
           }
         },
         {
@@ -278,10 +278,10 @@
             "Special_Qualities": "darkvision"
           },
           "full_statblock": {
-            "Str": 10,
-            "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Str": 9,
+            "Dex": 15,
+            "Con": 12,
+            "Int": 0,
             "Wis": 10,
             "Cha": 2,
             "BAB": 0,
@@ -299,8 +299,8 @@
             "Melee": "bite +4 (1d6+1 plus poison)",
             "CMB": 1,
             "CMD": 15,
-            "Str": 14,
-            "Con": 14
+            "Str": 13,
+            "Con": 16
           }
         },
         {
@@ -349,6 +349,55 @@
             "CMB": 0,
             "CMD": 13,
             "Str": 12,
+            "Con": 15
+          }
+        },
+        {
+          "name": "Poisonous Frog",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/poison-frog/",
+          "type": "animal",
+          "size": "Tiny",
+          "cr": "1/2",
+          "combat_card": {
+            "AC": 13,
+            "AC_breakdown": "13, touch 13, flat-footed 12 (dex +1, size +2)",
+            "HP": 4,
+            "HD": "1d8",
+            "Fort": 2,
+            "Ref": 3,
+            "Will": -1,
+            "Speed": "10 ft., swim 20 ft.",
+            "Melee": "bite +3 (1 plus poison)",
+            "CMB": -1,
+            "CMB_full": "-1",
+            "CMD": 5,
+            "CMD_full": "5 (9 vs. trip)",
+            "Special_Attacks": "",
+            "Special_Qualities": "low-light vision"
+          },
+          "full_statblock": {
+            "Str": 2,
+            "Dex": 12,
+            "Con": 11,
+            "Int": 1,
+            "Wis": 9,
+            "Cha": 10,
+            "BAB": 0,
+            "Feats": "Weapon Finesse",
+            "Skills": "Acrobatics +5, Perception +3, Stealth +13, Swim +9",
+            "Space": "2.5 ft.",
+            "Reach": "0 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 13,
+            "HP": 6,
+            "HD": "1d8+2",
+            "Fort": 4,
+            "Melee": "bite +5 (1 plus poison)",
+            "CMB": 1,
+            "CMD": 9,
+            "Str": 6,
             "Con": 15
           }
         },
@@ -506,51 +555,51 @@
       "creatures": [
         {
           "name": "Giant Ant (Worker)",
-          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-anaconda/",
-          "type": "animal",
-          "size": "Gargantuan",
-          "cr": "10",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-ant/",
+          "type": "vermin",
+          "size": "Medium",
+          "cr": "2",
           "combat_card": {
-            "AC": 25,
-            "AC_breakdown": "25, touch 9, flat-footed 22 (dex +2, dodge +1, natural +16, size -4)",
-            "HP": 126,
-            "HD": "12d8+72",
-            "Fort": 14,
-            "Ref": 10,
-            "Will": 5,
-            "Speed": "20 ft., climb 20 ft., swim 20 ft.",
-            "Melee": "bite +19 (4d6+19/19-20 plus grab)",
-            "CMB": 26,
-            "CMB_full": "26 (+30 grapple)",
-            "CMD": 39,
-            "CMD_full": "39 (can\u2019t be tripped)",
-            "Special_Attacks": "constrict (4d6+19)",
-            "Special_Qualities": "low-light vision, scent"
+            "AC": 15,
+            "AC_breakdown": "15, touch 10, flat-footed 15 (natural +5)",
+            "HP": 18,
+            "HD": "2d8+9",
+            "Fort": 6,
+            "Ref": 0,
+            "Will": 1,
+            "Speed": "50 ft., climb 20 ft.",
+            "Melee": "bite +3 (1d6+2 plus grab), sting +3 (1d4+2 plus poison)",
+            "CMB": 3,
+            "CMB_full": "3 (+7 grapple)",
+            "CMD": 13,
+            "CMD_full": "13 (21 vs. trip)",
+            "Special_Attacks": "",
+            "Special_Qualities": "darkvision, scent"
           },
           "full_statblock": {
-            "Str": 36,
-            "Dex": 14,
-            "Con": 23,
-            "Int": 1,
+            "Str": 14,
+            "Dex": 10,
+            "Con": 17,
+            "Int": 0,
             "Wis": 13,
-            "Cha": 2,
-            "BAB": 9,
-            "Feats": "Dodge, Improved Critical (bite), Improved Initiative, Power Attack, Skill Focus (Perception), Weapon Focus (bite)",
-            "Skills": "Climb +21, Perception +22, Swim +21",
-            "Space": "20 ft.",
-            "Reach": "20 ft."
+            "Cha": 11,
+            "BAB": 1,
+            "Feats": "Toughness",
+            "Skills": "Climb +10, Perception +5, Survival +5",
+            "Space": "5 ft.",
+            "Reach": "5 ft."
           },
           "augmented": {
             "note": "With Augment Summoning (+4 Str, +4 Con)",
-            "AC": 25,
-            "HP": 150,
-            "HD": "12d8+96",
-            "Fort": 16,
-            "Melee": "bite +21 (4d6+21/19-20 plus grab)",
-            "CMB": 28,
-            "CMD": 43,
-            "Str": 40,
-            "Con": 27
+            "AC": 15,
+            "HP": 22,
+            "HD": "2d8+13",
+            "Fort": 8,
+            "Melee": "bite +5 (1d6+4 plus grab), sting +5 (1d4+4 plus poison)",
+            "CMB": 5,
+            "CMD": 17,
+            "Str": 18,
+            "Con": 21
           }
         },
         {
@@ -822,10 +871,10 @@
             "Special_Qualities": "darkvision, tremorsense"
           },
           "full_statblock": {
-            "Str": 10,
-            "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Str": 11,
+            "Dex": 17,
+            "Con": 12,
+            "Int": 0,
             "Wis": 10,
             "Cha": 2,
             "BAB": 2,
@@ -843,8 +892,8 @@
             "Melee": "bite +4 (1d6 plus poison)",
             "CMB": 4,
             "CMD": 19,
-            "Str": 14,
-            "Con": 14
+            "Str": 15,
+            "Con": 16
           }
         },
         {
@@ -1148,51 +1197,100 @@
       "creatures": [
         {
           "name": "Giant Ant (Soldier)",
-          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-anaconda/",
-          "type": "animal",
-          "size": "Gargantuan",
-          "cr": "10",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/giant-ant/",
+          "type": "vermin",
+          "size": "Medium",
+          "cr": "2",
           "combat_card": {
-            "AC": 25,
-            "AC_breakdown": "25, touch 9, flat-footed 22 (dex +2, dodge +1, natural +16, size -4)",
-            "HP": 126,
-            "HD": "12d8+72",
-            "Fort": 14,
-            "Ref": 10,
-            "Will": 5,
-            "Speed": "20 ft., climb 20 ft., swim 20 ft.",
-            "Melee": "bite +19 (4d6+19/19-20 plus grab)",
-            "CMB": 26,
-            "CMB_full": "26 (+30 grapple)",
-            "CMD": 39,
-            "CMD_full": "39 (can\u2019t be tripped)",
-            "Special_Attacks": "constrict (4d6+19)",
-            "Special_Qualities": "low-light vision, scent"
+            "AC": 15,
+            "AC_breakdown": "15, touch 10, flat-footed 15 (natural +5)",
+            "HP": 18,
+            "HD": "2d8+9",
+            "Fort": 6,
+            "Ref": 0,
+            "Will": 1,
+            "Speed": "50 ft., climb 20 ft.",
+            "Melee": "bite +3 (1d6+2 plus grab), sting +3 (1d4+2 plus poison)",
+            "CMB": 3,
+            "CMB_full": "3 (+7 grapple)",
+            "CMD": 13,
+            "CMD_full": "13 (21 vs. trip)",
+            "Special_Attacks": "",
+            "Special_Qualities": "darkvision, scent"
           },
           "full_statblock": {
-            "Str": 36,
-            "Dex": 14,
-            "Con": 23,
-            "Int": 1,
+            "Str": 14,
+            "Dex": 10,
+            "Con": 17,
+            "Int": 0,
             "Wis": 13,
-            "Cha": 2,
-            "BAB": 9,
-            "Feats": "Dodge, Improved Critical (bite), Improved Initiative, Power Attack, Skill Focus (Perception), Weapon Focus (bite)",
-            "Skills": "Climb +21, Perception +22, Swim +21",
-            "Space": "20 ft.",
-            "Reach": "20 ft."
+            "Cha": 11,
+            "BAB": 1,
+            "Feats": "Toughness",
+            "Skills": "Climb +10, Perception +5, Survival +5",
+            "Space": "5 ft.",
+            "Reach": "5 ft."
           },
           "augmented": {
             "note": "With Augment Summoning (+4 Str, +4 Con)",
-            "AC": 25,
-            "HP": 150,
-            "HD": "12d8+96",
-            "Fort": 16,
-            "Melee": "bite +21 (4d6+21/19-20 plus grab)",
-            "CMB": 28,
-            "CMD": 43,
-            "Str": 40,
-            "Con": 27
+            "AC": 15,
+            "HP": 22,
+            "HD": "2d8+13",
+            "Fort": 8,
+            "Melee": "bite +5 (1d6+4 plus grab), sting +5 (1d4+4 plus poison)",
+            "CMB": 5,
+            "CMD": 17,
+            "Str": 18,
+            "Con": 21
+          }
+        },
+        {
+          "name": "Ape",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/gorilla/",
+          "type": "animal",
+          "size": "Large",
+          "cr": "2",
+          "combat_card": {
+            "AC": 14,
+            "AC_breakdown": "14, touch 11, flat-footed 12 (dex +2, natural +3, size -1)",
+            "HP": 19,
+            "HD": "3d8+6",
+            "Fort": 7,
+            "Ref": 5,
+            "Will": 2,
+            "Speed": "30 ft., climb 30 ft.",
+            "Melee": "2 slams +3 (1d6+2)",
+            "CMB": 5,
+            "CMB_full": "5",
+            "CMD": 17,
+            "CMD_full": "17",
+            "Special_Attacks": "",
+            "Special_Qualities": "low-light vision, scent"
+          },
+          "full_statblock": {
+            "Str": 15,
+            "Dex": 15,
+            "Con": 14,
+            "Int": 2,
+            "Wis": 12,
+            "Cha": 7,
+            "BAB": 2,
+            "Feats": "Great Fortitude, Skill Focus (Perception)",
+            "Skills": "Acrobatics +6, Climb +14, Perception +8",
+            "Space": "10 ft.",
+            "Reach": "10 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 14,
+            "HP": 25,
+            "HD": "3d8+12",
+            "Fort": 9,
+            "Melee": "2 slams +5 (1d6+4)",
+            "CMB": 7,
+            "CMD": 21,
+            "Str": 19,
+            "Con": 18
           }
         },
         {
@@ -1562,10 +1660,10 @@
             "Special_Qualities": "darkvision"
           },
           "full_statblock": {
-            "Str": 10,
-            "Dex": 10,
-            "Con": 10,
-            "Int": 2,
+            "Str": 15,
+            "Dex": 13,
+            "Con": 14,
+            "Int": 0,
             "Wis": 10,
             "Cha": 2,
             "BAB": 2,
@@ -1583,8 +1681,8 @@
             "Melee": "2 claws +6 (1d4+4 plus grab)",
             "CMB": 6,
             "CMD": 19,
-            "Str": 14,
-            "Con": 14
+            "Str": 19,
+            "Con": 18
           }
         },
         {

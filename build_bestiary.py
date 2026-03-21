@@ -22,11 +22,11 @@ SNA_LISTS = {
         ("Dire Rat", "dire-rat"), ("Dog", "dog"), ("Dolphin", "dolphin"),
         ("Eagle", "eagle"), ("Fire Beetle", "fire-beetle"),
         ("Giant Centipede", "giant-centipede"), ("Mite", "mite"),
-        ("Poisonous Frog", "poisonous-frog"), ("Pony", "pony"),
+        ("Poisonous Frog", "poison-frog"), ("Pony", "pony"),
         ("Stirge", "stirge"), ("Viper", "viper"),
     ],
     2: [
-        ("Giant Ant (Worker)", "giant-ant-worker"),
+        ("Giant Ant (Worker)", "giant-ant"),  # SRD file is actually soldier; worker is -1 CR variant
         ("Small Air Elemental", "small-air-elemental"),
         ("Small Earth Elemental", "small-earth-elemental"),
         ("Small Fire Elemental", "small-fire-elemental"),
@@ -37,7 +37,7 @@ SNA_LISTS = {
         ("Squid", "squid"), ("Wolf", "wolf"),
     ],
     3: [
-        ("Giant Ant (Soldier)", "giant-ant-soldier"), ("Ape", "ape"),
+        ("Giant Ant (Soldier)", "giant-ant-soldier"), ("Ape", "gorilla"),
         ("Aurochs", "aurochs"), ("Boar", "boar"), ("Cheetah", "cheetah"),
         ("Constrictor Snake", "constrictor-snake"), ("Crocodile", "crocodile"),
         ("Dire Bat", "dire-bat"), ("Electric Eel", "electric-eel"),
@@ -87,26 +87,55 @@ SNA_LISTS = {
         ("Stone Giant", "stone-giant"),
         ("Triceratops", "triceratops"),
     ],
+    7: [
+        ("Brachiosaurus", "brachiosaurus"),
+        ("Dire Crocodile", "dire-crocodile"),
+        ("Dire Shark", "dire-shark"),
+        ("Greater Air Elemental", "greater-air-elemental"),
+        ("Greater Earth Elemental", "greater-earth-elemental"),
+        ("Greater Fire Elemental", "greater-fire-elemental"),
+        ("Greater Water Elemental", "greater-water-elemental"),
+        ("Fire Giant", "fire-giant"),
+        ("Frost Giant", "frost-giant"),
+        ("Giant Squid", "giant-squid"),
+        ("Mastodon", "mastodon"),
+        ("Roc", "roc"),
+        ("Tyrannosaurus", "tyrannosaurus"),
+    ],
+    8: [
+        ("Cloud Giant", "cloud-giant"),
+        ("Elder Air Elemental", "elder-air-elemental"),
+        ("Elder Earth Elemental", "elder-earth-elemental"),
+        ("Elder Fire Elemental", "elder-fire-elemental"),
+        ("Elder Water Elemental", "elder-water-elemental"),
+        ("Purple Worm", "purple-worm"),
+    ],
+    9: [
+        ("Pixie", "pixie"),
+        ("Storm Giant", "storm-giant"),
+    ],
 }
 
 
 def find_srd_file(slug: str) -> Path | None:
     """Find a creature file in the SRD bestiary by slug."""
-    # Try exact match first
+    # Manual overrides for tricky mappings
+    SLUG_OVERRIDES = {
+        "giant-ant-soldier": "giant-ant",
+        "giant-ant-worker": "giant-ant",
+        "dire-ape": "dire-ape-gigantopithecus",
+        "dire-boar": "dire-boar-daeodon",
+        "dire-shark": "dire-shark-megalodon",
+    }
+    slug = SLUG_OVERRIDES.get(slug, slug)
+
+    # Try exact match
     for subdir in SRD_DIR.iterdir():
         if not subdir.is_dir():
             continue
         candidate = subdir / f"{slug}.md"
         if candidate.exists():
             return candidate
-    # Try without suffix variations
-    base = slug.split("-")[0]
-    for subdir in SRD_DIR.iterdir():
-        if not subdir.is_dir():
-            continue
-        for f in subdir.iterdir():
-            if f.stem.startswith(slug[:8]) and f.suffix == ".md":
-                return f
     return None
 
 
@@ -187,8 +216,10 @@ def parse_statblock(path: Path) -> dict | None:
     # Stats
     stats_line = get("pf1e_stats", "")
     if stats_line:
-        # Format: [21, 17, 15, 2, 12, 6]
-        nums = re.findall(r'\d+', stats_line)
+        # Format: [21, 17, 15, 2, 12, 6] or [14, 10, 17, None, 13, 11]
+        # Replace None with 0, then extract numbers
+        cleaned = stats_line.replace("None", "0").replace("null", "0")
+        nums = re.findall(r'\d+', cleaned)
         if len(nums) >= 6:
             data["str"] = int(nums[0])
             data["dex"] = int(nums[1])
@@ -380,7 +411,7 @@ def main():
         all_output[sna_level] = level_data
 
     # Write output files
-    for group_name, levels in [("1-3", [1,2,3]), ("4-6", [4,5,6])]:
+    for group_name, levels in [("1-3", [1,2,3]), ("4-6", [4,5,6]), ("7-9", [7,8,9])]:
         out = {
             "meta": {
                 "title": f"SNA Bestiary Levels {group_name}",

@@ -72,7 +72,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* ── Creature Cards — flat flex flow, no group wrappers ── */
 .creatures-flow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.ccard { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .group-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 6px; }
 .casting-tag { background: var(--crit); color: #111; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 .ccard.dead { opacity: 0.25; }
@@ -84,6 +84,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; }
+.ccard-dur { font-size: 9px; color: var(--muted); margin-left: 4px; }
+.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; }
+.aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
 .icon { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; }
 .icon-sm { width: 10px; height: 10px; vertical-align: -1px; }
@@ -92,7 +95,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .icon-dmg { color: var(--crit); }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
-.hp-row .ac-cmd { margin-left: auto; font-size: 11px; color: #fff; white-space: nowrap; }
+.hp-row .ac-cmd { margin-left: auto; font-size: 11px; color: #fff; white-space: nowrap; flex-shrink: 0; }
 .hp-row .ac-cmd .stat-label { color: var(--muted); }
 .hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; }
 .hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; box-shadow: 0 0 4px var(--green); }
@@ -131,7 +134,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .roll-summary { font-size: 12px; padding: 6px 0 2px; }
 .roll-summary-table { width: 100%; font-size: 12px; border-collapse: collapse; }
 .roll-summary-table td { padding: 1px 4px; }
-.roll-summary-table .total-dmg { color: var(--crit); font-weight: bold; font-size: 14px; text-align: right; }
+.roll-summary-table .total-dmg { color: var(--crit); font-weight: bold; font-size: 20px; text-align: right; }
 .roll-summary-table .grab-info { color: var(--accent); font-size: 11px; }
 .roll-summary-table .summary-label { color: var(--muted); }
 
@@ -240,11 +243,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Wrapper to reserve correct layout space for rotated card */
 .dead-wrap { display: inline-block; vertical-align: top; }
 
-/* Tier-colored left border on cards */
-.ccard[data-tier="S"] { border-left-color: var(--tier-s); }
-.ccard[data-tier="A"] { border-left-color: var(--tier-a); }
-.ccard[data-tier="B"] { border-left-color: var(--tier-b); }
-.ccard[data-tier="C"] { border-left-color: var(--tier-c); }
 
 /* ── iPad / Tablet responsive (≤1024px) ── */
 @media (max-width: 1024px) {
@@ -883,14 +881,11 @@ function renderCard(c, group, refAC) {
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
   const rlTxt=group.src==='figurine'?'perm':`${group.rl}rd`;
-  const srcLabel = group.src==='figurine' ? 'FIG' : group.src==='effect' ? 'EFF' : `SNA${group.slot||'?'}`;
-  const groupLabel=`<span class="group-tag">${srcLabel} ${rlTxt}</span>`;
+  const durBadge = `<span class="ccard-dur">${rlTxt}</span>`;
 
-  // Tier badge + rating note
+  // Tier for data attribute (dropdown uses it, cards don't display it)
   const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
   const cTier = cRating?.tier || '';
-  const tierBadge = cTier ? `<span class="tier tier-${cTier}">${cTier}</span>` : '';
-  const ratingNote = cRating?.note || '';
 
   // Per-creature buff chips
   const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
@@ -898,6 +893,9 @@ function renderCard(c, group, refAC) {
     const off = c.buffOvr[id]===false;
     return `<span class="buff-chip ${off?'off':''}" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`;
   }).join('');
+
+  // Aug chip
+  const augChip = c.aug ? `<span class="aug-chip">aug</span>` : '';
 
   // Pounce toggle + grappling indicator
   const pounceHTML = c.hasPounce ?
@@ -969,12 +967,10 @@ function renderCard(c, group, refAC) {
     const allSpecials = new Set();
     pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
 
-    if (allSpecials.size > 0) {
+    if (triggeredSpecials.size > 0) {
       specialsHTML = `<div class="specials-section">`;
-      for (const s of allSpecials) {
-        const isTriggered = triggeredSpecials.has(s);
-        const trigCls = isTriggered ? 'triggered' : 'untriggered';
-        specialsHTML += `<span class="special-item ${trigCls}">${spLink(s)}</span> `;
+      for (const s of triggeredSpecials) {
+        specialsHTML += `<span class="special-item triggered">${spLink(s)}✓</span> `;
       }
       specialsHTML += `</div>`;
     }
@@ -1094,13 +1090,11 @@ function renderCard(c, group, refAC) {
       const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
       const typeStr = typeMatch ? typeMatch[1] : '';
       const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
-      const brief = a._fromText ? '' : a.desc.split(/\.\s/)[0].replace(/^[^,]+,\s*/, '').slice(0, 80);
       const nameDisp = a._url ? `<a class="ability-name sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">${a.name.split('(')[0].trim()}</a>` : `<span class="ability-name">${a.name.split('(')[0].trim()}</span>`;
       abilityHTML += `<div class="ability-row">
         <span>${nameDisp} <span class="ability-type">${typeStr}</span></span>
         <span class="ability-dc">${info}</span>
-      </div>
-      ${brief ? `<div class="ability-detail">${brief}</div>` : ''}`;
+      </div>`;
     }
     abilityHTML += '</div>';
   }
@@ -1109,7 +1103,7 @@ function renderCard(c, group, refAC) {
   if (!c.alive) {
     const deadCard = `<div class="ccard dead">
       <div class="ccard-head">
-        <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${groupLabel}</span>
+        <span class="ccard-name">${c.name}</span>
         <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
       </div>
       <div class="dead-bar">
@@ -1121,21 +1115,22 @@ function renderCard(c, group, refAC) {
     return `<div class="dead-wrap" style="width:80px;height:280px">${deadCard}</div>`;
   }
 
-  return `<div class="ccard ${cardCls}" data-tier="${cTier}" onclick="this.classList.toggle('show-stats')">
+  return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     <div class="ccard-head">
-      <span class="ccard-name">${tierBadge}${c.id}: ${c.name}${c.aug?' (aug)':''}${groupLabel}</span>
+      <span class="ccard-name">${c.name}${durBadge}</span>
       <span class="ccard-hp">${IC.hp()}${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
     <div class="hp-row">
       ${hpCtrl}
-      <span class="ac-cmd"><span class="stat-label">CMD</span> ${c.cmd} ${IC.ac()}${c.ac}</span>
+      <span class="ac-cmd">${IC.ac()}${c.ac} <span class="stat-label">CMD</span>${c.cmd}</span>
     </div>
     <div class="buff-pounce-row">
-      ${buffHTML} ${pounceHTML} ${grapHTML}
+      ${augChip} ${buffHTML} ${pounceHTML} ${grapHTML}
     </div>
     ${abilityHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
+    <div class="ccard-meta">Spd ${c.speed} · Reach ${c.reach}</div>
     ${sbHTML}
   </div>`;
 }

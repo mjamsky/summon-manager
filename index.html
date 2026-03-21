@@ -81,9 +81,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   50% { border-color: #f5c84260; opacity: 0.5; }
 }
 .ccard.casting { border-style: dashed; border-color: var(--crit); animation: cast-pulse 2s ease-in-out infinite; }
-.ccard-dur { font-size: 9px; color: var(--muted); display: block; margin-bottom: 1px; }
-.ccard-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; gap: 8px; }
+.ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
 .ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; height: 2.4em; display: flex; align-items: flex-end; overflow: hidden; }
+.ccard-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; align-self: flex-end; }
+.ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
@@ -1117,9 +1118,11 @@ function renderCard(c, group, refAC) {
   const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
-    <span class="ccard-dur">${durBadge}</span>
-    <div class="ccard-head">
+    <div class="ccard-namerow">
       <span class="ccard-name">${c.name}</span>
+      <span class="ccard-dur">${durBadge}</span>
+    </div>
+    <div class="ccard-head">
       <span class="ccard-hp">${IC.hp()}${c.hp}/${c.maxHp}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>

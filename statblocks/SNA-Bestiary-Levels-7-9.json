@@ -1,0 +1,689 @@
+{
+  "meta": {
+    "title": "SNA Bestiary Levels VII-IX",
+    "levels_covered": "VII-IX",
+    "source": "Pathfinder Core Rulebook / Bestiary",
+    "pfsrd_master": "https://www.d20pfsrd.com/magic/all-spells/s/summon-natures-ally/",
+    "augment_summoning_note": "Augment Summoning feat adds +4 Str and +4 Con to summoned creatures"
+  },
+  "levels": [
+    {
+      "sna_level": 7,
+      "creatures": [
+        {
+          "name": "Brachiosaurus",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/dinosaur/brachiosaurus/",
+          "type": "Animal",
+          "size": "Colossal",
+          "cr": "7",
+          "combat_card": {
+            "AC": 15,
+            "AC_breakdown": "10 (base) +5 (natural armor) -1 (Colossal size)",
+            "HP": 115,
+            "HD": "10d8+70 (10d8+50 base + 20 Con mod)",
+            "Fort": 14,
+            "Ref": 5,
+            "Will": 2,
+            "Speed": "40 ft.",
+            "Melee": "tail +15 (4d8+15)",
+            "CMB": 19,
+            "CMD": 28,
+            "Special_Attacks": "tail",
+            "Special_Qualities": "low-light vision"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 15,
+            "HP": 125,
+            "Fort": 16,
+            "Melee": "tail +17 (4d8+19)",
+            "CMB": 21,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Dire Crocodile",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/crocodile/dire-crocodile/",
+          "type": "Animal",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 16,
+            "AC_breakdown": "10 (base) +6 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 12,
+            "Ref": 8,
+            "Will": 4,
+            "Speed": "30 ft., swim 50 ft.",
+            "Melee": "bite +14 (3d8+10), tail +9 (2d6+5)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "grab (bite), tail sweep",
+            "Special_Qualities": "hold breath"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 16,
+            "HP": 105,
+            "Fort": 14,
+            "Melee": "bite +16 (3d8+14), tail +11 (2d6+9)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Dire Shark (Megalodon)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/shark/dire-shark/",
+          "type": "Animal",
+          "size": "Gargantuan",
+          "cr": "7",
+          "combat_card": {
+            "AC": 16,
+            "AC_breakdown": "10 (base) +6 (natural armor) -2 (Gargantuan size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 12,
+            "Ref": 9,
+            "Will": 4,
+            "Speed": "swim 60 ft.",
+            "Melee": "bite +16 (4d6+12)",
+            "CMB": 22,
+            "CMD": 32,
+            "Special_Attacks": "grab",
+            "Special_Qualities": "keen scent, water breathing (aquatic animal)"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 16,
+            "HP": 126,
+            "Fort": 14,
+            "Melee": "bite +18 (4d6+16)",
+            "CMB": 24,
+            "CMD": 34
+          }
+        },
+        {
+          "name": "Elemental, Greater (Air)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-air/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 16,
+            "AC_breakdown": "10 (base) +6 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 10,
+            "Ref": 12,
+            "Will": 4,
+            "Speed": "100 ft. (perfect)",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "whirlwind",
+            "Special_Qualities": "air elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 16,
+            "HP": 105,
+            "Fort": 12,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Greater (Earth)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-earth/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 18,
+            "AC_breakdown": "10 (base) +8 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 12,
+            "Ref": 6,
+            "Will": 4,
+            "Speed": "40 ft., burrow 40 ft.",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "earth elemental abilities",
+            "Special_Qualities": "earth elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 18,
+            "HP": 105,
+            "Fort": 14,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Greater (Fire)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-fire/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 16,
+            "AC_breakdown": "10 (base) +6 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 10,
+            "Ref": 12,
+            "Will": 4,
+            "Speed": "60 ft.",
+            "Melee": "slam +14 (2d8+7 plus 1d6 fire)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "burn",
+            "Special_Qualities": "fire elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 16,
+            "HP": 105,
+            "Fort": 12,
+            "Melee": "slam +16 (2d8+11 plus 1d6 fire)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Greater (Water)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-water/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 17,
+            "AC_breakdown": "10 (base) +7 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 12,
+            "Ref": 8,
+            "Will": 4,
+            "Speed": "20 ft., swim 90 ft.",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "drench, water elemental abilities",
+            "Special_Qualities": "water elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 17,
+            "HP": 105,
+            "Fort": 14,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Fire Giant",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/humanoids/giants/giant-fire/",
+          "type": "Humanoid (giant)",
+          "size": "Large",
+          "cr": "10",
+          "combat_card": {
+            "AC": 21,
+            "AC_breakdown": "10 (base) -1 (Large size) +12 (plate armor)",
+            "HP": 142,
+            "HD": "11d8+99",
+            "Fort": 14,
+            "Ref": 5,
+            "Will": 6,
+            "Speed": "30 ft.",
+            "Melee": "greatsword +18 (3d12+12), rock +18 (2d8+12)",
+            "CMB": 21,
+            "CMD": 31,
+            "Special_Attacks": "rock throwing, rock catching",
+            "Special_Qualities": "fire giant traits, immune to fire"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 21,
+            "HP": 153,
+            "Fort": 16,
+            "Melee": "greatsword +20 (3d12+16), rock +20 (2d8+16)",
+            "CMB": 23,
+            "CMD": 33
+          }
+        },
+        {
+          "name": "Frost Giant",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/humanoids/giants/giant-frost/",
+          "type": "Humanoid (giant)",
+          "size": "Large",
+          "cr": "10",
+          "combat_card": {
+            "AC": 20,
+            "AC_breakdown": "10 (base) -1 (Large size) +11 (scale mail armor)",
+            "HP": 142,
+            "HD": "11d8+99",
+            "Fort": 14,
+            "Ref": 5,
+            "Will": 6,
+            "Speed": "40 ft.",
+            "Melee": "greataxe +18 (3d12+12), rock +18 (2d8+12)",
+            "CMB": 21,
+            "CMD": 31,
+            "Special_Attacks": "rock throwing, rock catching",
+            "Special_Qualities": "frost giant traits, cold vulnerabilities"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 20,
+            "HP": 153,
+            "Fort": 16,
+            "Melee": "greataxe +20 (3d12+16), rock +20 (2d8+16)",
+            "CMB": 23,
+            "CMD": 33
+          }
+        },
+        {
+          "name": "Giant Squid",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/cephalopod/squid-giant/",
+          "type": "Animal",
+          "size": "Gargantuan",
+          "cr": "7",
+          "combat_card": {
+            "AC": 16,
+            "AC_breakdown": "10 (base) +6 (natural armor) -2 (Gargantuan size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 12,
+            "Ref": 9,
+            "Will": 3,
+            "Speed": "swim 60 ft.",
+            "Melee": "tentacles +14 (2d6+7 each, 8 tentacles), bite +14 (2d8+7)",
+            "CMB": 20,
+            "CMD": 30,
+            "Special_Attacks": "constrict (2d6+7)",
+            "Special_Qualities": "ink cloud, jet"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 16,
+            "HP": 126,
+            "Fort": 14,
+            "Melee": "tentacles +16 (2d6+11 each, 8 tentacles), bite +16 (2d8+11)",
+            "CMB": 22,
+            "CMD": 32
+          }
+        },
+        {
+          "name": "Mastodon",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/elephant/mastodon/",
+          "type": "Animal",
+          "size": "Huge",
+          "cr": "7",
+          "combat_card": {
+            "AC": 15,
+            "AC_breakdown": "10 (base) +5 (natural armor) -1 (Huge size)",
+            "HP": 95,
+            "HD": "10d8+40",
+            "Fort": 12,
+            "Ref": 6,
+            "Will": 3,
+            "Speed": "40 ft.",
+            "Melee": "gore +14 (2d8+10), slam +14 (2d6+10), trunk +9 (1d8+5)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "grab",
+            "Special_Qualities": "low-light vision"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 15,
+            "HP": 105,
+            "Fort": 14,
+            "Melee": "gore +16 (2d8+14), slam +16 (2d6+14), trunk +11 (1d8+9)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Roc",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/bird/roc/",
+          "type": "Animal",
+          "size": "Gargantuan",
+          "cr": "9",
+          "combat_card": {
+            "AC": 18,
+            "AC_breakdown": "10 (base) +8 (natural armor) -2 (Gargantuan size)",
+            "HP": 168,
+            "HD": "16d8+96",
+            "Fort": 15,
+            "Ref": 11,
+            "Will": 6,
+            "Speed": "10 ft., fly 80 ft. (poor)",
+            "Melee": "bite +20 (2d8+11), talons +20 (2d6+11)",
+            "CMB": 25,
+            "CMD": 36,
+            "Special_Attacks": "grab, rake (2d6+11)",
+            "Special_Qualities": "low-light vision"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 18,
+            "HP": 184,
+            "Fort": 17,
+            "Melee": "bite +22 (2d8+15), talons +22 (2d6+15)",
+            "CMB": 27,
+            "CMD": 38
+          }
+        },
+        {
+          "name": "Tyrannosaurus",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/animals/dinosaur/tyrannosaurus/",
+          "type": "Animal",
+          "size": "Gargantuan",
+          "cr": "9",
+          "combat_card": {
+            "AC": 21,
+            "AC_breakdown": "touch 7, flat-footed 20 (+1 Dex, +14 natural, -4 size)",
+            "HP": 153,
+            "HD": "18d8+72",
+            "Fort": 15,
+            "Ref": 12,
+            "Will": 10,
+            "Speed": "40 ft.",
+            "Melee": "bite +20 (4d6+22/19-20 plus grab)",
+            "CMB": 28,
+            "CMD": 39,
+            "Special_Attacks": "grab, swallow whole (2d8+11, AC 17, hp 15)",
+            "Special_Qualities": "low-light vision, scent, powerful bite"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 21,
+            "HP": 189,
+            "Fort": 17,
+            "Melee": "bite +22 (4d6+26/19-20 plus grab)",
+            "CMB": 30,
+            "CMD": 43,
+            "Str": 36,
+            "Con": 23,
+            "HD": "18d8+108"
+          }
+        }
+      ]
+    },
+    {
+      "sna_level": 8,
+      "creatures": [
+        {
+          "name": "Cloud Giant",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/humanoids/giants/giant-cloud/",
+          "type": "Humanoid (giant)",
+          "size": "Large",
+          "cr": "11",
+          "combat_card": {
+            "AC": 22,
+            "AC_breakdown": "10 (base) -1 (Large size) +13 (plate armor)",
+            "HP": 168,
+            "HD": "13d8+117",
+            "Fort": 16,
+            "Ref": 7,
+            "Will": 8,
+            "Speed": "50 ft., fly 50 ft. (clumsy)",
+            "Melee": "greatsword +19 (3d12+13), rock +19 (2d10+13)",
+            "CMB": 23,
+            "CMD": 33,
+            "Special_Attacks": "rock throwing, rock catching",
+            "Special_Qualities": "cloud giant traits, air affinity"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 22,
+            "HP": 181,
+            "Fort": 18,
+            "Melee": "greatsword +21 (3d12+17), rock +21 (2d10+17)",
+            "CMB": 25,
+            "CMD": 35
+          }
+        },
+        {
+          "name": "Elemental, Elder (Air)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-air/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "8",
+          "combat_card": {
+            "AC": 17,
+            "AC_breakdown": "10 (base) +7 (natural armor) -1 (Huge size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 11,
+            "Ref": 13,
+            "Will": 5,
+            "Speed": "100 ft. (perfect)",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "whirlwind",
+            "Special_Qualities": "air elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 17,
+            "HP": 126,
+            "Fort": 13,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Elder (Earth)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-earth/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "8",
+          "combat_card": {
+            "AC": 19,
+            "AC_breakdown": "10 (base) +9 (natural armor) -1 (Huge size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 13,
+            "Ref": 7,
+            "Will": 5,
+            "Speed": "40 ft., burrow 40 ft.",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "earth elemental abilities",
+            "Special_Qualities": "earth elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 19,
+            "HP": 126,
+            "Fort": 15,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Elder (Fire)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-fire/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "8",
+          "combat_card": {
+            "AC": 17,
+            "AC_breakdown": "10 (base) +7 (natural armor) -1 (Huge size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 11,
+            "Ref": 13,
+            "Will": 5,
+            "Speed": "60 ft.",
+            "Melee": "slam +14 (2d8+7 plus 1d8 fire)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "burn",
+            "Special_Qualities": "fire elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 17,
+            "HP": 126,
+            "Fort": 13,
+            "Melee": "slam +16 (2d8+11 plus 1d8 fire)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Elemental, Elder (Water)",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/elementals/elemental/elemental-water/",
+          "type": "Elemental",
+          "size": "Huge",
+          "cr": "8",
+          "combat_card": {
+            "AC": 18,
+            "AC_breakdown": "10 (base) +8 (natural armor) -1 (Huge size)",
+            "HP": 115,
+            "HD": "11d8+55",
+            "Fort": 13,
+            "Ref": 9,
+            "Will": 5,
+            "Speed": "20 ft., swim 90 ft.",
+            "Melee": "slam +14 (2d8+7)",
+            "CMB": 18,
+            "CMD": 28,
+            "Special_Attacks": "drench, water elemental abilities",
+            "Special_Qualities": "water elemental immunities, elemental traits"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 18,
+            "HP": 126,
+            "Fort": 15,
+            "Melee": "slam +16 (2d8+11)",
+            "CMB": 20,
+            "CMD": 30
+          }
+        },
+        {
+          "name": "Purple Worm",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/worms/purple-worm/",
+          "type": "Magical Beast",
+          "size": "Gargantuan",
+          "cr": "12",
+          "combat_card": {
+            "AC": 20,
+            "AC_breakdown": "10 (base) -4 (Gargantuan size) +14 (natural armor)",
+            "HP": 247,
+            "HD": "15d10+165",
+            "Fort": 16,
+            "Ref": 10,
+            "Will": 7,
+            "Speed": "30 ft., burrow 30 ft.",
+            "Melee": "bite +21 (3d8+12), sting +21 (2d8+12 plus poison)",
+            "CMB": 29,
+            "CMD": 39,
+            "Special_Attacks": "poison (Dex 2d6, Fort DC 24), grab, swallow whole",
+            "Special_Qualities": "tremorsense 60 ft., darkvision 60 ft."
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 20,
+            "HP": 262,
+            "Fort": 18,
+            "Melee": "bite +23 (3d8+16), sting +23 (2d8+16 plus poison)",
+            "CMB": 31,
+            "CMD": 41
+          }
+        }
+      ]
+    },
+    {
+      "sna_level": 9,
+      "creatures": [
+        {
+          "name": "Pixie",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/fey/pixie/",
+          "type": "Fey",
+          "size": "Tiny",
+          "cr": "3",
+          "combat_card": {
+            "AC": 18,
+            "AC_breakdown": "10 (base) +4 (Tiny size) +4 (natural armor)",
+            "HP": 13,
+            "HD": "3d6+3",
+            "Fort": 2,
+            "Ref": 6,
+            "Will": 5,
+            "Speed": "20 ft., fly 60 ft. (good)",
+            "Melee": "short sword +6 (1d4+1), sleep arrow +6 ranged (sleep arrow effect), or short sword +4 and short sword +4",
+            "CMB": 3,
+            "CMD": 14,
+            "Special_Attacks": "sleep arrow, irresistible dance (DC 15, 1d6 rounds)",
+            "Special_Qualities": "dampen magic, immunity to magic, low-light vision, spell-like abilities"
+          },
+          "spell_like_abilities": {
+            "unlimited": "dancing lights, detect chaos, detect evil, detect good, detect law, detect magic, detect thoughts, disguise self, dispel magic, light, mage hand, magic missile",
+            "3_per_day": "crushing despair, fear, hypnotism, invisibility (self only), phantasmal killer",
+            "1_per_day": "confusion, entangle, phantasmal killer, shatter"
+          },
+          "special_arrows": {
+            "sleep_arrow": "target must succeed at Will save (DC 15) or fall asleep for 1d4 hours",
+            "irresistible_dance": "when used as weapon, opponent must make a Will save (DC 15) or dance for 1d6 rounds, unable to attack or move"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 18,
+            "HP": 16,
+            "Fort": 4,
+            "Melee": "short sword +8 (1d4+5), sleep arrow +6 ranged (sleep arrow effect), or short sword +6 and short sword +6",
+            "CMB": 5,
+            "CMD": 16
+          }
+        },
+        {
+          "name": "Storm Giant",
+          "pfsrd_url": "https://www.d20pfsrd.com/bestiary/monster-listings/humanoids/giants/giant-storm/",
+          "type": "Humanoid (giant)",
+          "size": "Large",
+          "cr": "12",
+          "combat_card": {
+            "AC": 23,
+            "AC_breakdown": "10 (base) -1 (Large size) +14 (breastplate armor)",
+            "HP": 176,
+            "HD": "13d8+130",
+            "Fort": 17,
+            "Ref": 8,
+            "Will": 9,
+            "Speed": "50 ft., fly 50 ft. (clumsy), swim 50 ft.",
+            "Melee": "greatsword +20 (3d12+14), rock +20 (2d10+14)",
+            "CMB": 24,
+            "CMD": 34,
+            "Special_Attacks": "rock throwing, rock catching, lightning bolt (1d6 creatures, 13d6 electricity, Ref DC 24 half)",
+            "Special_Qualities": "storm giant traits, air and water affinity"
+          },
+          "augmented": {
+            "note": "With Augment Summoning (+4 Str, +4 Con)",
+            "AC": 23,
+            "HP": 191,
+            "Fort": 19,
+            "Melee": "greatsword +22 (3d12+18), rock +22 (2d10+18)",
+            "CMB": 26,
+            "CMD": 36
+          }
+        }
+      ]
+    }
+  ]
+}

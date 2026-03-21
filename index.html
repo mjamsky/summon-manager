@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNA Combat Manager</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --card: #0f3460;
+  --accent: #e94560;
+  --green: #4ecca3;
+  --yellow: #f0c929;
+  --red: #e94560;
+  --text: #eee;
+  --muted: #8899aa;
+  --hit: #4ecca3;
+  --miss: #e94560;
+  --crit: #f0c929;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 8px;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.topbar label { font-size: 13px; color: var(--muted); }
+.topbar input, .topbar select {
+  background: var(--bg);
+  border: 1px solid #334;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 60px;
+}
+.topbar select { width: auto; }
+.topbar .round-display {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent);
+  margin-left: auto;
+}
+button {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid #445;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.15s;
+}
+button:hover { background: var(--accent); border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); font-weight: bold; }
+button.green { background: var(--green); color: #000; border-color: var(--green); }
+
+/* Buff bar */
+.buff-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.buff-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #2a3a5a;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.buff-tag.active { background: var(--green); color: #000; }
+.buff-tag .remove { cursor: pointer; opacity: 0.6; }
+
+/* Creature grid */
+.creature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Creature card */
+.creature-card {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 10px;
+  border: 2px solid transparent;
+  transition: 0.2s;
+}
+.creature-card.dead { opacity: 0.4; border-color: var(--red); }
+.creature-card .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.creature-card .name { font-weight: bold; font-size: 15px; }
+.creature-card .hp-bar-container {
+  background: #112;
+  border-radius: 4px;
+  height: 8px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+.creature-card .hp-bar-fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.3s;
+}
+.creature-card .hp-bar-fill.low { background: var(--yellow); }
+.creature-card .hp-bar-fill.critical { background: var(--red); }
+.creature-card .hp-text { font-size: 12px; color: var(--muted); }
+
+/* Summary line — the key UX element */
+.summary-line {
+  background: var(--card);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.summary-line .all-hit { color: var(--hit); font-weight: bold; }
+.summary-line .all-miss { color: var(--miss); font-weight: bold; }
+.summary-line .mixed { color: var(--yellow); font-weight: bold; }
+.summary-line .dmg { color: var(--crit); font-weight: bold; }
+
+/* Attack details (expandable) */
+.attack-details {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s;
+}
+.creature-card.expanded .attack-details { max-height: 500px; }
+.attack-row { padding: 2px 0; }
+.attack-row.hit { color: var(--hit); }
+.attack-row.miss { color: var(--miss); }
+.attack-row.crit { color: var(--crit); font-weight: bold; }
+
+/* Actions row on card */
+.card-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.card-actions button { font-size: 11px; padding: 3px 8px; }
+
+/* Import panel */
+.import-panel {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.import-panel textarea {
+  width: 100%;
+  height: 60px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid #334;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+/* Quick summon bar */
+.quick-summon {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.quick-summon select {
+  background: var(--bg);
+  border: 1px solid #334;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <label>Target AC:</label>
+  <input type="number" id="target-ac" value="18" min="1" max="50">
+  <label>Caster Lvl:</label>
+  <input type="number" id="caster-level" value="10" min="1" max="20">
+  <label>Augment:</label>
+  <input type="checkbox" id="augment-summon" checked>
+  <button onclick="rollAll()" class="primary">ROLL ALL</button>
+  <button onclick="nextRound()" class="green">NEXT ROUND</button>
+  <button onclick="dismissAll()">DISMISS ALL</button>
+  <span class="round-display">Round <span id="round-num">0</span> | <span id="rounds-left">-</span> left</span>
+</div>
+
+<!-- Buff Bar -->
+<div class="buff-bar">
+  <label style="font-size:12px;color:var(--muted)">Buffs:</label>
+  <div id="buff-tags"></div>
+  <select id="buff-select">
+    <option value="">+ Add Buff...</option>
+    <option value="prayer">Prayer (+1 atk/dmg morale)</option>
+    <option value="bless">Bless (+1 atk morale)</option>
+    <option value="destruction">Destruction Invoc (+4 dmg sacred)</option>
+    <option value="justice">Justice Invoc (+3 atk sacred)</option>
+    <option value="smiting">Smiting Invoc (adamantine)</option>
+    <option value="haste">Haste (+1 atk, extra attack)</option>
+    <option value="flanking">Flanking (+2 atk untyped)</option>
+    <option value="higher_ground">Higher Ground (+1 atk untyped)</option>
+    <option value="heroism">Heroism (+2 atk/saves morale)</option>
+  </select>
+</div>
+
+<!-- Quick Summon -->
+<div class="quick-summon">
+  <label style="font-size:12px;color:var(--muted)">Quick Summon:</label>
+  <select id="sna-level">
+    <option value="1">SNA I</option>
+    <option value="2">SNA II</option>
+    <option value="3">SNA III</option>
+    <option value="4" selected>SNA IV</option>
+    <option value="5">SNA V</option>
+    <option value="6">SNA VI</option>
+  </select>
+  <select id="creature-select"><option value="">Loading...</option></select>
+  <label>Count:</label>
+  <input type="number" id="summon-count" value="1" min="1" max="8" style="width:50px;background:var(--bg);border:1px solid #334;color:var(--text);padding:4px;border-radius:4px;">
+  <button onclick="summonCreature()" class="green">SUMMON</button>
+  <span style="font-size:11px;color:var(--muted)" id="summon-hint"></span>
+</div>
+
+<!-- Import Panel (collapsible) -->
+<details class="import-panel">
+  <summary style="cursor:pointer;color:var(--muted);font-size:13px">Claude Import (paste JSON strategy card)</summary>
+  <textarea id="import-json" placeholder='{"creatures": [{"name": "Leopard", "count": 3}], "buffs": ["prayer", "flanking"], "target_ac": 18}'></textarea>
+  <button onclick="importStrategy()" style="margin-top:6px">Import</button>
+</details>
+
+<!-- Creature Grid -->
+<div class="creature-grid" id="creature-grid"></div>
+
+<!-- Log -->
+<details style="margin-top:8px">
+  <summary style="cursor:pointer;color:var(--muted);font-size:13px">Combat Log</summary>
+  <pre id="combat-log" style="background:var(--surface);padding:10px;border-radius:8px;font-size:11px;max-height:300px;overflow-y:auto;margin-top:6px"></pre>
+</details>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// BESTIARY DATA — loaded from JSON files
+// ═══════════════════════════════════════════════════════════════
+
+let BESTIARY = {}; // name -> {data, sna_level, augmented}
+let creatures = []; // active creatures
+let buffs = {};
+let roundNum = 0;
+let maxRounds = 0;
+
+// Buff definitions
+const BUFF_DEFS = {
+  prayer:       { attack: 1, damage: 1, saves: 1, type: 'morale', label: 'Prayer +1 atk/dmg' },
+  bless:        { attack: 1, damage: 0, saves: 0, type: 'morale', label: 'Bless +1 atk' },
+  destruction:  { attack: 0, damage: 4, saves: 0, type: 'sacred', label: 'Destruction +4 dmg' },
+  justice:      { attack: 3, damage: 0, saves: 0, type: 'sacred', label: 'Justice +3 atk' },
+  smiting:      { attack: 0, damage: 0, saves: 0, type: 'special', label: 'Smiting (adamantine)', adamantine: true },
+  haste:        { attack: 1, damage: 0, saves: 0, type: 'haste', label: 'Haste +1 atk +extra', extraAttack: true },
+  flanking:     { attack: 2, damage: 0, saves: 0, type: 'untyped', label: 'Flanking +2 atk' },
+  higher_ground:{ attack: 1, damage: 0, saves: 0, type: 'untyped_hg', label: 'Higher Ground +1' },
+  heroism:      { attack: 2, damage: 0, saves: 2, type: 'morale', label: 'Heroism +2 atk/saves' },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CRYPTOGRAPHIC DICE
+// ═══════════════════════════════════════════════════════════════
+
+function rollD(sides) {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return (arr[0] % sides) + 1;
+}
+
+function rollD20() { return rollD(20); }
+
+function rollDice(notation) {
+  const m = notation.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  if (!m) return { total: 0, rolls: [], mod: 0 };
+  const num = parseInt(m[1]), sides = parseInt(m[2]), mod = parseInt(m[3] || '0');
+  const rolls = Array.from({length: num}, () => rollD(sides));
+  return { total: Math.max(1, rolls.reduce((a,b) => a+b, 0) + mod), rolls, mod };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUFF SYSTEM — stacking rules
+// ═══════════════════════════════════════════════════════════════
+
+function getBuffBonuses() {
+  // PF1e stacking: same type doesn't stack (take highest), untyped always stacks
+  const byType = {};
+  for (const [id, active] of Object.entries(buffs)) {
+    if (!active) continue;
+    const def = BUFF_DEFS[id];
+    if (!def) continue;
+    const t = def.type;
+    if (t === 'untyped' || t === 'untyped_hg' || t === 'special') {
+      // Untyped stacks
+      if (!byType[t]) byType[t] = { attack: 0, damage: 0, saves: 0, extraAttack: false, adamantine: false };
+      byType[t].attack += def.attack;
+      byType[t].damage += def.damage;
+      byType[t].saves += def.saves;
+      if (def.extraAttack) byType[t].extraAttack = true;
+      if (def.adamantine) byType[t].adamantine = true;
+    } else {
+      // Typed: take highest per category
+      if (!byType[t] || def.attack > (byType[t].attack||0)) {
+        byType[t] = { ...byType[t], attack: Math.max(def.attack, byType[t]?.attack||0) };
+      }
+      byType[t].damage = Math.max(def.damage, byType[t]?.damage||0);
+      byType[t].saves = Math.max(def.saves, byType[t]?.saves||0);
+      if (def.extraAttack) byType[t].extraAttack = true;
+      if (def.adamantine) byType[t].adamantine = true;
+    }
+  }
+  // Sum across types
+  let total = { attack: 0, damage: 0, saves: 0, extraAttack: false, adamantine: false };
+  for (const v of Object.values(byType)) {
+    total.attack += v.attack || 0;
+    total.damage += v.damage || 0;
+    total.saves += v.saves || 0;
+    if (v.extraAttack) total.extraAttack = true;
+    if (v.adamantine) total.adamantine = true;
+  }
+  return total;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MELEE LINE PARSER
+// ═══════════════════════════════════════════════════════════════
+
+function parseMeleeLine(melee) {
+  if (!melee || melee.toLowerCase() === 'none') return [];
+  const attacks = [];
+  // Split on commas not inside parens
+  const segments = [];
+  let depth = 0, current = '';
+  for (const ch of melee) {
+    if (ch === '(') { depth++; current += ch; }
+    else if (ch === ')') { depth--; current += ch; }
+    else if (ch === ',' && depth === 0) { segments.push(current.trim()); current = ''; }
+    else current += ch;
+  }
+  if (current.trim()) segments.push(current.trim());
+
+  for (const seg of segments) {
+    const parenMatch = seg.match(/\(([^)]+)\)/);
+    let damage = '1d4', specials = [], critRange = 20, critMult = 2;
+    if (parenMatch) {
+      const pc = parenMatch[1];
+      const dm = pc.match(/^(\d+d\d+(?:[+-]\d+)?)/);
+      if (dm) damage = dm[1];
+      const cr = pc.match(/\/(\d+)[–-]20/);
+      if (cr) critRange = parseInt(cr[1]);
+      const cm = pc.match(/[×x](\d+)/);
+      if (cm) critMult = parseInt(cm[1]);
+      const plusMatches = pc.toLowerCase().matchAll(/plus\s+(\w+(?:\s+\w+)?)/g);
+      for (const pm of plusMatches) specials.push(pm[1].trim());
+      for (const kw of ['grab','trip','poison','constrict','rake','rend','attach','burn'])
+        if (pc.toLowerCase().includes(kw) && !specials.includes(kw)) specials.push(kw);
+    }
+    const before = parenMatch ? seg.slice(0, seg.indexOf('(')).trim() : seg.trim();
+    const nm = before.match(/^(?:(\d+)\s+)?([\w\s]+?)\s+([+-]?\d+)\s*$/);
+    if (nm) {
+      const count = nm[1] ? parseInt(nm[1]) : 1;
+      const rawName = nm[2].trim();
+      const bonus = parseInt(nm[3]);
+      const name = count > 1 ? rawName.replace(/s$/, '') : rawName;
+      for (let i = 0; i < count; i++) {
+        attacks.push({
+          name: count > 1 ? `${name} ${i+1}` : name,
+          bonus, damage, critRange, critMult, specials: [...specials]
+        });
+      }
+    }
+  }
+  return attacks;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRE-ROLL ENGINE — the core table-speed feature
+// ═══════════════════════════════════════════════════════════════
+
+function preRollCreature(creature, targetAC) {
+  const buffBonus = getBuffBonuses();
+  const attacks = creature.attacks || [];
+  const results = [];
+  let totalDmg = 0;
+  let minRoll = 99, maxRoll = 0;
+  let allHit = true, allMiss = true;
+  let grabResults = [];
+
+  // Main attacks
+  for (const atk of attacks) {
+    const d20 = rollD20();
+    const totalAtk = d20 + atk.bonus + buffBonus.attack;
+    const hit = d20 === 20 || (totalAtk >= targetAC && d20 !== 1);
+    const critThreat = d20 >= atk.critRange;
+    let dmg = 0, critConfirmed = false;
+
+    if (hit) {
+      allMiss = false;
+      const dmgRoll = rollDice(atk.damage);
+      dmg = dmgRoll.total + buffBonus.damage;
+      if (critThreat) {
+        const confirmD20 = rollD20();
+        critConfirmed = (confirmD20 + atk.bonus + buffBonus.attack) >= targetAC;
+        if (critConfirmed) {
+          const critDmg = rollDice(atk.damage);
+          dmg += critDmg.total + buffBonus.damage; // x2 crit
+        }
+      }
+      totalDmg += dmg;
+
+      // Pre-roll grab if applicable
+      if (atk.specials.includes('grab') && creature.cmb) {
+        const grabD20 = rollD20();
+        const grabTotal = grabD20 + creature.cmb + 4; // +4 for grab
+        grabResults.push({ attack: atk.name, d20: grabD20, total: grabTotal });
+      }
+    } else {
+      allHit = false;
+    }
+
+    minRoll = Math.min(minRoll, totalAtk);
+    maxRoll = Math.max(maxRoll, totalAtk);
+
+    results.push({
+      name: atk.name, d20, bonus: atk.bonus + buffBonus.attack,
+      total: totalAtk, hit, dmg, critThreat, critConfirmed,
+      specials: atk.specials
+    });
+  }
+
+  // Haste extra attack (highest bonus attack repeated)
+  if (buffBonus.extraAttack && attacks.length > 0) {
+    const bestAtk = attacks.reduce((a,b) => a.bonus > b.bonus ? a : b);
+    const d20 = rollD20();
+    const totalAtk = d20 + bestAtk.bonus + buffBonus.attack;
+    const hit = d20 === 20 || (totalAtk >= targetAC && d20 !== 1);
+    let dmg = 0;
+    if (hit) {
+      allMiss = false;
+      dmg = rollDice(bestAtk.damage).total + buffBonus.damage;
+      totalDmg += dmg;
+    } else { allHit = false; }
+    minRoll = Math.min(minRoll, totalAtk);
+    maxRoll = Math.max(maxRoll, totalAtk);
+    results.push({
+      name: 'Haste', d20, bonus: bestAtk.bonus + buffBonus.attack,
+      total: totalAtk, hit, dmg, critThreat: false, critConfirmed: false,
+      specials: []
+    });
+  }
+
+  // Build summary
+  let summaryClass, summaryText;
+  if (allHit && results.length > 0) {
+    summaryClass = 'all-hit';
+    summaryText = `ALL HIT (lowest: ${minRoll})`;
+  } else if (allMiss && results.length > 0) {
+    summaryClass = 'all-miss';
+    summaryText = `ALL MISS (highest: ${maxRoll})`;
+  } else {
+    summaryClass = 'mixed';
+    const hits = results.filter(r => r.hit).length;
+    summaryText = `MIXED: ${hits}/${results.length} hit (range: ${minRoll}-${maxRoll})`;
+  }
+
+  return {
+    results, totalDmg, summaryClass, summaryText,
+    minRoll, maxRoll, grabResults,
+    allHit, allMiss
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CREATURE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+function summonCreature() {
+  const sel = document.getElementById('creature-select');
+  const name = sel.value;
+  if (!name || !BESTIARY[name.toLowerCase()]) return;
+
+  const count = parseInt(document.getElementById('summon-count').value) || 1;
+  const augmented = document.getElementById('augment-summon').checked;
+  const casterLevel = parseInt(document.getElementById('caster-level').value) || 10;
+  const info = BESTIARY[name.toLowerCase()];
+  const card = augmented && info.data.augmented ? info.data.augmented : info.data.combat_card;
+  const baseCard = info.data.combat_card;
+
+  maxRounds = casterLevel;
+  if (roundNum === 0) roundNum = 1;
+
+  for (let i = 0; i < count; i++) {
+    const id = `${name.slice(0,3).toUpperCase()}${creatures.length + 1}`;
+    const melee = card.Melee || baseCard.Melee || '';
+    const attacks = parseMeleeLine(melee);
+
+    creatures.push({
+      id, name: info.data.name, hp: card.HP || baseCard.HP || 10,
+      maxHp: card.HP || baseCard.HP || 10,
+      ac: card.AC || baseCard.AC || 10,
+      attacks, augmented,
+      cmb: card.CMB || baseCard.CMB || 0,
+      cmd: card.CMD || baseCard.CMD || 10,
+      preRoll: null, alive: true,
+      specials: (card.Special_Attacks || baseCard.Special_Attacks || '').toLowerCase(),
+    });
+  }
+
+  updateUI();
+  rollAll();
+  log(`Summoned ${count}x ${name} (${augmented ? 'augmented' : 'base'}, ${casterLevel} rounds)`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI RENDERING
+// ═══════════════════════════════════════════════════════════════
+
+function renderCreatureCard(c) {
+  const hpPct = c.maxHp > 0 ? (c.hp / c.maxHp * 100) : 0;
+  const hpClass = hpPct > 50 ? '' : hpPct > 25 ? 'low' : 'critical';
+  const pr = c.preRoll;
+
+  let summaryHTML = '';
+  let detailsHTML = '';
+
+  if (pr) {
+    summaryHTML = `
+      <div class="summary-line">
+        <span class="${pr.summaryClass}">${pr.summaryText}</span>
+        ${pr.totalDmg > 0 ? ` | <span class="dmg">${pr.totalDmg} damage</span>` : ''}
+        ${pr.grabResults.length > 0 ? ` | Grab CMB: ${pr.grabResults.map(g => g.total).join(', ')}` : ''}
+      </div>`;
+
+    detailsHTML = pr.results.map(r => {
+      const cls = r.critConfirmed ? 'crit' : r.hit ? 'hit' : 'miss';
+      const critTag = r.critConfirmed ? ' CRIT!' : r.critThreat && r.hit ? ' (threat, not confirmed)' : '';
+      return `<div class="attack-row ${cls}">
+        ${r.name}: [${r.d20}]+${r.bonus}=${r.total} ${r.hit ? 'HIT' : 'MISS'}${r.hit ? ` → ${r.dmg} dmg` : ''}${critTag}
+      </div>`;
+    }).join('');
+
+    if (pr.grabResults.length > 0) {
+      detailsHTML += pr.grabResults.map(g =>
+        `<div class="attack-row" style="color:var(--yellow)">Grab (${g.attack}): [${g.d20}]+CMB=${g.total}</div>`
+      ).join('');
+    }
+  }
+
+  return `
+    <div class="creature-card ${c.alive ? '' : 'dead'}" id="card-${c.id}" onclick="toggleExpand('${c.id}')">
+      <div class="header">
+        <span class="name">${c.id}: ${c.name}</span>
+        <span class="hp-text">${c.hp}/${c.maxHp} HP | AC ${c.ac}</span>
+      </div>
+      <div class="hp-bar-container">
+        <div class="hp-bar-fill ${hpClass}" style="width:${hpPct}%"></div>
+      </div>
+      ${summaryHTML}
+      <div class="attack-details">${detailsHTML}</div>
+      <div class="card-actions">
+        <button onclick="event.stopPropagation(); adjustHP('${c.id}', -1)">Damage</button>
+        <button onclick="event.stopPropagation(); adjustHP('${c.id}', 1)">Heal</button>
+        <button onclick="event.stopPropagation(); dismissCreature('${c.id}')">Dismiss</button>
+      </div>
+    </div>`;
+}
+
+function updateUI() {
+  const grid = document.getElementById('creature-grid');
+  grid.innerHTML = creatures.filter(c => c.alive).map(renderCreatureCard).join('');
+  document.getElementById('round-num').textContent = roundNum;
+  document.getElementById('rounds-left').textContent = maxRounds > 0 ? (maxRounds - roundNum + 1) : '-';
+  renderBuffs();
+}
+
+function renderBuffs() {
+  const container = document.getElementById('buff-tags');
+  container.innerHTML = Object.entries(buffs)
+    .filter(([_, active]) => active)
+    .map(([id]) => {
+      const def = BUFF_DEFS[id];
+      return `<span class="buff-tag active" onclick="toggleBuff('${id}')">${def?.label || id} <span class="remove">×</span></span>`;
+    }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function rollAll() {
+  const ac = parseInt(document.getElementById('target-ac').value) || 18;
+  for (const c of creatures) {
+    if (!c.alive) continue;
+    c.preRoll = preRollCreature(c, ac);
+  }
+  updateUI();
+}
+
+function nextRound() {
+  roundNum++;
+  if (maxRounds > 0 && roundNum > maxRounds) {
+    creatures.forEach(c => { c.alive = false; });
+    log(`Round ${roundNum}: All summons expired!`);
+  } else {
+    log(`Round ${roundNum}`);
+  }
+  // Auto pre-roll next round
+  const ac = parseInt(document.getElementById('target-ac').value) || 18;
+  for (const c of creatures) {
+    if (!c.alive) continue;
+    c.preRoll = preRollCreature(c, ac);
+  }
+  updateUI();
+}
+
+function adjustHP(id, direction) {
+  const c = creatures.find(x => x.id === id);
+  if (!c) return;
+  const amount = parseInt(prompt(`${direction > 0 ? 'Heal' : 'Damage'} amount:`) || '0');
+  if (!amount) return;
+  c.hp = Math.max(0, Math.min(c.maxHp, c.hp + (direction * amount)));
+  if (c.hp <= 0) c.alive = false;
+  log(`${c.name} (${c.id}): ${direction > 0 ? 'healed' : 'took'} ${amount} → ${c.hp}/${c.maxHp}`);
+  updateUI();
+}
+
+function dismissCreature(id) {
+  const c = creatures.find(x => x.id === id);
+  if (c) { c.alive = false; c.hp = 0; log(`Dismissed ${c.name} (${id})`); }
+  updateUI();
+}
+
+function dismissAll() {
+  creatures.forEach(c => { c.alive = false; c.hp = 0; });
+  roundNum = 0; maxRounds = 0;
+  log('All creatures dismissed');
+  updateUI();
+}
+
+function toggleExpand(id) {
+  document.getElementById(`card-${id}`)?.classList.toggle('expanded');
+}
+
+function toggleBuff(id) {
+  buffs[id] = !buffs[id];
+  renderBuffs();
+  rollAll(); // Re-roll with new buffs
+}
+
+// Buff select handler
+document.getElementById('buff-select').addEventListener('change', function() {
+  if (this.value) {
+    buffs[this.value] = true;
+    this.value = '';
+    renderBuffs();
+    if (creatures.some(c => c.alive)) rollAll();
+  }
+});
+
+// AC change handler — auto re-roll
+document.getElementById('target-ac').addEventListener('change', () => {
+  if (creatures.some(c => c.alive)) rollAll();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════════════════════════
+
+function importStrategy() {
+  try {
+    const json = JSON.parse(document.getElementById('import-json').value);
+    // Clear existing
+    creatures.length = 0;
+    buffs = {};
+    roundNum = 0;
+
+    // Set target AC
+    if (json.target_ac) document.getElementById('target-ac').value = json.target_ac;
+
+    // Add buffs
+    if (json.buffs) {
+      for (const b of json.buffs) buffs[b] = true;
+    }
+
+    // Summon creatures
+    if (json.creatures) {
+      for (const spec of json.creatures) {
+        document.getElementById('creature-select').value = spec.name;
+        document.getElementById('summon-count').value = spec.count || 1;
+        summonCreature();
+      }
+    }
+
+    log(`Imported strategy: ${JSON.stringify(json).slice(0, 100)}`);
+  } catch (e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMBAT LOG
+// ═══════════════════════════════════════════════════════════════
+
+function log(msg) {
+  const el = document.getElementById('combat-log');
+  const ts = new Date().toLocaleTimeString();
+  el.textContent = `[${ts}] ${msg}\n` + el.textContent;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BESTIARY LOADING
+// ═══════════════════════════════════════════════════════════════
+
+async function loadBestiary() {
+  const files = [
+    'statblocks/SNA-Bestiary-Levels-1-3.json',
+    'statblocks/SNA-Bestiary-Levels-4-6.json',
+    'statblocks/SNA-Bestiary-Levels-7-9.json',
+  ];
+  for (const file of files) {
+    try {
+      const resp = await fetch(file);
+      const data = await resp.json();
+      for (const level of data.levels || []) {
+        for (const creature of level.creatures || []) {
+          BESTIARY[creature.name.toLowerCase()] = {
+            data: creature, sna_level: level.sna_level
+          };
+        }
+      }
+    } catch (e) {
+      console.warn(`Failed to load ${file}:`, e);
+    }
+  }
+
+  // Populate creature select
+  updateCreatureSelect();
+  log(`Bestiary loaded: ${Object.keys(BESTIARY).length} creatures`);
+}
+
+function updateCreatureSelect() {
+  const level = parseInt(document.getElementById('sna-level').value);
+  const sel = document.getElementById('creature-select');
+  const available = Object.values(BESTIARY)
+    .filter(b => b.sna_level === level)
+    .sort((a,b) => a.data.name.localeCompare(b.data.name));
+
+  sel.innerHTML = available.map(b =>
+    `<option value="${b.data.name}">${b.data.name} (AC ${b.data.combat_card.AC}, HP ${b.data.combat_card.HP})</option>`
+  ).join('');
+
+  // Update hint
+  document.getElementById('summon-hint').textContent =
+    `${available.length} creatures at SNA ${level}`;
+}
+
+document.getElementById('sna-level').addEventListener('change', updateCreatureSelect);
+
+// Init
+loadBestiary();
+</script>
+</body>
+</html>

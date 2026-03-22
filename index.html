@@ -221,12 +221,21 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
-/* Bottom dock — round bar + expandable tray */
+/* Bottom dock — round bar + slide-up trays */
 .bottom-dock { position: sticky; bottom: 0; z-index: 50; }
-.dock-tray { display: none; }
-.bottom-dock.expanded .dock-tray { display: block; }
-.dock-toggle { cursor: pointer; color: var(--muted); font-size: 14px; padding: 0 8px; transition: transform 0.2s; }
-.bottom-dock.expanded .dock-toggle { transform: rotate(180deg); }
+
+/* Tray panels slide up from the bar */
+.tray-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.tray-panel.open { max-height: 200px; }
+.tray-panel .panel { margin-bottom: 0; border-bottom: none; border-radius: 6px 6px 0 0; }
+
+/* Tray tab buttons in the round bar */
+.tray-tabs { display: flex; gap: 4px; }
+.tray-tab { font-size: 10px; padding: 2px 10px; border-radius: 4px 4px 0 0; background: var(--bg); border: 1px solid var(--border); border-bottom: none; color: var(--muted); cursor: pointer; transition: all 0.15s; position: relative; top: 1px; }
+.tray-tab:hover { color: var(--text); }
+.tray-tab.active { background: var(--surface); color: var(--text); border-color: var(--accent); }
+.tray-tab.has-items { color: var(--red); }
+.bar-trash:empty { display: none; }
 .settings-toggle:hover { color: var(--text); }
 /* Bar hierarchy — left border accent */
 .bar-buffs { border-left: 3px solid var(--green); }
@@ -401,13 +410,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 <!-- ═══ Effects ═══ -->
 <div id="effects-out"></div>
 
-<!-- ═══ Round Bar (bottom action bar) ═══ -->
-<div class="bottom-dock" id="bottom-dock">
-  <!-- Expandable tray (buffs + trash) -->
-  <div class="dock-tray" id="dock-tray">
-    <div id="trash-tray"></div>
+<!-- ═══ Bottom Dock ═══ -->
+<div class="bottom-dock">
+  <!-- Tray panels (slide up independently) -->
+  <div class="tray-panel" id="tray-buffs">
     <div class="panel chip-row bar-buffs">
-      <label class="label-inline">Buffs:</label>
       <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
       <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
       <span class="chip" data-buff="destruction" onclick="tBuff(this)">Destruct +4d</span>
@@ -419,17 +426,24 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
       <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
     </div>
   </div>
-  <!-- Round bar -->
-  <div class="panel combat-bar" id="round-bar">
-  <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
-  <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
-  <div class="round-actions">
-    <button class="act" onclick="reroll()">RE-ROLL ALL</button>
-    <button onclick="clearAll()">CLEAR</button>
-    <button class="go" onclick="nextRound()">NEXT ROUND</button>
+  <div class="tray-panel" id="tray-trash">
+    <div class="panel bar-trash" id="trash-content"></div>
   </div>
-  <span class="dock-toggle" onclick="document.getElementById('bottom-dock').classList.toggle('expanded')" title="Buffs & Dismissed">▲</span>
-</div>
+
+  <!-- Round bar with tray tab buttons -->
+  <div class="panel combat-bar" id="round-bar">
+    <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
+    <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
+    <div class="tray-tabs">
+      <button class="tray-tab" onclick="toggleTray('buffs')" id="tab-buffs">Buffs</button>
+      <button class="tray-tab" onclick="toggleTray('trash')" id="tab-trash">Trash</button>
+    </div>
+    <div class="round-actions">
+      <button class="act" onclick="reroll()">RE-ROLL ALL</button>
+      <button onclick="clearAll()">CLEAR</button>
+      <button class="go" onclick="nextRound()">NEXT ROUND</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -636,6 +650,16 @@ document.addEventListener('click',e=>{
   const drop=document.getElementById('creature-drop');
   if(drop && !drop.contains(e.target)) drop.classList.remove('open');
 });
+function toggleTray(name) {
+  const panel = document.getElementById('tray-'+name);
+  const tab = document.getElementById('tab-'+name);
+  const wasOpen = panel.classList.contains('open');
+  // Close all trays first
+  document.querySelectorAll('.tray-panel').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.tray-tab').forEach(t=>t.classList.remove('active'));
+  // Toggle the clicked one
+  if (!wasOpen) { panel.classList.add('open'); tab.classList.add('active'); }
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  PRE-ROLL — sorted roll table
@@ -934,14 +958,19 @@ function render(){
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
   ).join('');
 
-  // Trash tray
-  const trashEl = document.getElementById('trash-tray');
+  // Trash tray content + tab indicator
+  const trashEl = document.getElementById('trash-content');
+  const trashTab = document.getElementById('tab-trash');
   if (trash.length > 0) {
-    trashEl.innerHTML = `<div class="panel trash-bar"><span class="trash-label">Dismissed:</span> ${trash.map((t,i) =>
+    trashEl.innerHTML = `<div class="chip-row">${trash.map((t,i) =>
       `<button class="sm" onclick="restoreFromTrash(${i})">${t.creature.name} ↩</button>`
-    ).join(' ')}</div>`;
+    ).join('')}</div>`;
+    trashTab.classList.add('has-items');
+    trashTab.textContent = `Trash (${trash.length})`;
   } else {
     trashEl.innerHTML = '';
+    trashTab.classList.remove('has-items');
+    trashTab.textContent = 'Trash';
   }
 }
 
@@ -1307,6 +1336,11 @@ function dismissCreature(cid, gid) {
   }
   S.groups = S.groups.filter(g => g.creatures.length > 0);
   render();
+  // Force-open trash tray
+  document.querySelectorAll('.tray-panel').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.tray-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tray-trash').classList.add('open');
+  document.getElementById('tab-trash').classList.add('active');
 }
 function restoreFromTrash(idx) {
   const item = trash.splice(idx, 1)[0];

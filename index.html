@@ -52,14 +52,14 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-display { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 3px 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; min-height: 24px; }
 .cdrop-display .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0; flex-shrink: 0; }
 .cdrop-display::after { content: '▾'; margin-left: auto; color: var(--muted); }
-.cdrop-list { display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 320px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 4px 4px; z-index: 100; scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
+.cdrop-list { display: none; position: absolute; bottom: 100%; left: 0; right: 0; max-height: 320px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 4px 4px 0 0; z-index: 100; scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
 .cdrop-list::-webkit-scrollbar { width: 6px; }
 .cdrop-list::-webkit-scrollbar-track { background: var(--bg); }
 .cdrop-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .cdrop-list::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .cdrop.open .cdrop-list { display: block; }
-.cdrop.open .cdrop-display { border-radius: 3px 3px 0 0; border-color: var(--accent); }
-.cdrop-search { width: 100%; background: var(--bg); border: none; border-bottom: 1px solid var(--border); color: var(--text); padding: 4px 6px; font-family: inherit; font-size: 12px; outline: none; }
+.cdrop.open .cdrop-display { border-radius: 0 0 3px 3px; border-color: var(--accent); }
+.cdrop-search { width: 100%; background: var(--bg); border: none; border-top: 1px solid var(--border); color: var(--text); padding: 4px 6px; font-family: inherit; font-size: 12px; outline: none; }
 #cdrop-items { --name-col: 140px; }
 .cdrop-item { padding: 3px 6px; cursor: pointer; font-size: 12px; display: grid; grid-template-columns: 24px var(--name-col) 1fr auto; align-items: center; gap: 0; }
 .cdrop-item:hover, .cdrop-item.active { background: #333648; }
@@ -205,16 +205,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Title bar */
 .title-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; margin-bottom: 4px; }
 .app-title { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--muted); letter-spacing: 1px; }
-.settings-toggle { font-size: 11px; color: var(--muted); cursor: pointer; }
+.import-toggle { font-size: 11px; color: var(--muted); cursor: pointer; }
 
-/* Setup drawer */
-.setup-drawer { margin-bottom: 4px; }
-.setup-summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 0; }
-.setup-drawer[open] .setup-summary { margin-bottom: 4px; color: var(--text); }
-.setup-drawer .panel { margin-bottom: 4px; }
 
 /* Combat/Round bar (bottom) */
-.combat-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); }
+.combat-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); overflow: visible; position: relative; }
 .round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 4px; }
 .round-ac { display: flex; align-items: center; gap: 2px; }
 .round-ac input { width: 40px; }
@@ -226,31 +221,33 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* Tray panels slide up from the bar */
 .tray-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-.tray-panel.open { max-height: 200px; }
-.tray-panel .panel { margin-bottom: 0; border-bottom: none; border-radius: 6px 6px 0 0; }
+.tray-panel.open { max-height: 300px; overflow: visible; }
+.tray-panel .panel { margin-bottom: 0; border-bottom: none; border-radius: 4px 4px 0 0; border-color: var(--border); padding: 12px 14px; }
 
-/* Tray tab buttons in the round bar */
-.tray-tabs { display: flex; gap: 4px; }
-.tray-tab { font-size: 10px; padding: 2px 10px; border-radius: 4px 4px 0 0; background: var(--bg); border: 1px solid var(--border); border-bottom: none; color: var(--muted); cursor: pointer; transition: all 0.15s; position: relative; top: 1px; }
-.tray-tab:hover { color: var(--text); }
-.tray-tab.active { background: var(--surface); color: var(--text); border-color: var(--accent); }
+/* Tray tabs — poke above dock top edge, merge into dock interior */
+.tray-tabs { display: flex; gap: 0; align-self: stretch; flex: 1; justify-content: center; }
+.tray-tab { font-size: 10px; padding: 2px 14px; background: var(--surface); border: 1px solid var(--border); border-bottom: none; border-radius: 3px 3px 0 0; color: var(--muted); cursor: pointer; transition: all 0.15s; position: relative; top: -9px; margin-bottom: -9px; margin-right: 2px; display: flex; align-items: center; }
+.tray-tab:hover { color: var(--text); background: var(--card); }
+.tray-tab.active { background: var(--surface); color: var(--text); border-color: var(--accent); z-index: 1; }
 .tray-tab.has-items { color: var(--red); }
-.bar-trash:empty { display: none; }
-.settings-toggle:hover { color: var(--text); }
+#tab-summon { font-weight: 700; color: var(--crit); min-width: 72px; justify-content: center; letter-spacing: 0.5px; }
+#tab-summon.active { color: var(--crit); border-color: var(--crit); }
+.bar-dismissed:empty { display: none; }
+.import-toggle:hover { color: var(--text); }
 /* Bar hierarchy — left border accent */
 .bar-buffs { border-left: 3px solid var(--green); }
 .bar-summon { border-left: 3px solid var(--crit); }
-.bar-items { border-left: 3px solid var(--muted); }
-/* Trash tray */
-.trash-bar { font-size: 11px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-left: 3px solid var(--muted); }
-.trash-label { color: var(--muted); }
-.settings-tray { display: none; }
-.settings-tray.open { display: block; }
-.settings-tray .row { margin-bottom: 4px; }
+.bar-items { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bar-setup { border-left: 3px solid var(--muted); }
+/* Dismissed tray */
+.dismissed-bar { font-size: 11px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-left: 3px solid var(--muted); }
+.dismissed-label { color: var(--muted); }
+.import-tray { display: none; }
+.import-tray.open { display: block; }
+.import-tray .row { margin-bottom: 4px; display: flex; gap: 6px; align-items: center; }
 .flex-grow { flex: 1; }
 .flex-grow select { width: 100%; }
-.import-summary { cursor: pointer; color: var(--muted); font-size: 11px; }
-.import-textarea { width: 100%; height: 40px; background: var(--bg); color: var(--text); border: 1px solid var(--border); font-family: inherit; font-size: 11px; padding: 4px; margin-top: 4px; border-radius: 3px; }
+.import-textarea { flex: 1; height: 28px; background: var(--bg); color: var(--text); border: 1px solid var(--border); font-family: inherit; font-size: 11px; padding: 4px; border-radius: 3px; resize: none; }
 .import-btn { margin-top: 3px; }
 .dismiss-btn { margin-left: 4px; }
 
@@ -338,6 +335,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
   /* Summon panel tighter */
   .row { gap: 6px; }
+
+  /* Dock tabs touch-friendly */
+  .tray-tab { padding: 4px 12px; font-size: 11px; min-height: 36px; top: -7px; margin-bottom: -7px; }
+  #tab-summon { min-width: 80px; }
 }
 
 /* ── Phone / narrow portrait (≤480px) ── */
@@ -352,57 +353,17 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 <!-- ═══ Title Bar ═══ -->
 <div class="title-bar">
   <span class="app-title">SNA Combat Manager</span>
-  <span class="settings-toggle" onclick="document.getElementById('settings-tray').classList.toggle('open')">⚙ Settings</span>
+  <span class="import-toggle" onclick="document.getElementById('import-tray').classList.toggle('open')">⚙ Import</span>
 </div>
 
-<!-- ═══ Settings Tray (CL + Feats) — hidden by default ═══ -->
-<div class="panel settings-tray" id="settings-tray">
+<!-- ═══ Import Tray (Claude JSON) — hidden by default ═══ -->
+<div class="panel import-tray" id="import-tray">
   <div class="row">
-    <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
-  </div>
-  <div class="chip-row">
-    <label class="label-inline">Feats:</label>
-    <span class="chip" data-feat="augment" onclick="tFeat(this)">Augment Summoning</span>
-    <span class="chip" data-feat="superior" onclick="tFeat(this)">Superior Summoning</span>
-    <span class="chip" data-feat="moonlight" onclick="tFeat(this)">Moonlight Summons</span>
-    <span class="chip" data-feat="starlight" onclick="tFeat(this)">Starlight Summons</span>
-  </div>
-</div>
-
-<!-- ═══ Setup Drawer (Summon + Items) — collapsible ═══ -->
-<details class="setup-drawer" id="setup-drawer">
-  <summary class="panel setup-summary">▸ Summon & Setup</summary>
-  <div class="panel bar-summon">
-    <div class="row">
-      <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
-        <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
-        <option value="4" selected>4th</option><option value="5">5th</option><option value="6">6th</option>
-        <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
-      </select></div>
-      <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
-      <div class="cdrop" id="creature-drop">
-        <label>Creature</label>
-        <div class="cdrop-display" onclick="toggleCreatureDrop()"><span id="cdrop-text">Select...</span></div>
-        <div class="cdrop-list">
-          <input class="cdrop-search" type="text" placeholder="Search..." oninput="filterCreatures(this.value)">
-          <div id="cdrop-items"></div>
-        </div>
-      </div>
-      <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
-    </div>
-  </div>
-  <div class="panel row bar-items">
-    <label class="label-inline">Items:</label>
-    <button onclick="summonLions()">Lion Figurines (2)</button>
-    <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
-    <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
-  </div>
-  <details class="panel">
-    <summary class="import-summary">Claude Import (JSON)</summary>
     <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
     <button class="sm import-btn" onclick="doImport()">Import</button>
-  </details>
-</details>
+  </div>
+</div>
+
 
 <!-- ═══ Creatures (main viewport) ═══ -->
 <div id="creatures-out"></div>
@@ -413,6 +374,33 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 <!-- ═══ Bottom Dock ═══ -->
 <div class="bottom-dock">
   <!-- Tray panels (slide up independently) -->
+  <div class="tray-panel" id="tray-summon">
+    <div class="panel bar-summon">
+      <div class="row">
+        <div><label>Spell Slot</label><select id="inp-slot" onchange="updTiers()">
+          <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
+          <option value="4" selected>4th</option><option value="5">5th</option><option value="6">6th</option>
+          <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
+        </select></div>
+        <div><label>Tier</label><select id="inp-tier" onchange="updCreatures()"></select></div>
+        <div class="cdrop" id="creature-drop">
+          <label>Creature</label>
+          <div class="cdrop-display" onclick="toggleCreatureDrop()"><span id="cdrop-text">Select...</span></div>
+          <div class="cdrop-list">
+            <div id="cdrop-items"></div>
+            <input class="cdrop-search" type="text" placeholder="Search..." oninput="filterCreatures(this.value)">
+          </div>
+        </div>
+        <div><label>&nbsp;</label><button class="go" onclick="doSummon()">SUMMON</button></div>
+      </div>
+      <div class="row bar-items">
+        <label class="label-inline">Items:</label>
+        <button onclick="summonLions()">Lion Figurines (2)</button>
+        <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
+        <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
+      </div>
+    </div>
+  </div>
   <div class="tray-panel" id="tray-buffs">
     <div class="panel chip-row bar-buffs">
       <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
@@ -426,8 +414,22 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
       <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
     </div>
   </div>
-  <div class="tray-panel" id="tray-trash">
-    <div class="panel bar-trash" id="trash-content"></div>
+  <div class="tray-panel" id="tray-dismissed">
+    <div class="panel bar-dismissed" id="dismissed-content"></div>
+  </div>
+  <div class="tray-panel" id="tray-setup">
+    <div class="panel bar-setup">
+      <div class="row">
+        <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
+      </div>
+      <div class="chip-row">
+        <label class="label-inline">Feats:</label>
+        <span class="chip" data-feat="augment" onclick="tFeat(this)">Augment Summoning</span>
+        <span class="chip" data-feat="superior" onclick="tFeat(this)">Superior Summoning</span>
+        <span class="chip" data-feat="moonlight" onclick="tFeat(this)">Moonlight Summons</span>
+        <span class="chip" data-feat="starlight" onclick="tFeat(this)">Starlight Summons</span>
+      </div>
+    </div>
   </div>
 
   <!-- Round bar with tray tab buttons -->
@@ -435,8 +437,10 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
     <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
     <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
     <div class="tray-tabs">
+      <button class="tray-tab" onclick="toggleTray('summon')" id="tab-summon">Summon</button>
       <button class="tray-tab" onclick="toggleTray('buffs')" id="tab-buffs">Buffs</button>
-      <button class="tray-tab" onclick="toggleTray('trash')" id="tab-trash">Trash</button>
+      <button class="tray-tab" onclick="toggleTray('dismissed')" id="tab-dismissed">Dismissed</button>
+      <button class="tray-tab" onclick="toggleTray('setup')" id="tab-setup">Setup</button>
     </div>
     <div class="round-actions">
       <button class="act" onclick="reroll()">RE-ROLL ALL</button>
@@ -884,7 +888,13 @@ function doSummon() {
   S.groups.push(g);
   if(S.round===0) S.round=1;
   for(const c of g.creatures) preRoll(c);
+  closeAllTrays();
   render();
+}
+
+function closeAllTrays() {
+  document.querySelectorAll('.tray-panel').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.tray-tab').forEach(t=>t.classList.remove('active'));
 }
 
 function summonLions(){
@@ -894,6 +904,7 @@ function summonLions(){
   S.groups.push(g);
   if(S.round===0) S.round=1;
   for(const c of g.creatures) preRoll(c);
+  closeAllTrays();
   render();
 }
 
@@ -905,6 +916,7 @@ function addEffect(type){
   if(type==='sphere') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (wand)',rl:3,dc:13,dmg:'3d6',save:'Ref half',note:'CL3 wand. Move action to reposition.'});
   if(type==='sphere_cast') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (cast)',rl:cl,dc:10+2+5,dmg:'3d6',save:'Ref half',note:`CL${cl}. Move action to reposition.`});
   if(S.round===0) S.round=1;
+  closeAllTrays();
   render();
 }
 
@@ -950,27 +962,28 @@ function render(){
   area.innerHTML=h;
 
 
-  // Auto-open setup drawer when no creatures on board
-  const drawer = document.getElementById('setup-drawer');
-  if(S.groups.length === 0 && !drawer.open) drawer.open = true;
+  // Auto-open summon tray when board is empty and no tray is open
+  if(S.groups.length === 0 && !document.querySelector('.tray-panel.open')) {
+    toggleTray('summon');
+  }
 
   document.getElementById('effects-out').innerHTML=S.effects.map(e=>
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
   ).join('');
 
-  // Trash tray content + tab indicator
-  const trashEl = document.getElementById('trash-content');
-  const trashTab = document.getElementById('tab-trash');
-  if (trash.length > 0) {
-    trashEl.innerHTML = `<div class="chip-row">${trash.map((t,i) =>
-      `<button class="sm" onclick="restoreFromTrash(${i})">${t.creature.name} ↩</button>`
+  // Dismissed tray content + tab indicator
+  const dismissedEl = document.getElementById('dismissed-content');
+  const dismissedTab = document.getElementById('tab-dismissed');
+  if (dismissed.length > 0) {
+    dismissedEl.innerHTML = `<div class="chip-row">${dismissed.map((t,i) =>
+      `<button class="sm" onclick="restoreFromDismissed(${i})">${t.creature.name} ↩</button>`
     ).join('')}</div>`;
-    trashTab.classList.add('has-items');
-    trashTab.textContent = `Trash (${trash.length})`;
+    dismissedTab.classList.add('has-items');
+    dismissedTab.textContent = `Dismissed (${dismissed.length})`;
   } else {
-    trashEl.innerHTML = '';
-    trashTab.classList.remove('has-items');
-    trashTab.textContent = 'Trash';
+    dismissedEl.innerHTML = '';
+    dismissedTab.classList.remove('has-items');
+    dismissedTab.textContent = 'Dismissed';
   }
 }
 
@@ -1324,26 +1337,25 @@ function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
-let trash = []; // {creature, groupId, groupName}
+let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {
     const idx = g.creatures.findIndex(x => x.id === cid);
     if (idx >= 0) {
       const c = g.creatures.splice(idx, 1)[0];
-      trash.push({ creature: c, groupId: g.id, groupName: g.name });
+      dismissed.push({ creature: c, groupId: g.id, groupName: g.name });
       break;
     }
   }
   S.groups = S.groups.filter(g => g.creatures.length > 0);
   render();
-  // Force-open trash tray
-  document.querySelectorAll('.tray-panel').forEach(p=>p.classList.remove('open'));
-  document.querySelectorAll('.tray-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tray-trash').classList.add('open');
-  document.getElementById('tab-trash').classList.add('active');
+  // Force-open dismissed tray
+  closeAllTrays();
+  document.getElementById('tray-dismissed').classList.add('open');
+  document.getElementById('tab-dismissed').classList.add('active');
 }
-function restoreFromTrash(idx) {
-  const item = trash.splice(idx, 1)[0];
+function restoreFromDismissed(idx) {
+  const item = dismissed.splice(idx, 1)[0];
   if (!item) return;
   const c = item.creature;
   c.alive = true;
@@ -1365,7 +1377,7 @@ function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
     if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
 }
-function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;trash=[];localStorage.removeItem(SAVE_KEY);render();}
+function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];localStorage.removeItem(SAVE_KEY);render();}
 function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);
   if(j.ac)document.getElementById('ref-ac').value=j.ac;
   if(j.buffs)for(const b of j.buffs)S.buffs[b]=true;

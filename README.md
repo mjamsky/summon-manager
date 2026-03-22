@@ -21,7 +21,7 @@ python3 -m http.server 8787
 
 ## Bestiary
 
-125 creatures (107 core + 18 AP alternates) from authoritative Pathfinder SRD stat blocks. **Not** wild shape tables.
+125 creatures (107 core + 18 AP alternates) from authoritative Pathfinder SRD stat blocks.
 
 ```bash
 # Rebuild from SRD source files
@@ -50,22 +50,6 @@ Source: Obsidian vault SRD at `~/Documents/Obsidian/Serpent's Skull/Assets/SRD/f
 - **Crit** → confirmation roll pre-computed, respects per-attack multiplier (x2/x3)
 - **Fumble** → house rule: nat 1 → reroll → miss on reroll = crit fail
 - **Buff stacking** → same type takes highest (morale, sacred), untyped stacks
-
-## Backlog
-
-**Architecture (do first):**
-- CSS/JS separation — move all inline styles (31 instances) out of JS template literals into semantic CSS classes. JS outputs classes + data attributes, CSS handles all presentation. Enables media queries, theming, animations, and much easier iteration.
-- State persistence — localStorage save/restore so closing the tab doesn't lose active summons mid-combat
-- Effect damage rendering inline (not `alert()` popup)
-- Dead creatures: collapse to single line, click to expand, REVIVE button to restore with HP input (for retcons/corrections)
-
-**Features:**
-- Items sidebar (wand charges, figurine activation, overrideable CL)
-- Claude chat panel for between-turn strategy
-- SNA 7-9 community tier ratings
-- Versatile Summoning templates (Aerial/Aqueous/Chthonic/Dark/Fiery)
-- Wild shape form management
-- Constrict auto-damage on maintained grapple
 
 ## Origin
 

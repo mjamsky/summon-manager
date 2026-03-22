@@ -84,7 +84,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
 .ccard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; }
 .ccard-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; align-self: flex-end; }
-.ccard-id { font-size: 10px; color: var(--text); position: absolute; top: 6px; right: 8px; }
+.ccard-id { font-size: 10px; color: var(--text); position: absolute; top: 6px; right: 8px; display: flex; align-items: center; gap: 6px; }
+.ccard-dismiss { color: var(--muted); cursor: pointer; font-size: 12px; }
+.ccard-dismiss:hover { color: var(--red); }
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
@@ -217,7 +219,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .round-ac { display: flex; align-items: center; gap: 2px; }
 .round-ac input { width: 40px; }
 .round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
-#round-groups { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; font-size: 11px; }
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
 /* Bottom bars stick to bottom */
@@ -227,8 +228,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .bar-buffs { border-left: 3px solid var(--green); }
 .bar-summon { border-left: 3px solid var(--crit); }
 .bar-items { border-left: 3px solid var(--muted); }
-.bar-dismiss:empty { display: none; }
-.bar-dismiss { border-left: 3px solid var(--red); }
+/* Dismissed card */
+.ccard.dismissed { opacity: 0.3; }
+.dismissed-bar { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.dismissed-label { color: var(--red); font-size: 11px; }
+.undo-btn { font-size: 10px; padding: 2px 8px; background: var(--accent); border-color: var(--accent); color: #fff; }
 .settings-tray { display: none; }
 .settings-tray.open { display: block; }
 .settings-tray .row { margin-bottom: 4px; }
@@ -382,7 +386,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
     <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
     <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
   </div>
-  <div class="panel bar-dismiss" id="dismiss-bar"></div>
   <details class="panel">
     <summary class="import-summary">Claude Import (JSON)</summary>
     <textarea id="inp-import" class="import-textarea" placeholder='{"slot":4,"tier":"lower","creature":"Leopard","buffs":["prayer"]}'></textarea>
@@ -414,7 +417,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 <div class="panel combat-bar bottom-bar" id="round-bar">
   <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
   <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
-  <div id="round-groups"></div>
   <div class="round-actions">
     <button class="act" onclick="reroll()">RE-ROLL ALL</button>
     <button onclick="clearAll()">CLEAR</button>
@@ -915,31 +917,6 @@ function render(){
   h+='</div>';
   area.innerHTML=h;
 
-  // Group chips in round bar (bottom)
-  let gBar='';
-  for(const g of S.groups){
-    const rlTxt=g.src==='figurine'?'1hr':`${g.rl}${IC.countdown('icon-sm')}`;
-    const gCreature = g.creatures[0]?.name || '?';
-    const gLabel = `${g.creatures.length}× ${gCreature}`;
-    gBar+=`<span class="group-summary" data-rl="${g.rl}">
-      ${gLabel} ${rlTxt}
-      ${g.casting?'<span class="casting-tag">CASTING</span> <button class="sm" onclick="manifest(\''+g.id+'\')">GO</button>':''}
-    </span>`;
-  }
-  document.getElementById('round-groups').innerHTML=gBar;
-
-  // Dismiss bar in setup drawer
-  let dBar='';
-  if(S.groups.length > 0) {
-    dBar='<div class="chip-row"><label class="label-inline">Dismiss:</label>';
-    for(const g of S.groups){
-    const rlTxt=g.src==='figurine'?'1hr':`${g.rl}${IC.countdown('icon-sm')}`;
-      const gCreature = g.creatures[0]?.name || '?';
-      dBar+=`<button class="sm" onclick="dismissG('${g.id}')">${gCreature} ×</button>`;
-    }
-    dBar+='</div>';
-  }
-  document.getElementById('dismiss-bar').innerHTML=dBar;
 
   // Auto-open setup drawer when no creatures on board
   const drawer = document.getElementById('setup-drawer');
@@ -1244,6 +1221,17 @@ function renderCard(c, group, refAC) {
     abilityHTML += '</div>';
   }
 
+  // Dismissed card — faded with undo
+  if (c.dismissed) {
+    return `<div class="ccard dismissed">
+      <div class="ccard-namerow"><span class="ccard-name">${c.name}</span></div>
+      <div class="dismissed-bar">
+        <span class="dismissed-label">Dismissed</span>
+        <button class="sm undo-btn" onclick="event.stopPropagation();undoDismiss()">UNDO</button>
+      </div>
+    </div>`;
+  }
+
   // Dead card — collapsed, rotated sideways with wrapper for layout
   if (!c.alive) {
     const deadCard = `<div class="ccard dead">
@@ -1264,7 +1252,7 @@ function renderCard(c, group, refAC) {
   const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
-    <span class="ccard-id">${c.id}</span>
+    <span class="ccard-id">${c.id} <span class="ccard-dismiss" onclick="event.stopPropagation();dismissCreature('${c.id}','${group.id}')" title="Dismiss">×</span></span>
     <div class="ccard-namerow">
       <span class="ccard-name">${c.name}</span>
       <span class="ccard-dur">${durBadge}</span>
@@ -1300,6 +1288,33 @@ function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
+let pendingDismiss = null;
+function dismissCreature(cid, gid) {
+  // Mark creature as dismissed with undo window
+  const c = findC(cid);
+  if (!c) return;
+  c.dismissed = true;
+  c.alive = false;
+  if (pendingDismiss) clearTimeout(pendingDismiss.timer);
+  pendingDismiss = { cid, gid, timer: setTimeout(() => {
+    // Actually remove after 4 seconds
+    for (const g of S.groups) {
+      g.creatures = g.creatures.filter(x => x.id !== cid);
+    }
+    S.groups = S.groups.filter(g => g.creatures.length > 0);
+    pendingDismiss = null;
+    render();
+  }, 4000) };
+  render();
+}
+function undoDismiss() {
+  if (!pendingDismiss) return;
+  clearTimeout(pendingDismiss.timer);
+  const c = findC(pendingDismiss.cid);
+  if (c) { c.dismissed = false; c.alive = true; preRoll(c); }
+  pendingDismiss = null;
+  render();
+}
 function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
 function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];reroll();}
 function tBuff(el){S.buffs[el.dataset.buff]=!S.buffs[el.dataset.buff];render();}

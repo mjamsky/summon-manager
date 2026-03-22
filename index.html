@@ -221,8 +221,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
-/* Bottom bars stick to bottom */
-.bottom-bar { position: sticky; bottom: 0; z-index: 50; }
+/* Bottom dock — round bar + expandable tray */
+.bottom-dock { position: sticky; bottom: 0; z-index: 50; }
+.dock-tray { display: none; }
+.bottom-dock.expanded .dock-tray { display: block; }
+.dock-toggle { cursor: pointer; color: var(--muted); font-size: 14px; padding: 0 8px; transition: transform 0.2s; }
+.bottom-dock.expanded .dock-toggle { transform: rotate(180deg); }
 .settings-toggle:hover { color: var(--text); }
 /* Bar hierarchy — left border accent */
 .bar-buffs { border-left: 3px solid var(--green); }
@@ -397,25 +401,26 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 <!-- ═══ Effects ═══ -->
 <div id="effects-out"></div>
 
-<!-- ═══ Trash Tray ═══ -->
-<div id="trash-tray"></div>
-
-<!-- ═══ Buff Bar (persistent state) ═══ -->
-<div class="panel chip-row bar-buffs bottom-bar">
-  <label class="label-inline">Buffs:</label>
-  <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
-  <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
-  <span class="chip" data-buff="destruction" onclick="tBuff(this)">Destruct +4d</span>
-  <span class="chip" data-buff="justice" onclick="tBuff(this)">Justice +3a</span>
-  <span class="chip" data-buff="smiting" onclick="tBuff(this)">Smiting</span>
-  <span class="chip" data-buff="haste" onclick="tBuff(this)">Haste +1a</span>
-  <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
-  <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
-  <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
-</div>
-
 <!-- ═══ Round Bar (bottom action bar) ═══ -->
-<div class="panel combat-bar bottom-bar" id="round-bar">
+<div class="bottom-dock" id="bottom-dock">
+  <!-- Expandable tray (buffs + trash) -->
+  <div class="dock-tray" id="dock-tray">
+    <div id="trash-tray"></div>
+    <div class="panel chip-row bar-buffs">
+      <label class="label-inline">Buffs:</label>
+      <span class="chip" data-buff="prayer" onclick="tBuff(this)">Prayer +1a/d</span>
+      <span class="chip" data-buff="bless" onclick="tBuff(this)">Bless +1a</span>
+      <span class="chip" data-buff="destruction" onclick="tBuff(this)">Destruct +4d</span>
+      <span class="chip" data-buff="justice" onclick="tBuff(this)">Justice +3a</span>
+      <span class="chip" data-buff="smiting" onclick="tBuff(this)">Smiting</span>
+      <span class="chip" data-buff="haste" onclick="tBuff(this)">Haste +1a</span>
+      <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
+      <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
+      <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
+    </div>
+  </div>
+  <!-- Round bar -->
+  <div class="panel combat-bar" id="round-bar">
   <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
   <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
   <div class="round-actions">
@@ -423,6 +428,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
     <button onclick="clearAll()">CLEAR</button>
     <button class="go" onclick="nextRound()">NEXT ROUND</button>
   </div>
+  <span class="dock-toggle" onclick="document.getElementById('bottom-dock').classList.toggle('expanded')" title="Buffs & Dismissed">▲</span>
+</div>
 </div>
 
 <script>

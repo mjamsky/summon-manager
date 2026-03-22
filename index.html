@@ -16,7 +16,7 @@
   --tier-s: #f5c842; --tier-a: #5baaff; --tier-b: #8bc34a; --tier-c: #888;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'SF Mono', 'Consolas', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 8px; font-size: 13px; line-height: 1.4; }
+body { font-family: 'SF Mono', 'Consolas', 'Fira Code', monospace; background: var(--bg); color: var(--text); padding: 8px; font-size: 13px; line-height: 1.4; min-height: 100dvh; display: flex; flex-direction: column; }
 
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
 button { font-family: inherit; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -52,7 +52,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-display { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 3px 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; min-height: 24px; }
 .cdrop-display .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0; flex-shrink: 0; }
 .cdrop-display::after { content: '▾'; margin-left: auto; color: var(--muted); }
-.cdrop-list { display: none; position: absolute; bottom: 100%; left: 0; right: 0; max-height: 320px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 4px 4px 0 0; z-index: 100; scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
+.cdrop-list { display: none; position: absolute; bottom: 100%; left: 0; right: 0; max-height: min(320px, 50dvh); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 4px 4px 0 0; z-index: 100; scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
 .cdrop-list::-webkit-scrollbar { width: 6px; }
 .cdrop-list::-webkit-scrollbar-track { background: var(--bg); }
 .cdrop-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -70,9 +70,21 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-item .cdrop-name { color: var(--text); padding-left: 6px; }
 .cdrop-item .cdrop-note { color: var(--muted); font-size: 10px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── Creature Cards — flat flex flow, no group wrappers ── */
-.creatures-flow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
-.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 260px; max-width: 380px; flex: 1 1 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
+/* ── Creature Cards — flat CSS grid, no group wrappers ── */
+.creatures-flow { display: grid; grid-template-columns: repeat(auto-fill, 280px); gap: 16px; align-items: start; }
+/* Group pill — centered on card top border, left-aligned, colored per group */
+.gpill { position: absolute; top: 0; left: 12px; transform: translateY(-50%); font-size: 9px; padding: 1px 6px; border-radius: 6px; white-space: nowrap; z-index: 1; }
+.gpill-0 { background: #1a3a2a; border: 1px solid #2a5a3a; color: #6cbf8a; }
+.gpill-1 { background: #1a2a3a; border: 1px solid #2a4a5a; color: #6aaacf; }
+.gpill-2 { background: #3a2a1a; border: 1px solid #5a4a2a; color: #cfaa6a; }
+.gpill-3 { background: #2a1a3a; border: 1px solid #4a2a5a; color: #aa6acf; }
+.gpill-4 { background: #3a1a1a; border: 1px solid #5a2a2a; color: #cf6a6a; }
+/* Spell globe pill purples */
+.gpill-sp-0 { background: #2a1a3a; border: 1px solid #4a2a5a; color: #aa6acf; }
+.gpill-sp-1 { background: #1a1a3a; border: 1px solid #2a2a5a; color: #7a7acf; }
+.gpill-sp-2 { background: #2a1a2a; border: 1px solid #5a2a4a; color: #cf6aaa; }
+.gpill-sp-3 { background: #1a2a3a; border: 1px solid #2a3a5a; color: #6a9acf; }
+.ccard { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; width: 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
 .group-tag { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: #2a2d3a; color: var(--muted); margin-left: 6px; }
 .casting-tag { background: var(--crit); color: #111; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
 .ccard.dead { opacity: 0.25; }
@@ -169,8 +181,21 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* ── Actions row ── */
 .ccard-actions { display: flex; gap: 3px; margin-top: 4px; }
 
-/* Effect cards */
-.ecard { background: #2a2040; border: 1px solid #3a3060; border-radius: 5px; padding: 6px 10px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+/* Spell effect cards (in creatures-flow) */
+.scard { background: #2a2040; border: 1px solid #3a3060; border-radius: 6px; padding: 10px 12px; width: 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
+.scard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
+.scard-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; color: #c0b0e0; }
+.scard-id { font-size: 10px; color: #8070a0; position: absolute; top: 6px; right: 8px; display: flex; align-items: center; gap: 6px; }
+.scard-dismiss { color: #8070a0; cursor: pointer; font-size: 12px; }
+.scard-dismiss:hover { color: var(--red); }
+.scard-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #8070a0; margin-bottom: 4px; }
+.scard-dice { color: #c0b0e0; }
+.scard-dc { font-size: 11px; color: #a090c0; margin-bottom: 6px; }
+.scard-result { background: #1a1530; border: 1px solid #3a3060; border-radius: 4px; padding: 6px 10px; text-align: center; margin-bottom: 6px; }
+.scard-dmg { font-size: 22px; font-weight: bold; color: var(--crit); }
+.scard-breakdown { font-size: 11px; color: #8070a0; margin-top: 2px; }
+.scard-actions { display: flex; gap: 4px; margin-bottom: 4px; }
+.scard-note { font-size: 10px; color: #606080; line-height: 1.3; }
 
 /* Stat block panel */
 .statblock { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; margin-top: 4px; font-size: 11px; display: none; }
@@ -189,10 +214,34 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .sp-link { color: var(--accent); text-decoration: none; font-size: 10px; }
 .sp-link:hover { text-decoration: underline; }
 
-/* Compact HP edit: [−] [input] [+] */
-.hp-compact { display: inline-flex; gap: 2px; align-items: center; }
-.hp-compact input { width: 36px; font-size: 12px; text-align: center; padding: 3px 2px; }
-.hp-compact button { padding: 3px 8px; font-size: 13px; font-weight: bold; }
+/* HP tap target (replaces hp-compact) */
+.hp-tap { cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.hp-tap:hover { background: rgba(255,255,255,0.06); }
+.hp-tap:active { background: rgba(255,255,255,0.1); }
+/* AC tap target in dock */
+.ac-tap { cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.ac-tap:hover { background: rgba(255,255,255,0.06); }
+.ac-tap .ac-val { color: var(--text); }
+.ac-tap .ac-val.empty { color: var(--muted); }
+
+/* Numpad popup */
+.numpad { display: none; position: fixed; z-index: 200; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); touch-action: manipulation; }
+.numpad.open { display: block; }
+.numpad-display { text-align: center; font-size: 20px; font-weight: bold; padding: 6px 8px; margin-bottom: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; min-width: 140px; min-height: 36px; line-height: 36px; }
+.numpad-display .np-sign { color: var(--muted); }
+.numpad-display .np-sign.heal { color: var(--green); }
+.numpad-display .np-sign.dmg { color: var(--red); }
+.numpad-grid { display: grid; grid-template-columns: repeat(3, 48px); gap: 4px; }
+.numpad-grid button { width: 48px; height: 44px; font-size: 18px; font-weight: bold; font-family: inherit; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background 0.1s; }
+.numpad-grid button:hover { background: #333648; }
+.numpad-grid button:active { background: #444a60; transform: scale(0.95); }
+.numpad-grid .np-sign-btn { font-size: 14px; color: var(--muted); }
+.numpad-grid .np-sign-btn.heal { color: var(--green); }
+.numpad-grid .np-sign-btn.dmg { color: var(--red); }
+.numpad-grid .np-ok { background: var(--green); color: #111; border-color: var(--green); }
+.numpad-grid .np-ok:hover { box-shadow: 0 0 10px rgba(78,204,163,0.4); }
+.numpad-grid .np-ac-label { font-size: 11px; color: var(--accent); cursor: default; background: transparent; border-color: transparent; }
+.numpad-label { text-align: center; font-size: 10px; color: var(--muted); margin-bottom: 2px; }
 
 /* Pounce/Grapple — same sizing as buff chips */
 .pounce-tag { background: #5a3a00; color: var(--crit); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
@@ -212,12 +261,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .combat-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-color: var(--accent); border-left: 3px solid var(--accent); overflow: visible; position: relative; }
 .round-display { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: var(--crit); margin-right: 4px; }
 .round-ac { display: flex; align-items: center; gap: 2px; }
-.round-ac input { width: 40px; }
 .round-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
 /* Bottom dock — round bar + slide-up trays */
-.bottom-dock { position: sticky; bottom: 0; z-index: 50; }
+.bottom-dock { position: sticky; bottom: 0; z-index: 50; background: var(--bg); }
 
 /* Tray panels slide up from the bar */
 .tray-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
@@ -316,12 +364,13 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   button.sm { min-height: 28px; padding: 3px 10px; font-size: 11px; }
   button.go { padding: 8px 20px; }
   .chip { padding: 4px 10px; min-height: 28px; line-height: 20px; }
-  .hp-compact button { min-height: 36px; min-width: 36px; padding: 4px 10px; }
-  .hp-compact input { min-height: 36px; width: 48px; }
+  .hp-tap { padding: 4px 8px; }
   .pounce-tag, .grapple-tag { padding: 4px 10px; min-height: 28px; }
 
   /* Narrower cards to fit more across */
-  .ccard { min-width: 230px; max-width: 340px; flex: 1 1 240px; padding: 8px 10px; }
+  .ccard { width: 260px; padding: 8px 10px; }
+  .scard { width: 260px; }
+  .creatures-flow { grid-template-columns: repeat(auto-fill, 260px); }
   .creatures-flow { gap: 10px; }
 
   /* Tighter group bar */
@@ -343,7 +392,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* ── Phone / narrow portrait (≤480px) ── */
 @media (max-width: 480px) {
-  .ccard { min-width: unset; flex: 1 1 100%; }
+  .ccard { width: 100%; }
+  .scard { width: 100%; }
+  .creatures-flow { grid-template-columns: 1fr; }
   .creatures-flow { gap: 4px; }
 }
 </style>
@@ -365,11 +416,20 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 </div>
 
 
-<!-- ═══ Creatures (main viewport) ═══ -->
-<div id="creatures-out"></div>
+<!-- ═══ Creatures + Spell Cards (main viewport) ═══ -->
+<div id="creatures-out" style="flex:1"></div>
 
-<!-- ═══ Effects ═══ -->
-<div id="effects-out"></div>
+<!-- ═══ Numpad Popup ═══ -->
+<div class="numpad" id="numpad">
+  <div class="numpad-label" id="np-label"></div>
+  <div class="numpad-display" id="np-display" onclick="numpadClear()"></div>
+  <div class="numpad-grid">
+    <button onclick="numpadKey('7')">7</button><button onclick="numpadKey('8')">8</button><button onclick="numpadKey('9')">9</button>
+    <button onclick="numpadKey('4')">4</button><button onclick="numpadKey('5')">5</button><button onclick="numpadKey('6')">6</button>
+    <button onclick="numpadKey('1')">1</button><button onclick="numpadKey('2')">2</button><button onclick="numpadKey('3')">3</button>
+    <button id="np-sign-btn" onclick="numpadKey('sign')">±</button><button onclick="numpadKey('0')">0</button><button class="np-ok" onclick="numpadKey('ok')">✓</button>
+  </div>
+</div>
 
 <!-- ═══ Bottom Dock ═══ -->
 <div class="bottom-dock">
@@ -396,8 +456,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
       <div class="row bar-items">
         <label class="label-inline">Items:</label>
         <button onclick="summonLions()">Lion Figurines (2)</button>
-        <button onclick="addEffect('sphere')">Flaming Sphere (wand CL3)</button>
-        <button onclick="addEffect('sphere_cast')">Flaming Sphere (cast)</button>
+      </div>
+      <div class="row bar-spells">
+        <label class="label-inline">Spells:</label>
+        <button onclick="addSpell('sphere')">Flaming Sphere</button>
+        <button onclick="addSpell('sphere_wand')">Flaming Sphere (wand)</button>
+        <button onclick="addSpell('ball_lightning')">Ball Lightning</button>
       </div>
     </div>
   </div>
@@ -421,6 +485,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
     <div class="panel bar-setup">
       <div class="row">
         <div><label>Caster Level</label><input type="number" id="inp-cl" value="10" min="1" max="20"></div>
+        <div><label>Cast Mod</label><input type="number" id="inp-cmod" value="7" min="-2" max="15" title="Casting stat modifier (Wis for Druid)"></div>
       </div>
       <div class="chip-row">
         <label class="label-inline">Feats:</label>
@@ -435,7 +500,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   <!-- Round bar with tray tab buttons -->
   <div class="panel combat-bar" id="round-bar">
     <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
-    <span class="round-ac"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><input type="number" id="ref-ac" value="" placeholder="?" min="1" max="50" onchange="render()"></span>
+    <span class="round-ac ac-tap" onclick="openNumpad('ac',null,this)"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><span id="disp-ac" class="ac-val empty">?</span></span>
+    <input type="hidden" id="ref-ac" value="">
     <div class="tray-tabs">
       <button class="tray-tab" onclick="toggleTray('summon')" id="tab-summon">Summon</button>
       <button class="tray-tab" onclick="toggleTray('buffs')" id="tab-buffs">Buffs</button>
@@ -653,6 +719,9 @@ function filterCreatures(v){ renderCreatureDropdown(v); }
 document.addEventListener('click',e=>{
   const drop=document.getElementById('creature-drop');
   if(drop && !drop.contains(e.target)) drop.classList.remove('open');
+  // Close numpad on outside click
+  const pad=document.getElementById('numpad');
+  if(NP.open && pad && !pad.contains(e.target)) closeNumpad();
 });
 function toggleTray(name) {
   const panel = document.getElementById('tray-'+name);
@@ -909,21 +978,91 @@ function summonLions(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  EFFECTS
+//  SPELL EFFECTS (Battlefield Spell Cards)
 // ═══════════════════════════════════════════════════════════════
-function addEffect(type){
-  const cl=+document.getElementById('inp-cl').value||10;
-  if(type==='sphere') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (wand)',rl:3,dc:13,dmg:'3d6',save:'Ref half',note:'CL3 wand. Move action to reposition.'});
-  if(type==='sphere_cast') S.effects.push({id:`E${nGid++}`,name:'Flaming Sphere (cast)',rl:cl,dc:10+2+5,dmg:'3d6',save:'Ref half',note:`CL${cl}. Move action to reposition.`});
-  if(S.round===0) S.round=1;
+function castMod() { return +(document.getElementById('inp-cmod')?.value) || 0; }
+const SE = {
+  sphere: {
+    name: 'Flaming Sphere', dmg: '3d6', dmgType: 'fire', spLv: 2,
+    save: 'Ref half', note: 'Move action to reposition 30 ft.',
+    dc: () => 10 + 2 + castMod(), dur: cl => cl,
+  },
+  sphere_wand: {
+    name: 'Flaming Sphere (wand)', dmg: '3d6', dmgType: 'fire', spLv: 2,
+    save: 'Ref half', note: 'CL 3 wand. Move action to reposition 30 ft.',
+    dc: () => 13, dur: () => 3,
+  },
+  ball_lightning: {
+    name: 'Ball Lightning', dmg: '3d6', dmgType: 'electricity', spLv: 4,
+    save: 'Ref neg', note: 'Move action directs ALL globes 20 ft. −4 save in metal armor.',
+    dc: () => 10 + 4 + castMod(), dur: cl => cl,
+    count: cl => Math.max(2, Math.min(5, 2 + Math.floor(Math.max(0, cl - 7) / 4))),
+  },
+};
+
+function addSpell(type) {
+  const def = SE[type]; if (!def) return;
+  const cl = +document.getElementById('inp-cl').value || 10;
+  const dc = def.dc(cl);
+  const dur = def.dur(cl);
+  const count = def.count ? def.count(cl) : 1;
+  const groupId = count > 1 ? `SG${nGid++}` : null;
+
+  for (let i = 0; i < count; i++) {
+    const e = {
+      id: `E${nGid++}`, type, name: def.name,
+      rl: dur, dc, dmg: def.dmg, dmgType: def.dmgType,
+      save: def.save, note: def.note, src: type.includes('wand') ? 'wand' : 'cast',
+      groupId, globeIdx: count > 1 ? i + 1 : 0,
+      rollResult: rdice(def.dmg),
+    };
+    S.effects.push(e);
+  }
+  if (S.round === 0) S.round = 1;
   closeAllTrays();
   render();
 }
 
-function rollEffect(eid){
-  const e=S.effects.find(x=>x.id===eid);if(!e)return;
-  const r=rdice(e.dmg);
-  alert(`${e.name}: ${r.t} damage (${r.r.join('+')}${r.m>=0?'+':''}${r.m}) — DC ${e.dc} ${e.save}`);
+function rollSpell(eid) {
+  const e = S.effects.find(x => x.id === eid); if (!e) return;
+  const def = SE[e.type];
+  e.rollResult = rdice(e.dmg);
+  render();
+}
+
+
+
+function dismissSpell(eid) {
+  S.effects = S.effects.filter(x => x.id !== eid);
+  render();
+}
+
+function renderSpellCard(e, spColorIdx) {
+  const r = e.rollResult || { t: 0, r: [], m: 0 };
+  const breakdown = r.r.length ? `[${r.r.join('+')}]` : '';
+  const globePill = e.globeIdx ? `<span class="gpill gpill-sp-${(spColorIdx||0) % 4}">Globe ${e.globeIdx}</span>` : '';
+  // RE-ROLL ALL lives on the stack wrapper for grouped cards, not per-card
+
+  return `<div class="scard">
+    ${globePill}
+    <span class="scard-id">${e.id} <span class="scard-dismiss" onclick="event.stopPropagation();dismissSpell('${e.id}')" title="Dismiss">×</span></span>
+    <div class="scard-namerow">
+      <span class="scard-name">${e.name}</span>
+    </div>
+    <div class="scard-meta">
+      <span class="scard-dice">${e.dmg} ${e.dmgType||''}</span>
+      <span>${e.rl}${IC.countdown('icon-sm')}</span>
+    </div>
+    <div class="scard-dc">DC ${e.dc} ${e.save}</div>
+    <div class="scard-result">
+      <div class="scard-dmg">${r.t}</div>
+      <div class="scard-breakdown">${e.dmg}: ${breakdown}</div>
+    </div>
+    <div class="scard-actions">
+      <button class="sm" onclick="event.stopPropagation();rollSpell('${e.id}')">RE-ROLL</button>
+    </div>
+    <div class="scard-note">${e.note}</div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -934,6 +1073,8 @@ function nextRound(){
   for(const g of S.groups){if(g.casting){g.casting=false;}else{g.rl--;}}
   S.groups=S.groups.filter(g=>{if(g.rl<=0&&g.src==='sna'){g.creatures.forEach(c=>{c.alive=false;});return false;}return true;});
   S.effects=S.effects.filter(e=>{e.rl--;return e.rl>0;});
+  // Re-roll spell effect damage for new round
+  for(const e of S.effects) if(e.rollResult) e.rollResult=rdice(e.dmg);
   // Fast healing
   const fh=bTotal({}).fh;
   if(fh>0) for(const g of S.groups) for(const c of g.creatures) if(c.alive&&c.hp<c.maxHp) c.hp=Math.min(c.maxHp,c.hp+fh);
@@ -953,23 +1094,26 @@ function render(){
   const refACval = document.getElementById('ref-ac').value;
   const refAC = refACval === '' ? 0 : parseInt(refACval) || 0;
   const area=document.getElementById('creatures-out');
-  // Cards fill viewport
+  // Cards fill viewport — flat grid, pills for group identity
   let h='<div class="creatures-flow">';
-  for(const g of S.groups){
-    for(const c of g.creatures) h+=renderCard(c, g, refAC);
+  for(let gi=0; gi<S.groups.length; gi++){
+    const g = S.groups[gi];
+    for(const c of g.creatures) h+=renderCard(c, g, refAC, gi);
   }
+  // Assign a color index per spell groupId
+  const spGroupColors = {};
+  let spColorIdx = 0;
+  for(const e of S.effects) {
+    if(e.groupId && !(e.groupId in spGroupColors)) spGroupColors[e.groupId] = spColorIdx++;
+  }
+  for(const e of S.effects) h+=renderSpellCard(e, e.groupId ? spGroupColors[e.groupId] : -1);
   h+='</div>';
   area.innerHTML=h;
 
-
   // Auto-open summon tray when board is empty and no tray is open
-  if(S.groups.length === 0 && !document.querySelector('.tray-panel.open')) {
+  if(S.groups.length === 0 && S.effects.length === 0 && !document.querySelector('.tray-panel.open')) {
     toggleTray('summon');
   }
-
-  document.getElementById('effects-out').innerHTML=S.effects.map(e=>
-    `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
-  ).join('');
 
   // Dismissed tray content + tab indicator
   const dismissedEl = document.getElementById('dismissed-content');
@@ -1007,13 +1151,19 @@ function spLink(s) {
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
 
-function renderCard(c, group, refAC) {
+function renderCard(c, group, refAC, groupIdx) {
   const casting = group.casting;
   const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
   const hpCls=pct>50?'':pct>25?'low':'crit';
   const cardCls=(!c.alive?'dead':casting?'casting':'');
   const rlTxt=group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
   const durBadge = rlTxt;
+
+  // Group pill for multi-creature groups — colored per group
+  const multi = group.creatures.length > 1;
+  const gpillLabel = group.src === 'figurine' ? 'Figurine' : group.src === 'sna' ? `SNA ${group.slot||''}` : '';
+  const gpillCls = `gpill gpill-${(groupIdx||0) % 5}`;
+  const gpillHTML = multi && gpillLabel ? `<span class="${gpillCls}">${gpillLabel}</span>` : '';
 
   // Tier for data attribute (dropdown uses it, cards don't display it)
   const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
@@ -1232,12 +1382,8 @@ function renderCard(c, group, refAC) {
     </div>
   </div>`;
 
-  // Compact HP controls: [−] [input] [+]
-  const hpCtrl = `<div class="hp-compact">
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',-1)" title="Damage 1">−</button>
-    <input type="number" id="hp-${c.id}" value="" placeholder="±" onkeydown="if(event.key==='Enter'){event.stopPropagation();hpSet('${c.id}',this.value);this.value='';}" onclick="event.stopPropagation()">
-    <button class="sm" onclick="event.stopPropagation();hpAdj('${c.id}',1)" title="Heal 1">+</button>
-  </div>`;
+  // Tappable HP readout — opens numpad popup
+  const hpTap = `<span class="hp-tap" onclick="openNumpad('hp','${c.id}',this)" title="Tap to adjust HP">${IC.hp()}${c.hp}/${c.maxHp}</span>`;
 
   // Key abilities: non-melee special abilities with DCs/combat actions
   // Sources: specialAbilities[] AND Special_Attacks text (for whirlwind, trample, etc.)
@@ -1301,17 +1447,17 @@ function renderCard(c, group, refAC) {
   const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
+    ${gpillHTML}
     <span class="ccard-id">${c.id} <span class="ccard-dismiss" onclick="event.stopPropagation();dismissCreature('${c.id}','${group.id}')" title="Dismiss">×</span></span>
     <div class="ccard-namerow">
       <span class="ccard-name">${c.name}</span>
       <span class="ccard-dur">${durBadge}</span>
     </div>
     <div class="ccard-head">
-      <span class="ccard-hp">${IC.hp()}${c.hp}/${c.maxHp}</span><span class="ccard-ac">${c.ac}${IC.ac()}</span>
+      ${hpTap}<span class="ccard-ac">${c.ac}${IC.ac()}</span>
     </div>
     <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
     <div class="hp-row">
-      ${hpCtrl}
       <span class="ccard-cmd">CMD ${c.cmd}</span>
     </div>
     <div class="buff-pounce-row">
@@ -1336,7 +1482,6 @@ function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;i
 function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp:1;preRoll(c);render();}}
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
-function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
 let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {
@@ -1377,9 +1522,122 @@ function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
     if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
 }
-function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];localStorage.removeItem(SAVE_KEY);render();}
+function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];document.getElementById('ref-ac').value='';updACDisplay();localStorage.removeItem(SAVE_KEY);render();}
+
+// ═══════════════════════════════════════════════════════════════
+//  NUMPAD POPUP
+// ═══════════════════════════════════════════════════════════════
+let NP = { open: false, mode: null, cid: null, value: '', sign: -1, el: null };
+
+function openNumpad(mode, cid, triggerEl) {
+  event.stopPropagation();
+  const pad = document.getElementById('numpad');
+  const label = document.getElementById('np-label');
+  const signBtn = document.getElementById('np-sign-btn');
+  NP = { open: true, mode, cid, value: '', sign: mode === 'hp' ? -1 : 0, el: triggerEl };
+
+  if (mode === 'hp') {
+    const c = findC(cid);
+    label.textContent = c ? `${c.name} — ${c.hp}/${c.maxHp}` : 'HP';
+    signBtn.className = 'np-sign-btn dmg';
+    signBtn.textContent = '−';
+  } else {
+    const cur = document.getElementById('ref-ac').value;
+    label.textContent = 'Target AC';
+    signBtn.className = 'np-ac-label';
+    signBtn.textContent = 'AC';
+  }
+
+  updNumpadDisplay();
+  pad.classList.add('open');
+
+  // Position near trigger
+  const rect = triggerEl.getBoundingClientRect();
+  const padW = 164, padH = 250;
+  let left = rect.left + rect.width / 2 - padW / 2;
+  let top = rect.top - padH - 8;
+  if (top < 4) top = rect.bottom + 8;
+  if (left < 4) left = 4;
+  if (left + padW > window.innerWidth - 4) left = window.innerWidth - padW - 4;
+  pad.style.left = left + 'px';
+  pad.style.top = top + 'px';
+}
+
+function numpadKey(k) {
+  event.stopPropagation();
+  if (k === 'ok') {
+    numpadSubmit();
+    return;
+  }
+  if (k === 'sign') {
+    if (NP.mode === 'hp') {
+      NP.sign = NP.sign === -1 ? 1 : -1;
+      const btn = document.getElementById('np-sign-btn');
+      if (NP.sign === 1) { btn.className = 'np-sign-btn heal'; btn.textContent = '+'; }
+      else { btn.className = 'np-sign-btn dmg'; btn.textContent = '−'; }
+    }
+    updNumpadDisplay();
+    return;
+  }
+  // Digit — cap at 3 digits
+  if (NP.value.length >= 3) return;
+  NP.value += k;
+  updNumpadDisplay();
+}
+
+function numpadClear() {
+  event.stopPropagation();
+  NP.value = '';
+  updNumpadDisplay();
+}
+
+function updNumpadDisplay() {
+  const disp = document.getElementById('np-display');
+  if (NP.mode === 'hp') {
+    const signStr = NP.sign === -1 ? '−' : '+';
+    const signCls = NP.sign === -1 ? 'dmg' : 'heal';
+    disp.innerHTML = `<span class="np-sign ${signCls}">${signStr}</span>${NP.value || '0'}`;
+  } else {
+    disp.textContent = NP.value || '?';
+  }
+}
+
+function numpadSubmit() {
+  const n = parseInt(NP.value);
+  if (NP.mode === 'hp' && NP.cid && !isNaN(n) && n > 0) {
+    const val = NP.sign * n;
+    hpAdj(NP.cid, val);
+  } else if (NP.mode === 'ac') {
+    const acInput = document.getElementById('ref-ac');
+    if (!isNaN(n) && n > 0) {
+      acInput.value = n;
+    } else {
+      acInput.value = '';
+    }
+    updACDisplay();
+    render();
+  }
+  closeNumpad();
+}
+
+function closeNumpad() {
+  NP.open = false;
+  document.getElementById('numpad').classList.remove('open');
+}
+
+function updACDisplay() {
+  const val = document.getElementById('ref-ac').value;
+  const disp = document.getElementById('disp-ac');
+  if (val && parseInt(val) > 0) {
+    disp.textContent = val;
+    disp.className = 'ac-val';
+  } else {
+    disp.textContent = '?';
+    disp.className = 'ac-val empty';
+  }
+}
 function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);
-  if(j.ac)document.getElementById('ref-ac').value=j.ac;
+  if(j.ac){document.getElementById('ref-ac').value=j.ac;updACDisplay();}
   if(j.buffs)for(const b of j.buffs)S.buffs[b]=true;
   if(j.slot)document.getElementById('inp-slot').value=j.slot;
   if(j.tier){updTiers();document.getElementById('inp-tier').value=j.tier;}
@@ -1401,9 +1659,10 @@ const SAVE_KEY = 'sna-combat-state';
 function saveState() {
   try {
     const data = {
-      S, nGid, nCid,
+      S, nGid, nCid, dismissed,
       refAC: document.getElementById('ref-ac').value,
       cl: document.getElementById('inp-cl').value,
+      cmod: document.getElementById('inp-cmod').value,
       slot: document.getElementById('inp-slot').value,
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -1420,7 +1679,10 @@ function loadState() {
     nCid = data.nCid || 1;
     if (data.refAC) document.getElementById('ref-ac').value = data.refAC;
     if (data.cl) document.getElementById('inp-cl').value = data.cl;
+    if (data.cmod) document.getElementById('inp-cmod').value = data.cmod;
     if (data.slot) document.getElementById('inp-slot').value = data.slot;
+    if (data.dismissed) dismissed = data.dismissed;
+    updACDisplay();
     // Re-link creature attacks (parseMelee results are plain objects, survive JSON)
     // Re-roll all living creatures to get fresh dice
     for (const g of S.groups) for (const c of g.creatures) if (c.alive) preRoll(c);

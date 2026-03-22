@@ -37,13 +37,13 @@ No build step, no npm, no bundler. Reload browser to test. Verify: summon a crea
 
 ## File Structure
 
-Single file: `index.html` (1443 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
+Single file: `index.html` (~1550 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
 
-| Section | Lines | Contents |
+| Section | Lines (approx) | Contents |
 |---------|-------|----------|
-| `<style>` | 9–347 | `:root` color tokens, all component styles, responsive breakpoints (≤1024px, ≤480px) |
-| `<body>` | 350–447 | Static shell: title bar, settings tray, setup drawer, output divs, bottom dock |
-| `<script>` | 449–1441 | State, dice, buffs, melee parser, tier logic, pre-roll, render, effects, trash, persistence, init |
+| `<style>` | 9–390 | `:root` color tokens, all component styles, responsive breakpoints (≤1024px, ≤480px) |
+| `<body>` | 390–500 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
+| `<script>` | 500–1550 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, persistence, init |
 
 Section markers: `<!-- ═══ Section ═══ -->` in HTML, `// ═══ SECTION ═══` in JS.
 
@@ -63,7 +63,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 
 - **`S`** = single mutable state: `{ round, groups[], effects[], feats{}, buffs{} }`
 - **`B`** = bestiary (name→data), **`R`** = ratings (level→name→tier) — both read-only after init
-- **`trash`** = dismissed creatures (separate from `S`, persisted in localStorage)
+- **`dismissed`** = dismissed creatures (separate from `S`, persisted in localStorage)
 - **Cycle**: mutate `S` → call `render()` → DOM rebuilt via template literals → `saveState()` called automatically
 - **Pre-roll strategy**: `preRoll(c)` stores raw d20s and damage dice at summon time. `computeRoll(c)` recalculates bonuses from current `S.buffs`/`S.feats` at render time. Buff toggles call `render()` (recalculate only). Feat toggles call `reroll()` (re-roll all dice, because feats like Haste add/remove attack rows).
 
@@ -77,6 +77,17 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 ### Icons
 
 `IC` object returns inline SVG strings. All use `fill="currentColor"`. Special pips (grab, trip, poison, burn) are 8×8 colored circles. No CDN, no icon fonts — keep icons self-contained.
+
+### Layout
+
+CSS Grid (`repeat(auto-fill, 280px)`) — all cards (creatures + spells) flow in a single flat grid. No wrapper containers for groups. Group identity via colored pills (`.gpill`) on card top borders. 5-color palette for creature groups, 4 purple shades for spell groups.
+
+### Adding a Spell Effect
+
+1. Add entry to `SE` object: `name, dmg, dmgType, spLv, save, note, dc(cl), dur(cl)` — optionally `count(cl)` for multi-entity spells
+2. Add `<button onclick="addSpell('key')">Label</button>` to `.bar-spells` in the Summon tray
+3. DC uses `castMod()` which reads the Cast Mod input in Setup tray
+4. Spell cards auto re-roll damage on NEXT ROUND
 
 ### Adding a Buff
 

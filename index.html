@@ -228,11 +228,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .bar-buffs { border-left: 3px solid var(--green); }
 .bar-summon { border-left: 3px solid var(--crit); }
 .bar-items { border-left: 3px solid var(--muted); }
-/* Dismissed card */
-.ccard.dismissed { opacity: 0.3; }
-.dismissed-bar { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-.dismissed-label { color: var(--red); font-size: 11px; }
-.undo-btn { font-size: 10px; padding: 2px 8px; background: var(--accent); border-color: var(--accent); color: #fff; }
+/* Trash tray */
+.trash-bar { font-size: 11px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-left: 3px solid var(--muted); }
+.trash-label { color: var(--muted); }
 .settings-tray { display: none; }
 .settings-tray.open { display: block; }
 .settings-tray .row { margin-bottom: 4px; }
@@ -398,6 +396,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 <!-- ═══ Effects ═══ -->
 <div id="effects-out"></div>
+
+<!-- ═══ Trash Tray ═══ -->
+<div id="trash-tray"></div>
 
 <!-- ═══ Buff Bar (persistent state) ═══ -->
 <div class="panel chip-row bar-buffs bottom-bar">
@@ -925,6 +926,16 @@ function render(){
   document.getElementById('effects-out').innerHTML=S.effects.map(e=>
     `<div class="ecard">${e.name} | ${e.dmg} DC ${e.dc} ${e.save} | ${e.rl}rd | <button class="sm" onclick="rollEffect('${e.id}')">Roll</button></div>`
   ).join('');
+
+  // Trash tray
+  const trashEl = document.getElementById('trash-tray');
+  if (trash.length > 0) {
+    trashEl.innerHTML = `<div class="panel trash-bar"><span class="trash-label">Dismissed:</span> ${trash.map((t,i) =>
+      `<button class="sm" onclick="restoreFromTrash(${i})">${t.creature.name} ↩</button>`
+    ).join(' ')}</div>`;
+  } else {
+    trashEl.innerHTML = '';
+  }
 }
 
 // d20pfsrd links for common special abilities
@@ -1221,17 +1232,6 @@ function renderCard(c, group, refAC) {
     abilityHTML += '</div>';
   }
 
-  // Dismissed card — faded with undo
-  if (c.dismissed) {
-    return `<div class="ccard dismissed">
-      <div class="ccard-namerow"><span class="ccard-name">${c.name}</span></div>
-      <div class="dismissed-bar">
-        <span class="dismissed-label">Dismissed</span>
-        <button class="sm undo-btn" onclick="event.stopPropagation();undoDismiss()">UNDO</button>
-      </div>
-    </div>`;
-  }
-
   // Dead card — collapsed, rotated sideways with wrapper for layout
   if (!c.alive) {
     const deadCard = `<div class="ccard dead">
@@ -1288,31 +1288,33 @@ function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
 function dismissG(gid){S.groups=S.groups.filter(g=>g.id!==gid);render();}
-let pendingDismiss = null;
+let trash = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
-  // Mark creature as dismissed with undo window
-  const c = findC(cid);
-  if (!c) return;
-  c.dismissed = true;
-  c.alive = false;
-  if (pendingDismiss) clearTimeout(pendingDismiss.timer);
-  pendingDismiss = { cid, gid, timer: setTimeout(() => {
-    // Actually remove after 4 seconds
-    for (const g of S.groups) {
-      g.creatures = g.creatures.filter(x => x.id !== cid);
+  for (const g of S.groups) {
+    const idx = g.creatures.findIndex(x => x.id === cid);
+    if (idx >= 0) {
+      const c = g.creatures.splice(idx, 1)[0];
+      trash.push({ creature: c, groupId: g.id, groupName: g.name });
+      break;
     }
-    S.groups = S.groups.filter(g => g.creatures.length > 0);
-    pendingDismiss = null;
-    render();
-  }, 4000) };
+  }
+  S.groups = S.groups.filter(g => g.creatures.length > 0);
   render();
 }
-function undoDismiss() {
-  if (!pendingDismiss) return;
-  clearTimeout(pendingDismiss.timer);
-  const c = findC(pendingDismiss.cid);
-  if (c) { c.dismissed = false; c.alive = true; preRoll(c); }
-  pendingDismiss = null;
+function restoreFromTrash(idx) {
+  const item = trash.splice(idx, 1)[0];
+  if (!item) return;
+  const c = item.creature;
+  c.alive = true;
+  c.dismissed = false;
+  preRoll(c);
+  // Find or recreate the group
+  let g = S.groups.find(x => x.id === item.groupId);
+  if (!g) {
+    g = { id: item.groupId, name: item.groupName, src: 'sna', creatures: [], rl: 1, casting: false };
+    S.groups.push(g);
+  }
+  g.creatures.push(c);
   render();
 }
 function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
@@ -1322,7 +1324,7 @@ function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
     if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
 }
-function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;localStorage.removeItem(SAVE_KEY);render();}
+function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;trash=[];localStorage.removeItem(SAVE_KEY);render();}
 function doImport(){try{const j=JSON.parse(document.getElementById('inp-import').value);
   if(j.ac)document.getElementById('ref-ac').value=j.ac;
   if(j.buffs)for(const b of j.buffs)S.buffs[b]=true;

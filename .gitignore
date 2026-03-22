@@ -1,1 +1,17 @@
+# Python
 __pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+._*
+
+# Editors
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+Thumbs.db

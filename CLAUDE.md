@@ -9,7 +9,10 @@ PF1e Summon Nature's Ally combat tool.
 | `README.md` | What this is, how to run it, rules implemented |
 | `TODO.md` | Canonical backlog — all planned work lives here |
 | `CLAUDE.md` | Coding conventions, correctness constraints, gotchas (this file) |
-| `index.html` | The entire app (single file, no dependencies) |
+| `index.html` | HTML shell (~130 lines) — structure only, links to CSS/JS |
+| `style.css` | All CSS — tokens, fonts (base64), component styles, animations, breakpoints |
+| `app.js` | All JS — state, dice, buffs, rendering, interactions, persistence |
+| `bestiary.js` | Embedded bestiary data + creature ratings (auto-generated from `statblocks/`) |
 | `ABILITY-PLAN.md` | UI layer taxonomy, ability-to-layer mapping, tier roadmap |
 | `ABILITY-AUDIT.md` | Full bestiary special abilities audit (read-only reference) |
 
@@ -39,13 +42,14 @@ No build step, no npm, no bundler. Reload browser to test. Verify: summon a crea
 
 ## File Structure
 
-Single file: `index.html` (~2225 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
+Split into 4 files. No build step — serve directory via `python3 -m http.server 8787`.
 
-| Section | Lines (approx) | Contents |
-|---------|-------|----------|
-| `<style>` | 9–450 | `:root` color tokens, all component styles, shimmer animations, responsive breakpoints (≤1024px, ≤480px) |
-| `<body>` | 450–560 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
-| `<script>` | 560–2220 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
+| File | Lines (approx) | Contents |
+|------|-------|----------|
+| `index.html` | ~130 | HTML shell: title bar, numpad popup, trays, dock. Links `style.css`, `bestiary.js`, `app.js` |
+| `style.css` | ~480 | `:root` tokens, `@font-face` (base64 woff2), component styles, shimmer animations, breakpoints |
+| `app.js` | ~1650 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
+| `bestiary.js` | ~5 (minified data) | `BESTIARY_DATA` + `RATINGS_DATA` — auto-generated from `statblocks/*.json` via `build_bestiary.py` |
 
 Section markers: `<!-- ═══ Section ═══ -->` in HTML, `// ═══ SECTION ═══` in JS.
 
@@ -150,6 +154,6 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 
 - Add frameworks, libraries, or `package.json`
 - Add a build step (webpack, vite, esbuild)
-- Split `index.html` into multiple files (unless explicitly doing the CSS/JS separation backlog item)
+- Recombine the split files back into a single HTML file (use the 4-file structure)
 - Use `el.style.*` or inline `style=` for things CSS classes can handle
 - Add icon fonts or CDN dependencies

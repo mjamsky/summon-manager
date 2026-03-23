@@ -37,13 +37,13 @@ No build step, no npm, no bundler. Reload browser to test. Verify: summon a crea
 
 ## File Structure
 
-Single file: `index.html` (~1925 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
+Single file: `index.html` (~2225 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
 
 | Section | Lines (approx) | Contents |
 |---------|-------|----------|
-| `<style>` | 9–430 | `:root` color tokens, all component styles, shimmer animations, responsive breakpoints (≤1024px, ≤480px) |
-| `<body>` | 430–540 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
-| `<script>` | 540–1920 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
+| `<style>` | 9–450 | `:root` color tokens, all component styles, shimmer animations, responsive breakpoints (≤1024px, ≤480px) |
+| `<body>` | 450–560 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
+| `<script>` | 560–2220 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
 
 Section markers: `<!-- ═══ Section ═══ -->` in HTML, `// ═══ SECTION ═══` in JS.
 
@@ -77,7 +77,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 
 ### Icons
 
-`IC` object returns inline SVG strings. All use `fill="currentColor"`. Special pips (grab, trip, poison, burn) are 8×8 colored circles. No CDN, no icon fonts — keep icons self-contained.
+`IC` object returns inline SVG strings. All use `fill="currentColor"`. Special pips (grab, trip, poison, burn, disease, stun) are 8×8 colored circles. No CDN, no icon fonts — keep icons self-contained.
 
 ### Layout
 
@@ -92,10 +92,37 @@ CSS Grid (`repeat(auto-fill, 280px)`) — all cards (creatures + spells) flow in
 
 ### Adding a Buff
 
-1. Add entry to `BD` object: `name: {a: atkBonus, d: dmgBonus, s: saveBonus, ty: 'type'}` — types: `'morale'`/`'sacred'` (highest wins), `'u'` (untyped, stacks), `'haste'` (extra attack), `'sp'` (special handling)
+1. Add entry to `BD` object: `name: {a: atkBonus, d: dmgBonus, s: saveBonus, ac: acMod, ty: 'type'}` — types: `'morale'`/`'sacred'` (highest wins), `'u'` (untyped, stacks), `'haste'` (extra attack), `'sp'` (special handling)
 2. Add `<span class="chip" data-buff="name" onclick="tBuff(this)">Label</span>` to `#tray-buffs` in HTML
-3. Stacking math in `bTotal()` is automatic
+3. Stacking math in `bTotal()` is automatic. `ac` field tracks AC modifiers (e.g. rage -2).
 4. Per-creature local buffs: `c.buffOvr[id]=true` enables a non-global buff for one creature. `bTotal()` has a second pass for these. The `[+]` button on each card opens a popup to add local-only buffs.
+
+### Triggered Buff System
+
+Creatures can declare triggers: `c.triggers = [{ on: 'event', apply: 'buff_id' }]`. Currently supported events: `'damage'` (checked in `dmgC()`/`hpAdj()`). When triggered, sets `c.buffOvr[buff_id]=true` as a local buff. Example: Wolverine/Dire Badger rage on damage.
+
+### Situational Toggles
+
+Per-creature toggles that modify `computeRoll()` math without re-rolling dice:
+- **Earth/Water Mastery**: `c.earthMastery`/`c.waterMastery` — persistent, +1 atk/+1 dmg
+- **Powerful Charge**: `c.charging` — one-shot (auto-off on Next Round), swaps gore damage dice to `c.powerfulChargeDmg`
+- **One-shot auto-off**: `nextRound()` resets `c.pouncing` and `c.charging` to false
+
+### Auto-Damage Rows
+
+Pre-rolled damage rows in the attack table, gated by creature state:
+- **Constrict**: active when grappling (existing)
+- **Death Roll**: active when grappling, includes trip pip + legend entry
+- **Gnaw**: active when grappling (auto-bite damage)
+- **Rend**: at BOTTOM of table, active when 2+ claw attacks hit vs AC. No AC → always active.
+
+### Ability Section (tap-to-expand)
+
+`renderAbilities()` shows abilities with inline CMB/DC values. Tap a row to expand muted detail text + SRD link. Desktop hover shows tooltip. Links only appear in expanded detail (iPad-compatible).
+
+### Diehard
+
+`deathThreshold(c)` returns `-c.con` for Diehard creatures, `0` otherwise. All HP functions use this. Creatures with Diehard can have negative HP and remain alive.
 
 ### Adding a UI Section
 
@@ -121,6 +148,11 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 | Augment Summoning | +4 Str/+4 Con at creature creation, not as a runtime buff. Affects HP, atk, dmg, CMB, CMD, Fort. |
 | Power Attack | NOT baked into statblock numbers (verified against AoN). Toggle applies -X atk / +2X dmg. Single natural attack = +3X (two-handed). X = 1+floor(BAB/4). |
 | Flanking | Per-creature toggle, +2 untyped attack. Not a global buff. |
+| Death Roll | Grapple check → bite damage + auto-trip. Trip is automatic (no CMB check), size-gated. |
+| Rend | 2+ claw hits in same round → bonus damage. No attack roll. Auto-row at bottom of table. |
+| Powerful Charge | Charge → enhanced gore damage dice. One-shot, auto-off on Next Round. |
+| Rage | Triggered on taking damage. +1 atk/+1 dmg, -2 AC. Cannot end voluntarily. |
+| Diehard | Death at -Con HP, not 0. Creature fights in negative HP. |
 
 ## Gotchas
 
@@ -128,8 +160,8 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 - **Naz cannot cast spells** — Fighter class, no exceptions
 - **Lion figurines**: 1hr/day duration, not permanent. `rl:600` in code.
 - **Branch is `master`**, no remote configured
-- **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses or toggle visibility, call `render()`. ALL toggles (`tBuff`, `tFeat`, `togPounce`, `togGrapple`, `togFlanking`, `togPA`) → `render()`. Only `reroll()` and `nextRound()` call `preRoll`.
-- **Creature card layout**: decisions row (Flank / Pounce / Pwr Atk / Grapple) above attack table. Feat badges (Cleave, CE, Lunge) below toggles. Buff chips muted at card bottom with `[+]` for local-only buffs.
+- **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses or toggle visibility, call `render()`. ALL toggles (`tBuff`, `tFeat`, `togPounce`, `togGrapple`, `togFlanking`, `togPA`, `togMastery`, `togCharge`) → `render()`. Only `reroll()` and `nextRound()` call `preRoll`.
+- **Creature card layout**: decisions row (Flank / Pounce / Charge / E. Mastery / Pwr Atk / Grapple) above attack table. Feat badges (Cleave, CE, Lunge) + tactical badges (Flyby, Sprint, Earth Glide, Diehard, N AoO) below toggles. Buff chips muted at card bottom with `[+]` for local-only buffs.
 - **Grapple round tracking**: `c.grappleRound` records when grapple toggled. Same round = initial grab (constrict active, all attacks visible). Next round = maintain mode (normal attacks suppressed, auto-dmg + rake only).
 - **Shimmer animations**: `.legend-active` (green/gold), `.shimmer-blue` (maintain text), `.shimmer-red` (confirmed crits). All use same `legend-shimmer` keyframes with different gradient colors.
 

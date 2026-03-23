@@ -43,15 +43,15 @@
 ## Ability Surfacing — see `ABILITY-PLAN.md` for full plan
 
 ### Tier 1 remaining (Batches C + D — attack table rows + toggles + triggers)
-- [ ] Rend auto-damage row at bottom of table (Dire Ape, Girallon). Active when 2+ claws hit vs AC.
-- [ ] Death Roll auto-damage row (Crocodile, Dire Croc). Constrict pattern + trip tooltip with size note.
-- [ ] Gnaw: auto-damage row + pre-rolled bonus bite in grapple mode (Giant Moray Eel).
-- [ ] Earth/Water Mastery situational toggles (+1 atk/+1 dmg, persistent)
-- [ ] Powerful Charge situational toggle (swap gore dice, one-shot auto-off)
-- [ ] One-shot auto-off on Next Round: Pounce + Powerful Charge
-- [ ] Triggered buff system — generic `{ on: 'event', apply: 'buff_id' }` infrastructure
-- [ ] Rage via triggered buff (Wolverine, Dire Badger — on damage → auto-apply)
-- [ ] Diehard HP logic fix (death at -Con not 0, Woolly Rhino + T-Rex)
+- [x] Rend auto-damage row at bottom of table (Dire Ape, Girallon). Active when 2+ claws hit vs AC.
+- [x] Death Roll auto-damage row (Crocodile, Dire Croc). Constrict pattern + trip tooltip with size note.
+- [x] Gnaw: auto-damage row + pre-rolled bonus bite in grapple mode (Giant Moray Eel).
+- [x] Earth/Water Mastery situational toggles (+1 atk/+1 dmg, persistent)
+- [x] Powerful Charge situational toggle (swap gore dice, one-shot auto-off)
+- [x] One-shot auto-off on Next Round: Pounce + Powerful Charge
+- [x] Triggered buff system — generic `{ on: 'event', apply: 'buff_id' }` infrastructure
+- [x] Rage via triggered buff (Wolverine, Dire Badger — on damage → auto-apply)
+- [x] Diehard HP logic fix (death at -Con not 0, Woolly Rhino + T-Rex)
 
 ### Tier 2 (mode toggles + state changes + ranged)
 - [ ] Trample mode toggle (one-shot: suppress attacks, show damage + Ref DC)

@@ -119,20 +119,20 @@ Bestiary audit identified 10 patterns of creature abilities/feats, many invisibl
 ### Tier 1 — Existing patterns (badges, pips, ability lines, auto-rows, situational toggles)
 No new UI interaction patterns needed.
 
-- [ ] Triceratops crit data bug fix
-- [ ] Badge system with tooltips: Flyby, Spring Attack, Combat Reflexes, Diehard
-- [ ] Disease + Stun pip icons
-- [ ] CMB feat lines in renderAbilities() — parse from Feats string
-- [ ] Diehard HP logic fix (death at -Con not 0)
-- [ ] Rend auto-damage row at bottom of table (conditional on 2+ claw hits)
-- [ ] Death Roll auto-damage row (constrict pattern + trip tooltip with size note)
-- [ ] Gnaw: auto-damage row + pre-rolled bonus bite in grapple mode
-- [ ] Earth/Water Mastery situational toggles (+1 atk/+1 dmg, persistent)
-- [ ] Powerful Charge situational toggle (swap gore dice, one-shot)
-- [ ] Bleeding/Staggering Critical — conditional text in specials legend when crit confirms
-- [ ] One-shot auto-off: Pounce + Powerful Charge reset on Next Round
-- [ ] Triggered buff system — generic `{ on: 'event', apply: 'buff_id' }` infrastructure
-- [ ] Rage via triggered buff (on damage → auto-apply +1 atk/dmg, -2 AC, +1 HP/HD)
+- [x] Triceratops crit data bug fix
+- [x] Badge system with tooltips: Flyby, Spring Attack, Combat Reflexes, Diehard
+- [x] Disease + Stun pip icons
+- [x] CMB feat lines in renderAbilities() — parse from Feats string
+- [x] Diehard HP logic fix (death at -Con not 0)
+- [x] Rend auto-damage row at bottom of table (conditional on 2+ claw hits)
+- [x] Death Roll auto-damage row (constrict pattern + trip tooltip with size note)
+- [x] Gnaw: auto-damage row + pre-rolled bonus bite in grapple mode
+- [x] Earth/Water Mastery situational toggles (+1 atk/+1 dmg, persistent)
+- [x] Powerful Charge situational toggle (swap gore dice, one-shot)
+- [x] Bleeding/Staggering Critical — conditional text in specials legend when crit confirms
+- [x] One-shot auto-off: Pounce + Powerful Charge reset on Next Round
+- [x] Triggered buff system — generic `{ on: 'event', apply: 'buff_id' }` infrastructure
+- [x] Rage via triggered buff (on damage → auto-apply +1 atk/dmg, -2 AC, +1 HP/HD)
 
 ### Tier 2 — Mode toggles + state changes + ranged
 New toggle types that alter or replace attack table.

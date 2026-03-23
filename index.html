@@ -105,9 +105,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard-hp { font-size: 14px; color: #fff; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 .ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
 .ccard-cmd { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-left: auto; }
-.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 0 12px; }
-.ccard-meta span { white-space: nowrap; }
-.ccard-meta .meta-right { margin-left: auto; }
+.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
+.ccard-meta .meta-spd { min-width: 0; }
+.ccard-meta .meta-right { flex-shrink: 0; text-align: right; line-height: 1.4; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #3a3a20; color: var(--crit); border: 1px solid #5a5a30; }
 /* Inline SVG icons — consistent sizing */
 .icon { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 2px; }
@@ -273,6 +273,14 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .pa-tag { background: transparent; color: #cf6a6a; padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #5a3a3a; transition: all 0.15s; }
 .pa-tag:hover { background: #3a1a1a; border-color: #cf6a6a; }
 .pa-tag.active { background: #5a2a2a; color: #ff8a8a; border-color: #cf6a6a; }
+.mastery-tag { background: transparent; color: #a08050; padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #5a4a2a; transition: all 0.15s; }
+.mastery-tag:hover { background: #2a2010; border-color: #a08050; }
+.mastery-tag.active { background: #4a3a1a; color: #d0b060; border-color: #a08050; }
+.charge-tag { background: transparent; color: #cf8a4a; padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #5a3a1a; transition: all 0.15s; }
+.charge-tag:hover { background: #3a2010; border-color: #cf8a4a; }
+.charge-tag.active { background: #5a3a1a; color: #ffaa5a; border-color: #cf8a4a; }
+.auto-trip { font-size: 9px; color: #f0a050; }
+.rend-row { border-top: 1px dashed var(--border); }
 /* Notable feat badges */
 .feat-badge { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: #2a2d3a; color: var(--muted); border: 1px solid var(--border); }
 /* Decisions row — pre-turn toggles above attack table */
@@ -383,11 +391,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* Key ability section (above roll table) */
 .ability-section { border: 1px solid #3a2a50; background: #1e1a2a; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 11px; }
-.ability-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ability-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 8px; cursor: pointer; }
 .ability-name { color: #c4a0ff; font-weight: bold; }
 .ability-type { color: var(--muted); font-size: 9px; }
 .ability-dc { color: var(--crit); font-weight: bold; }
-.ability-detail { color: var(--muted); font-size: 10px; }
+.ability-detail { display: none; width: 100%; color: var(--muted); font-size: 10px; line-height: 1.3; padding-top: 2px; }
+.ability-row.expanded .ability-detail { display: block; }
 
 /* Dead creature — rotated sideways */
 .ccard.dead { opacity: 1; transform-origin: top left; transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
@@ -413,7 +422,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   button.go { padding: 8px 20px; }
   .chip { padding: 4px 10px; min-height: 28px; line-height: 20px; }
   .hp-tap { padding: 4px 8px; }
-  .pounce-tag, .grapple-tag, .flank-tag, .pa-tag { padding: 4px 10px; min-height: 28px; }
+  .pounce-tag, .grapple-tag, .flank-tag, .pa-tag, .mastery-tag, .charge-tag { padding: 4px 10px; min-height: 28px; }
 
   /* Narrower cards to fit more across */
   .ccard { width: 260px; padding: 8px 10px; }
@@ -632,6 +641,7 @@ const BD = {
   smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ty:'haste',extra:1},
   heroism:{a:2,d:0,s:2,ty:'morale'},
   fh4:{a:0,d:0,s:0,ty:'sp',fh:4},
+  rage:{a:1,d:1,s:0,ac:-2,ty:'u'}, // Rage: +2 Str → +1 atk/dmg, +2 Con → +1 HP/HD, -2 AC
 };
 function bTotal(overrides) {
   const by = {};
@@ -641,13 +651,13 @@ function bTotal(overrides) {
     const def = BD[id]; if (!def) continue;
     const t = def.ty;
     if (t==='u'||t==='sp'||t==='haste') {
-      by[id] = by[id]||{a:0,d:0,s:0,extra:0,fh:0};
-      by[id].a+=def.a; by[id].d+=def.d; by[id].s+=def.s;
+      by[id] = by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
+      by[id].a+=def.a; by[id].d+=def.d; by[id].s+=def.s; by[id].ac+=(def.ac||0);
       if(def.extra) by[id].extra=1; if(def.fh) by[id].fh=def.fh;
     } else {
-      by[t]=by[t]||{a:0,d:0,s:0,extra:0,fh:0};
+      by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
       by[t].a=Math.max(by[t].a,def.a); by[t].d=Math.max(by[t].d,def.d);
-      by[t].s=Math.max(by[t].s,def.s);
+      by[t].s=Math.max(by[t].s,def.s); by[t].ac+=(def.ac||0);
       if(def.extra) by[t].extra=1; if(def.fh) by[t].fh=Math.max(by[t].fh,def.fh);
     }
   }
@@ -658,19 +668,19 @@ function bTotal(overrides) {
       const def = BD[id]; if (!def) continue;
       const t = def.ty;
       if (t==='u'||t==='sp'||t==='haste') {
-        by[id]=by[id]||{a:0,d:0,s:0,extra:0,fh:0};
-        by[id].a+=def.a;by[id].d+=def.d;by[id].s+=def.s;
+        by[id]=by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
+        by[id].a+=def.a;by[id].d+=def.d;by[id].s+=def.s;by[id].ac+=(def.ac||0);
         if(def.extra)by[id].extra=1;if(def.fh)by[id].fh=def.fh;
       } else {
-        by[t]=by[t]||{a:0,d:0,s:0,extra:0,fh:0};
+        by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
         by[t].a=Math.max(by[t].a,def.a);by[t].d=Math.max(by[t].d,def.d);
-        by[t].s=Math.max(by[t].s,def.s);
+        by[t].s=Math.max(by[t].s,def.s);by[t].ac+=(def.ac||0);
         if(def.extra)by[t].extra=1;if(def.fh)by[t].fh=Math.max(by[t].fh,def.fh);
       }
     }
   }
-  const r={a:0,d:0,s:0,extra:0,fh:0};
-  for(const v of Object.values(by)){r.a+=v.a;r.d+=v.d;r.s+=v.s;if(v.extra)r.extra=1;r.fh=Math.max(r.fh,v.fh||0);}
+  const r={a:0,d:0,s:0,ac:0,extra:0,fh:0};
+  for(const v of Object.values(by)){r.a+=v.a;r.d+=v.d;r.s+=v.s;r.ac+=v.ac;if(v.extra)r.extra=1;r.fh=Math.max(r.fh,v.fh||0);}
   return r;
 }
 
@@ -686,7 +696,7 @@ function parseMelee(str) {
     const pm=seg.match(/\(([^)]+)\)/);let dmg='1d4',sp=[],cr=20,cm=2;
     if(pm){const pc=pm[1];const dm=pc.match(/^(\d+d\d+(?:[+-]\d+)?)/);if(dm)dmg=dm[1];
       const c1=pc.match(/\/(\d+)[–-]20/);if(c1)cr=+c1[1];const c2=pc.match(/[×x](\d+)/);if(c2)cm=+c2[1];
-      for(const kw of['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push'])if(pc.toLowerCase().includes(kw))sp.push(kw);
+      for(const kw of['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','disease','stun'])if(pc.toLowerCase().includes(kw))sp.push(kw);
     }
     const bef=pm?seg.slice(0,seg.indexOf('(')).trim():seg.trim();
     const nm=bef.match(/^(?:(\d+)\s+)?([\w\s]+?)\s+([+-]?\d+)\s*$/);
@@ -894,7 +904,33 @@ function preRoll(c) {
     constrictRaw = rdice(c.constrictDmg);
   }
 
-  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg };
+  // Rend damage (auto-damage when 2+ claws hit)
+  let rendRaw = null;
+  if (c.hasRend && c.rendDmg) {
+    rendRaw = rdice(c.rendDmg);
+  }
+
+  // Death Roll damage (grapple auto-damage + trip)
+  let deathRollRaw = null;
+  if (c.hasDeathRoll && c.deathRollDmg) {
+    deathRollRaw = rdice(c.deathRollDmg);
+  }
+
+  // Gnaw damage (auto bite damage in grapple)
+  let gnawRaw = null;
+  if (c.hasGnaw && c.gnawDmg) {
+    gnawRaw = rdice(c.gnawDmg);
+  }
+
+  // Powerful Charge (pre-roll alternate gore damage + crit extra)
+  let chargeRaw = null, chargeCritExtra = 0;
+  if (c.hasPowerfulCharge && c.powerfulChargeDmg) {
+    chargeRaw = rdice(c.powerfulChargeDmg);
+    chargeCritExtra = rdice(c.powerfulChargeDmg).t; // gore is ×2, so 1 extra roll
+  }
+
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg,
+    rendRaw, deathRollRaw, gnawRaw, chargeRaw, chargeCritExtra };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)
@@ -903,6 +939,9 @@ function computeRoll(c) {
   const b = bTotal(c.buffOvr);
   // Per-creature flanking
   if (c.flanking) b.a += 2;
+  // Situational toggles: Earth/Water Mastery
+  if (c.earthMastery) { b.a += 1; b.d += 1; }
+  if (c.waterMastery) { b.a += 1; b.d += 1; }
   const rows = [];
   const autoRows = [];
   const grabs = [];
@@ -934,6 +973,27 @@ function computeRoll(c) {
   // Maintain mode = grappling AND past the round grapple started
   const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
 
+  // Death Roll auto-damage (grapple, same trigger as constrict)
+  if (c.rawRoll.deathRollRaw) {
+    const dr = c.rawRoll.deathRollRaw;
+    autoRows.push({
+      name: 'Death Roll', isDeathRoll: true,
+      dmg: Math.max(1, dr.t + b.d),
+      dmgDice: c.deathRollDmg, dmgRolls: dr.r, dmgMod: (dr.m || 0) + b.d, buffDmg: b.d,
+      hasTrip: true,
+    });
+  }
+
+  // Gnaw auto-damage (grapple auto-bite)
+  if (c.rawRoll.gnawRaw) {
+    const gn = c.rawRoll.gnawRaw;
+    autoRows.push({
+      name: 'Gnaw', isGnaw: true,
+      dmg: Math.max(1, gn.t + b.d),
+      dmgDice: c.gnawDmg, dmgRolls: gn.r, dmgMod: (gn.m || 0) + b.d, buffDmg: b.d,
+    });
+  }
+
   // Maintain auto-damage: grab attack's damage (only in maintain mode)
   if (c.rawRoll.maintainDmgRaw) {
     const md = c.rawRoll.maintainDmgRaw;
@@ -944,6 +1004,9 @@ function computeRoll(c) {
       dmgDice: c.rawRoll.grabAtkDmg || '?', dmgRolls: md.r, dmgMod: (md.m || 0) + b.d, buffDmg: b.d,
     });
   }
+
+  // Rend auto-damage (bottom of table, after normal attacks computed)
+  // Deferred — pushed after rows are built so we can count claw hits
 
   for (const raw of c.rawRoll.rows) {
     if (raw.isHaste && !b.extra) continue;
@@ -987,6 +1050,36 @@ function computeRoll(c) {
   }
 
   rows.sort((a, b) => b.total - a.total);
+
+  // Rend auto-row at BOTTOM (after rows built so we can reference claw hit count)
+  // Numbers always shown; activation state determined at render time based on claw hits vs AC
+  if (c.rawRoll.rendRaw) {
+    const rn = c.rawRoll.rendRaw;
+    autoRows.push({
+      name: 'Rend', isRend: true,
+      dmg: Math.max(1, rn.t + b.d),
+      dmgDice: c.rendDmg, dmgRolls: rn.r, dmgMod: (rn.m || 0) + b.d, buffDmg: b.d,
+    });
+  }
+
+  // Powerful Charge: replace gore row damage when charging
+  if (c.charging && c.rawRoll.chargeRaw) {
+    const ch = c.rawRoll.chargeRaw;
+    for (const row of rows) {
+      if (row.name.toLowerCase().includes('gore')) {
+        row.dmgNoCrit = Math.max(1, ch.t + b.d + paDmg);
+        row.dmg = row.dmgNoCrit;
+        row.dmgDice = c.powerfulChargeDmg;
+        row.dmgRolls = ch.r;
+        row.dmgMod = (ch.m || 0) + b.d + paDmg;
+        row.isCharge = true;
+        if (row.critOk) {
+          row.dmg = row.dmgNoCrit + (c.rawRoll.chargeCritExtra || 0) + b.d;
+        }
+        break;
+      }
+    }
+  }
 
   // Compute maintain grapple total
   let maintain = null;
@@ -1057,6 +1150,62 @@ function mkCreature(bEntry, aug) {
     }
   }
 
+  // Parse rend damage (e.g. "rend (2 claws, 1d4+6)")
+  let rendDmg = '';
+  const hasRend = specials.includes('rend');
+  if (hasRend) {
+    const rm2 = specials.match(/rend\s*\([^,]*,\s*(\d+d\d+(?:[+-]\d+)?)/);
+    if (rm2) rendDmg = rm2[1];
+    if (!rendDmg && data.combat_card?.rendDmg) rendDmg = data.combat_card.rendDmg;
+  }
+
+  // Parse death roll damage (e.g. "death roll (1d8+6 plus trip)")
+  let deathRollDmg = '';
+  const hasDeathRoll = specials.includes('death roll');
+  if (hasDeathRoll) {
+    const dr2 = specials.match(/death\s*roll\s*\((\d+d\d+(?:[+-]\d+)?)/);
+    if (dr2) deathRollDmg = dr2[1];
+    if (!deathRollDmg && data.combat_card?.deathRollDmg) {
+      const drm = data.combat_card.deathRollDmg.match(/(\d+d\d+(?:[+-]\d+)?)/);
+      if (drm) deathRollDmg = drm[1];
+    }
+  }
+
+  // Parse gnaw (auto-bite damage in grapple)
+  const hasGnaw = specials.includes('gnaw');
+  let gnawDmg = '';
+  if (hasGnaw) {
+    const ga = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('gnaw'));
+    if (ga) { const dm = ga.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) gnawDmg = dm[1]; }
+    if (!gnawDmg) {
+      // Fallback: use bite attack damage
+      const biteAtk = parseMelee(card.Melee||base.Melee||'').find(a=>a.name.toLowerCase().includes('bite'));
+      if (biteAtk) gnawDmg = biteAtk.dmg;
+    }
+  }
+
+  // Parse powerful charge (e.g. "powerful charge (gore, 4d6+12)")
+  const hasPowerfulCharge = specials.includes('powerful charge');
+  let powerfulChargeDmg = '';
+  if (hasPowerfulCharge) {
+    const pc2 = specials.match(/powerful\s*charge\s*\([^,]*,\s*(\d+d\d+(?:[+-]\d+)?)/);
+    if (pc2) powerfulChargeDmg = pc2[1];
+    if (!powerfulChargeDmg && data.combat_card?.powerfulChargeDmg) powerfulChargeDmg = data.combat_card.powerfulChargeDmg;
+  }
+
+  // Situational flags
+  const hasEarthMastery = specials.includes('earth mastery');
+  const hasWaterMastery = specials.includes('water mastery');
+
+  // Feat-based flags
+  const featsLow = (full.Feats||'').toLowerCase();
+  const hasDiehard = featsLow.includes('diehard');
+  const hasRage = specials.includes('rage') || specials.includes('blood rage');
+
+  // Triggered buffs (generic system)
+  const triggers = [];
+  if (hasRage) triggers.push({ on:'damage', apply:'rage' });
+
   return {
     id:`C${nCid++}`, name:data.name, hp:card.HP||10, maxHp:card.HP||10,
     ac:card.AC||10, attacks:parseMelee(card.Melee||base.Melee||''), aug,
@@ -1064,6 +1213,10 @@ function mkCreature(bEntry, aug) {
     fort:card.Fort||base.Fort||0, ref:card.Ref||base.Ref||0, will:card.Will||base.Will||0,
     speed:card.Speed||base.Speed||'30 ft.',
     specials, hasPounce, hasRake, rakeAtks, constrictDmg,
+    hasRend, rendDmg, hasDeathRoll, deathRollDmg, hasGnaw, gnawDmg,
+    hasPowerfulCharge, powerfulChargeDmg, charging:false,
+    hasEarthMastery, hasWaterMastery, earthMastery:false, waterMastery:false,
+    hasDiehard, hasRage, triggers,
     hasGrab: parseMelee(card.Melee||base.Melee||'').some(a=>a.sp.includes('grab')),
     acBreak:card.AC_breakdown||base.AC_breakdown||'',
     specialAtks:card.Special_Attacks||base.Special_Attacks||'',
@@ -1227,6 +1380,8 @@ function nextRound(){
   S.effects=S.effects.filter(e=>{e.rl--;return e.rl>0;});
   // Re-roll spell effect damage for new round
   for(const e of S.effects) if(e.rollResult) e.rollResult=rdice(e.dmg);
+  // One-shot auto-off: pounce, powerful charge
+  for(const g of S.groups) for(const c of g.creatures) { c.pouncing=false; c.charging=false; }
   // Fast healing
   const fh=bTotal({}).fh;
   if(fh>0) for(const g of S.groups) for(const c of g.creatures) if(c.alive&&c.hp<c.maxHp) c.hp=Math.min(c.maxHp,c.hp+fh);
@@ -1296,6 +1451,8 @@ const PFSRD = {
   disease:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Disease',
   burn:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Burn',
   stun:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Stun',
+  'death roll':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Death_Roll',
+  gnaw:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Gnaw',
   'bull rush':'https://www.d20pfsrd.com/gamemastering/combat/#Bull_Rush',
   'overrun':'https://www.d20pfsrd.com/gamemastering/combat/#Overrun',
   'sunder':'https://www.d20pfsrd.com/gamemastering/combat/#Sunder',
@@ -1307,6 +1464,14 @@ function spLink(s) {
 }
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
+// Clean + abbreviate speed: strip ft., artifacts, flight quality symbols. Remove earth glide/sprint (surfaced as badges).
+function fmtSpeed(s) {
+  if (!s) return '';
+  return s.replace(/other\s*\['?([^\]']+)'?\]\s*ft\.?/gi, '')
+          .replace(/other_semicolon\s+\w+\s*ft\.?/gi, '')
+          .replace(/\s*ft\.?/g, '').replace(/\s*\(perfect\)/gi, '✦').replace(/\s*\(good\)/gi, '').replace(/\s*\(average\)/gi, '')
+          .replace(/,\s*,/g, ',').replace(/,\s*$/,'').replace(/^,\s*/,'').trim();
+}
 
 function renderDeadCard(c) {
   return `<div class="dead-wrap"><div class="ccard dead">
@@ -1344,6 +1509,13 @@ function renderDecisions(c) {
   const grapHTML = `<span class="grapple-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Grappling: maintain + constrict/rake (if available)">${c.grappling?'GRAPPLING':'Grapple'}</span>`;
   const paHTML = c.hasPowerAttack ?
     `<span class="pa-tag ${c.powerAttacking?'active':''}" onclick="event.stopPropagation();togPA('${c.id}')" title="Power Attack: -${c.paX} atk, +${c.paX*2} dmg (${c.paX*3} single)">${c.powerAttacking?'PWR ATK':'Pwr Atk'}</span>` : '';
+  // Situational toggles: mastery, charge
+  const masteryHTML = c.hasEarthMastery ?
+    `<span class="mastery-tag ${c.earthMastery?'active':''}" onclick="event.stopPropagation();togMastery('${c.id}','earth')" title="Earth Mastery: +1 atk/+1 dmg when both on ground">${c.earthMastery?'E. MASTERY':'E. Mastery'}</span>` :
+    c.hasWaterMastery ?
+    `<span class="mastery-tag ${c.waterMastery?'active':''}" onclick="event.stopPropagation();togMastery('${c.id}','water')" title="Water Mastery: +1 atk/+1 dmg in water">${c.waterMastery?'W. MASTERY':'W. Mastery'}</span>` : '';
+  const chargeHTML = c.hasPowerfulCharge ?
+    `<span class="charge-tag ${c.charging?'active':''}" onclick="event.stopPropagation();togCharge('${c.id}')" title="Powerful Charge: gore → ${c.powerfulChargeDmg}">${c.charging?'CHARGING':'Charge'}</span>` : '';
   // Notable feats computed at render time (survives localStorage without migration)
   const featsStr = (c.feats||'').toLowerCase();
   const notableFeats = [
@@ -1359,14 +1531,20 @@ function renderDecisions(c) {
   if (featsStr.includes('spring attack')) tacBadges.push({name:'Spring Atk', tip:'Move → melee attack during move → continue moving.'});
   if (featsStr.includes('combat reflexes')) {
     const aoos = Math.max(1, mod(c.dex));
-    tacBadges.push({name:`CR ${aoos}`, tip:`Combat Reflexes: ${aoos} AoOs/round (Dex mod).`});
+    tacBadges.push({name:`${aoos} AoO`, tip:`Combat Reflexes: ${aoos} AoOs/round (Dex mod).`});
   }
   if (featsStr.includes('diehard')) tacBadges.push({name:'Diehard', tip:`Fights until -${c.con} HP. Auto-stabilizes.`});
+  // Movement/utility badges from specials + speed + qualities
+  const specLow = (c.specials||'').toLowerCase();
+  const speedLow = (c.speed||'').toLowerCase();
+  const qualLow = (c.specialQual||'').toLowerCase();
+  if (speedLow.includes('earth glide') || qualLow.includes('earth glide')) tacBadges.push({name:'Earth Glide', tip:'Move through earth/stone (not metal). No tunnel. Tremorsense to navigate.'});
+  if (specLow.includes('sprint') || speedLow.includes('sprint')) tacBadges.push({name:'Sprint', tip:'1/min: 10× land speed for 1 round.'});
   const tacHTML = tacBadges.map(b => `<span class="tac-badge" title="${b.tip}">${b.name}</span>`).join('');
 
   const allBadges = featBadges + tacHTML;
   const badgeRow = allBadges ? `<div class="feat-badge-row">${allBadges}</div>` : '';
-  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
+  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${chargeHTML} ${masteryHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
 }
 
 function renderRollTable(c, pr, refAC) {
@@ -1378,11 +1556,16 @@ function renderRollTable(c, pr, refAC) {
   const runningByType = {};
   let tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">${IC.atk('icon-sm')}</th><th class="r">${IC.dmg('icon-sm')}</th><th class="r th-sum" title="Running damage total">Σ</th></tr>`;
 
-  // Auto-damage rows at top (constrict, maintain auto-dmg)
+  // Auto-damage rows at top (constrict, death roll, gnaw, maintain auto-dmg)
+  // Rend goes AFTER normal rows (appended below)
   const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
-  for (const ar of pr.autoRows) {
+  const topAutoRows = pr.autoRows.filter(ar => !ar.isRend);
+  const rendRows = pr.autoRows.filter(ar => ar.isRend);
+  for (const ar of topAutoRows) {
     if (ar.isMaintainDmg && !maintainMode) continue;
-    const active = c.grappling;
+    // Death roll and gnaw: active when grappling (same as constrict)
+    const isGrappleAuto = ar.isConstrict || ar.isDeathRoll || ar.isGnaw || ar.isMaintainDmg;
+    const active = isGrappleAuto ? c.grappling : false;
     const cls = active ? 'auto-active' : 'auto-muted';
     if (active) {
       runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
@@ -1393,7 +1576,9 @@ function renderRollTable(c, pr, refAC) {
     const buffPart = ar.buffDmg ? ` +${ar.buffDmg} buff` : '';
     const rollStr = ar.dmgRolls ? `[${ar.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
     const dmgTip = `${ar.dmgDice}: ${rollStr}`;
-    tableHTML += `<tr class="${cls}"><td><span class="atk-pips"></span><span class="atk-name">${ar.name.toLowerCase()}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+    const tripPip = ar.hasTrip ? `<span class="atk-pips">${IC.trip}</span>` : '<span class="atk-pips"></span>';
+    const nameExtra = ar.hasTrip ? ` <span class="auto-trip" title="Target prone (size or smaller)">+ trip</span>` : '';
+    tableHTML += `<tr class="${cls}"><td>${tripPip}<span class="atk-name">${ar.name.toLowerCase()}${nameExtra}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
   }
 
   for(const r of pr.rows){
@@ -1467,6 +1652,25 @@ function renderRollTable(c, pr, refAC) {
     const runTip = (runCell && !r.nat1 && !(isHit===false)) ? Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ') : '';
     tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="running" title="${runTip}">${runCell}</td></tr>`;
   }
+
+  // Rend auto-rows at BOTTOM of attack table
+  // Active when 2+ claw attacks hit vs AC. No AC set → always active (player judges).
+  for (const ar of rendRows) {
+    const clawHits = hasAC ? pr.rows.filter(r => r.name.toLowerCase().includes('claw') && r.hit_ac >= refAC).length : 999;
+    const active = clawHits >= 2;
+    const cls = active ? 'auto-active' : 'auto-muted';
+    if (active) {
+      runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
+      if (hasAC) { hitDmg += ar.dmg; }
+    }
+    const runCell = active ? runningDmg : '—';
+    const baseMod = ar.dmgMod - (ar.buffDmg||0);
+    const buffPart = ar.buffDmg ? ` +${ar.buffDmg} buff` : '';
+    const rollStr = ar.dmgRolls ? `[${ar.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
+    const dmgTip = `${ar.dmgDice}: ${rollStr}`;
+    tableHTML += `<tr class="${cls} rend-row"><td><span class="atk-pips"></span><span class="atk-name">${ar.name.toLowerCase()}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+  }
+
   tableHTML+=`</table>`;
 
   // Specials legend
@@ -1500,7 +1704,8 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
   const allSpecials = new Set();
   c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
   allSpecials.delete('constrict');
-  if (allSpecials.size === 0) return '';
+  const hasDeathRollLegend = c.hasDeathRoll && c.grappling;
+  if (allSpecials.size === 0 && !hasDeathRollLegend) return '';
 
   let html = `<div class="specials-section">`;
   for (const s of allSpecials) {
@@ -1538,6 +1743,15 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
     const infoCls = (isTriggered && hasAC) ? 'legend-active' : '';
     html += `<div class="special-legend legend-${s}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark} <span class="${infoCls}">${info}</span></div>`;
   }
+  // Death Roll trip — auto-prone on successful death roll (no CMB check, size-gated)
+  if (c.hasDeathRoll && c.grappling) {
+    const tripPip = IC.trip || '';
+    const tripCls = c.grappling ? 'legend-active' : '';
+    const sizeNote = c.size || '';
+    const tripUrl = PFSRD['death roll'] || PFSRD['trip'] || '#';
+    html += `<div class="special-legend legend-trip">${tripPip} <a class="sp-link" href="${tripUrl}" target="_blank" onclick="event.stopPropagation()">Trip</a> <span class="${tripCls}">auto (≤${sizeNote})</span></div>`;
+  }
+
   // Crit rider feats — show conditionally when a crit confirms
   const featsLow = (c.feats||'').toLowerCase();
   const hasConfirmedCrit = pr.rows.some(r => r.critOk && (!hasAC || r.critConfTotal >= refAC));
@@ -1558,10 +1772,11 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
 }
 
 function renderAbilities(c) {
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce']);
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
-    return !meleeSpecials.has(kw);
+    const kwFull = a.name.split('(')[0].trim().toLowerCase();
+    return !meleeSpecials.has(kw) && !meleeSpecials.has(kwFull);
   });
   const saText = c.specialAtks || '';
   const saTextParsed = [...saText.matchAll(/(\w[\w\s]*?)\s*\(([^)]+)\)/g)];
@@ -1574,28 +1789,29 @@ function renderAbilities(c) {
     keyAbilities.push({ name: m[1].trim(), desc: m[2], _fromText: true, _url: url });
   }
   // CMB feat maneuvers — parse from Feats string
+  // Inline shows CMB value only; tooltip has tactical detail
   const cmbFeats = [];
   const fs = (c.feats||'');
   const fsLow = fs.toLowerCase();
   const cmbVal = c.cmb || 0;
   if (fsLow.includes('improved bull rush')) {
     const hasGreater = fsLow.includes('greater bull rush');
-    const desc = hasGreater ? `CMB ${fmtMod(cmbVal+2)}, pushed foe provokes AoOs` : `CMB ${fmtMod(cmbVal+2)} (no AoO)`;
-    cmbFeats.push({name: hasGreater ? 'Gr. Bull Rush' : 'Imp. Bull Rush', desc, url: PFSRD['bull rush']});
+    const tip = hasGreater ? 'Pushed foe provokes AoOs from allies. No AoO to initiate.' : 'No AoO to initiate.';
+    cmbFeats.push({name: hasGreater ? 'Gr. Bull Rush' : 'Imp. Bull Rush', cmb: cmbVal+2, tip, url: PFSRD['bull rush']});
   }
   if (fsLow.includes('improved overrun')) {
     const hasGreater = fsLow.includes('greater overrun');
-    const desc = hasGreater ? `CMB ${fmtMod(cmbVal+2)}, overrun foe provokes AoOs` : `CMB ${fmtMod(cmbVal+2)} (no AoO)`;
-    cmbFeats.push({name: hasGreater ? 'Gr. Overrun' : 'Imp. Overrun', desc, url: PFSRD['overrun']});
+    const tip = hasGreater ? 'Overrun foe provokes AoOs. No AoO to initiate.' : 'No AoO to initiate.';
+    cmbFeats.push({name: hasGreater ? 'Gr. Overrun' : 'Imp. Overrun', cmb: cmbVal+2, tip, url: PFSRD['overrun']});
   }
   if (fsLow.includes('improved sunder')) {
-    cmbFeats.push({name: 'Imp. Sunder', desc: `CMB ${fmtMod(cmbVal+2)} (no AoO)`, url: PFSRD['sunder']});
+    cmbFeats.push({name: 'Imp. Sunder', cmb: cmbVal+2, tip: 'No AoO to initiate.', url: PFSRD['sunder']});
   }
   if (fsLow.includes('awesome blow')) {
-    cmbFeats.push({name: 'Awesome Blow', desc: `CMB ${fmtMod(cmbVal)} → 10ft knockback + prone`, url: PFSRD['awesome blow']});
+    cmbFeats.push({name: 'Awesome Blow', cmb: cmbVal, tip: 'Target flies 10ft + prone. Standard action.', url: PFSRD['awesome blow']});
   }
   for (const cf of cmbFeats) {
-    keyAbilities.push({name: cf.name, desc: cf.desc, _fromText: true, _url: cf.url});
+    keyAbilities.push({name: cf.name, desc: `CMB ${fmtMod(cf.cmb)}`, _tip: cf.tip, _fromText: true, _url: cf.url});
   }
 
   if (keyAbilities.length === 0) return '';
@@ -1604,16 +1820,24 @@ function renderAbilities(c) {
     const dcMatch = a.desc.match(/DC\s*(\d+)/);
     const dcStr = dcMatch ? `DC ${dcMatch[1]}` : '';
     const rangeMatch = a.desc.match(/(\d+)[- ](?:foot|ft)/);
-    const rangeStr = rangeMatch ? `${rangeMatch[1]}ft` : '';
+    const rangeStr = rangeMatch ? `${rangeMatch[1]}` : '';
     const saveMatch = a.desc.match(/(Will|Fort|Ref)\s*(?:save)?/i);
     const saveStr = saveMatch ? saveMatch[1] : '';
     const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
     const typeStr = typeMatch ? typeMatch[1] : '';
-    const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
-    const nameDisp = a._url ? `<a class="ability-name sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">${a.name.split('(')[0].trim()}</a>` : `<span class="ability-name">${a.name.split('(')[0].trim()}</span>`;
-    html += `<div class="ability-row">
+    let info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
+    if (!info && a._fromText && a.desc) info = a.desc;
+    // Detail text: tap to expand. CMB feats use _tip, others use full desc.
+    const detail = a._tip || (a.desc && !a._fromText ? a.desc : '');
+    const nameClean = a.name.split('(')[0].trim();
+    const tipAttr = detail ? ` title="${detail.replace(/"/g, '&quot;')}"` : '';
+    const nameDisp = `<span class="ability-name"${tipAttr}>${nameClean}</span>`;
+    const srdLink = a._url ? ` <a class="sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">SRD</a>` : '';
+    const detailHTML = detail ? `<div class="ability-detail">${detail}${srdLink}</div>` : (srdLink ? `<div class="ability-detail">${srdLink.trim()}</div>` : '');
+    html += `<div class="ability-row" onclick="event.stopPropagation();this.classList.toggle('expanded')">
       <span>${nameDisp} <span class="ability-type">${typeStr}</span></span>
       <span class="ability-dc">${info}</span>
+      ${detailHTML}
     </div>`;
   }
   return html + '</div>';
@@ -1703,7 +1927,7 @@ function renderCard(c, group, refAC, groupIdx) {
     ${renderDecisions(c)}
     ${summaryHTML}${tableHTML}${specialsHTML}
     ${renderBuffChips(c)}
-    <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span><span class="meta-right">${c.size}</span></div>
+    <div class="ccard-meta"><span class="meta-spd">${fmtSpeed(c.speed)}</span><span class="meta-right"><span>Reach ${(c.reach||'').replace(/\s*ft\.?/g,'')}</span><br><span>${c.size}</span></span></div>
     ${renderStatBlock(c)}
   </div>`;
 }
@@ -1712,15 +1936,25 @@ function renderCard(c, group, refAC, groupIdx) {
 //  ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function findC(id){for(const g of S.groups){const c=g.creatures.find(x=>x.id===id);if(c)return c;}return null;}
-function dmgC(id,n){const c=findC(id);if(c){c.hp=Math.max(0,c.hp-n);if(c.hp<=0)c.alive=false;render();}}
-function healC(id,n){const c=findC(id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.alive=c.hp>0;render();}}
-function hpAdj(id,n){const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,c.hp+n));if(c.hp<=0)c.alive=false;render();}}
-function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;if(val.startsWith('+')||val.startsWith('-')){hpAdj(id,n);}else{const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,n));if(c.hp<=0)c.alive=false;render();}}}
+function deathThreshold(c){return c.hasDiehard ? -c.con : 0;}
+function checkDeath(c){const thresh=deathThreshold(c);if(c.hp<=thresh)c.alive=false;}
+function dmgC(id,n){const c=findC(id);if(c){
+  const thresh=deathThreshold(c);
+  c.hp=Math.max(thresh,c.hp-n);checkDeath(c);
+  // Triggered buff system: check creature triggers on damage
+  if(c.alive&&n>0&&c.triggers){for(const t of c.triggers){if(t.on==='damage'&&BD[t.apply]){c.buffOvr[t.apply]=true;}}}
+  render();
+}}
+function healC(id,n){const c=findC(id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.alive=c.hp>deathThreshold(c);render();}}
+function hpAdj(id,n){const c=findC(id);if(c){const thresh=deathThreshold(c);c.hp=Math.max(thresh,Math.min(c.maxHp,c.hp+n));checkDeath(c);if(n<0&&c.alive&&c.triggers){for(const t of c.triggers){if(t.on==='damage'&&BD[t.apply]){c.buffOvr[t.apply]=true;}}}render();}}
+function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;if(val.startsWith('+')||val.startsWith('-')){hpAdj(id,n);}else{const c=findC(id);if(c){const thresh=deathThreshold(c);c.hp=Math.max(thresh,Math.min(c.maxHp,n));checkDeath(c);render();}}}
 function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp:1;preRoll(c);render();}}
 function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;render();}}
 function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling){c.pouncing=false;c.grappleRound=S.round;}else{c.grappleRound=0;}render();}}
 function togFlanking(id){const c=findC(id);if(c){c.flanking=!c.flanking;render();}}
 function togPA(id){const c=findC(id);if(c){c.powerAttacking=!c.powerAttacking;render();}}
+function togMastery(id,type){const c=findC(id);if(c){if(type==='earth')c.earthMastery=!c.earthMastery;else c.waterMastery=!c.waterMastery;render();}}
+function togCharge(id){const c=findC(id);if(c){c.charging=!c.charging;if(c.charging)c.pouncing=false;render();}}
 let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {

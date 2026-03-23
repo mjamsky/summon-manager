@@ -10,6 +10,8 @@ PF1e Summon Nature's Ally combat tool.
 | `TODO.md` | Canonical backlog — all planned work lives here |
 | `CLAUDE.md` | Coding conventions, correctness constraints, gotchas (this file) |
 | `index.html` | The entire app (single file, no dependencies) |
+| `ABILITY-PLAN.md` | UI layer taxonomy, ability-to-layer mapping, tier roadmap |
+| `ABILITY-AUDIT.md` | Full bestiary special abilities audit (read-only reference) |
 
 ### Workflow
 
@@ -58,7 +60,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 - **Do**: pass dynamic values to CSS via custom properties (`style="--hp:${pct}%"` + CSS `width: var(--hp)`), not inline style rules
 - **Don't**: use inline `style=` to set CSS properties directly (e.g., `style="width:42%"`, `style="color:red"`)
 - **Why**: CSS custom properties keep presentation in CSS where it belongs. JS passes data, CSS decides how to render it. If the backend changes (React, Rust/WASM, server-rendered), the CSS works unchanged — only the data source swaps out.
-- **Migrate**: dropdown column width currently uses JS-computed inline style and should move to CSS
+- **Migrate**: dropdown `--name-col` custom property still set via `el.style.setProperty` (line ~764). Could move to CSS `ch` units.
 
 ### State & Render Cycle
 
@@ -102,6 +104,17 @@ CSS Grid (`repeat(auto-fill, 280px)`) — all cards (creatures + spells) flow in
 1. Add HTML inside the appropriate `<!-- ═══ Section ═══ -->` block
 2. Add CSS rules in the corresponding area (keep CSS order matching HTML order)
 3. If it needs state, add a field to `S` and handle in `saveState()`/`loadState()`
+
+### Adding a Creature Ability
+
+Consult `ABILITY-PLAN.md` for which UI layer the ability belongs to (badge, toggle, auto-row, pip, etc.).
+
+1. **Parse** in `mkCreature()` — detect from `specials` (Special_Attacks), `feats`, or `specialAbilities` array. Store as flag + data on creature object (e.g. `hasRend`, `rendDmg`).
+2. **Pre-roll** in `preRoll()` — if the ability has damage dice, roll them here. Store in `c.rawRoll`. Never roll at render time.
+3. **Compute** in `computeRoll()` — add to `autoRows` (for auto-damage) or modify `rows` (for attack swaps). Apply buff bonuses. Gate visibility on creature state (grappling, charging, etc.).
+4. **Render** in `renderRollTable()` (auto-rows, attack rows), `renderDecisions()` (toggles, badges), `renderSpecialsLegend()` (pip legends), or `renderAbilities()` (ability section lines).
+5. **Toggle function** — if interactive, add `togX(id)` that mutates creature state and calls `render()`. Never call `preRoll()` from a toggle.
+6. **Filter** in `renderAbilities()` — add the ability keyword to `meleeSpecials` set if it's handled elsewhere (auto-row, pip, toggle) to avoid double-display.
 
 ## PF1e Correctness Constraints
 

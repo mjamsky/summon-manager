@@ -132,7 +132,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .legend-burn .sp-link { color: #ff6030; font-size: 11px; }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
-.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; }
+.hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; cursor: pointer; }
 .hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; box-shadow: 0 0 4px var(--green); }
 .hpfill.low { background: var(--crit); box-shadow: 0 0 8px var(--crit); }
 .hpfill.crit { background: var(--red); box-shadow: 0 0 12px var(--red); animation: pulse-hp 1.5s ease-in-out infinite; }
@@ -161,6 +161,11 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .roll-table .special { font-size: 10px; color: var(--accent); }
 /* Tooltip for breakdown */
 .roll-table td[title] { cursor: help; border-bottom: 1px dotted var(--muted); }
+
+/* Auto-damage rows (constrict, maintain auto-dmg) */
+.roll-table tr.auto-active td { color: var(--hit); }
+.roll-table tr.auto-muted td { color: var(--muted); opacity: 0.5; }
+.roll-table tr.auto-muted td.dmg { font-weight: normal; }
 
 /* AC threshold line */
 .ac-line { border-top: 2px dashed var(--red); }
@@ -219,8 +224,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .hp-tap:hover { background: rgba(255,255,255,0.06); }
 .hp-tap:active { background: rgba(255,255,255,0.1); }
 /* AC tap target in dock */
-.ac-tap { cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.ac-tap:hover { background: rgba(255,255,255,0.06); }
+.ac-tap { cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 0; }
+.ac-tap:hover { background: rgba(255,255,255,0.06); border-color: var(--accent); }
+.ac-tap-label { font-size: 8px; color: var(--muted); letter-spacing: 0.5px; line-height: 1; }
 .ac-tap .ac-val { color: var(--text); }
 .ac-tap .ac-val.empty { color: var(--muted); }
 
@@ -244,10 +250,40 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .numpad-label { text-align: center; font-size: 10px; color: var(--muted); margin-bottom: 2px; }
 
 /* Pounce/Grapple — same sizing as buff chips */
-.pounce-tag { background: #5a3a00; color: var(--crit); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
-.pounce-tag.active { background: var(--crit); color: #111; }
-.grapple-tag { background: #2a2a5a; color: var(--accent); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
-.grapple-tag.active { background: var(--accent); color: #fff; }
+.pounce-tag { background: transparent; color: var(--crit); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #5a4a20; transition: all 0.15s; }
+.pounce-tag:hover { background: #3a2a00; border-color: var(--crit); }
+.pounce-tag.active { background: var(--crit); color: #111; border-color: var(--crit); }
+.grapple-tag { background: transparent; color: var(--accent); padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #3a3a5a; transition: all 0.15s; }
+.grapple-tag:hover { background: #1a1a3a; border-color: var(--accent); }
+.grapple-tag.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* Flanking tag — outlined, filled when active */
+.flank-tag { background: transparent; color: #6cbf8a; padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #3a5a4a; transition: all 0.15s; }
+.flank-tag:hover { background: #1a3a2a; border-color: #6cbf8a; }
+.flank-tag.active { background: #2a5a3a; color: #8fefa8; border-color: #6cbf8a; }
+/* Power Attack tag — outlined, filled when active */
+.pa-tag { background: transparent; color: #cf6a6a; padding: 2px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; border: 1px solid #5a3a3a; transition: all 0.15s; }
+.pa-tag:hover { background: #3a1a1a; border-color: #cf6a6a; }
+.pa-tag.active { background: #5a2a2a; color: #ff8a8a; border-color: #cf6a6a; }
+/* Notable feat badges */
+.feat-badge { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: #2a2d3a; color: var(--muted); border: 1px solid var(--border); }
+/* Decisions row — pre-turn toggles above attack table */
+.decisions-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.decisions-row:has(+ .feat-badge-row) { border-bottom: none; padding-bottom: 0; }
+.decisions-right { margin-left: auto; }
+.feat-badge-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+/* Muted buff chips (bottom of card) */
+.buff-chips-muted { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+.buff-chips-muted .buff-chip { font-size: 9px; padding: 1px 5px; opacity: 0.5; }
+.buff-chips-muted .buff-chip:hover { opacity: 1; }
+.buff-chips-muted .buff-chip.local { border-color: var(--accent); opacity: 0.7; }
+.buff-chips-muted .aug-chip { font-size: 9px; padding: 1px 5px; opacity: 0.5; }
+/* Buff add button */
+.buff-add-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--border); color: var(--muted); font-size: 11px; cursor: pointer; font-weight: bold; line-height: 1; }
+.buff-add-btn:hover { background: var(--accent); color: #fff; }
+/* Buff add popup */
+.buff-add-popup { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px; z-index: 200; min-width: 120px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+.buff-add-popup .buff-add-item { padding: 4px 8px; cursor: pointer; font-size: 11px; border-radius: 3px; }
+.buff-add-popup .buff-add-item:hover { background: #333648; }
 
 /* ── Inline-style replacements ── */
 .label-inline { display: inline; }
@@ -323,10 +359,12 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .specials-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; }
 .special-legend { color: var(--muted); margin-bottom: 2px; }
 .special-legend .sp-link { font-size: 11px; }
-.legend-active { color: var(--hit); font-weight: bold; animation: legend-shimmer 2s ease-in-out infinite; }
+.legend-active { font-weight: bold; color: rgba(78,204,163,0.1); background: linear-gradient(90deg, var(--hit), var(--crit) 50%, var(--hit)); background-size: 80px 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: legend-shimmer 1.2s linear infinite; background-repeat: no-repeat; background-color: var(--hit); }
+.shimmer-blue { font-weight: bold; color: rgba(91,140,247,0.1); background: linear-gradient(90deg, var(--accent), #e0e8ff 50%, var(--accent)); background-size: 80px 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: legend-shimmer 1.2s linear infinite; background-repeat: no-repeat; background-color: var(--accent); }
+.shimmer-red { font-weight: bold; color: rgba(224,85,112,0.1); background: linear-gradient(90deg, var(--red), #ffccdd 50%, var(--red)); background-size: 80px 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: legend-shimmer 1.2s linear infinite; background-repeat: no-repeat; background-color: var(--red); }
 @keyframes legend-shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; text-shadow: 0 0 8px var(--hit); }
+  0% { background-position: -80px 0; }
+  100% { background-position: calc(100% + 80px) 0; }
 }
 
 /* Stat block special abilities */
@@ -351,7 +389,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .revive-btn { font-size: 10px; padding: 1px 8px; background: #2a3a2a; border-color: var(--green); color: var(--green); }
 .revive-btn:hover { background: #3a4a3a; }
 /* Wrapper to reserve correct layout space for rotated card */
-.dead-wrap { display: inline-block; vertical-align: top; }
+.dead-wrap { display: inline-block; vertical-align: top; width: 80px; height: 280px; }
 
 
 /* ── iPad / Tablet responsive (≤1024px) ── */
@@ -365,7 +403,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   button.go { padding: 8px 20px; }
   .chip { padding: 4px 10px; min-height: 28px; line-height: 20px; }
   .hp-tap { padding: 4px 8px; }
-  .pounce-tag, .grapple-tag { padding: 4px 10px; min-height: 28px; }
+  .pounce-tag, .grapple-tag, .flank-tag, .pa-tag { padding: 4px 10px; min-height: 28px; }
 
   /* Narrower cards to fit more across */
   .ccard { width: 260px; padding: 8px 10px; }
@@ -473,7 +511,6 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
       <span class="chip" data-buff="justice" onclick="tBuff(this)">Justice +3a</span>
       <span class="chip" data-buff="smiting" onclick="tBuff(this)">Smiting</span>
       <span class="chip" data-buff="haste" onclick="tBuff(this)">Haste +1a</span>
-      <span class="chip" data-buff="flanking" onclick="tBuff(this)">Flank +2a</span>
       <span class="chip" data-buff="heroism" onclick="tBuff(this)">Heroism +2a</span>
       <span class="chip" data-buff="fh4" onclick="tBuff(this)">Fast Heal 4</span>
     </div>
@@ -500,7 +537,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
   <!-- Round bar with tray tab buttons -->
   <div class="panel combat-bar" id="round-bar">
     <div class="round-display"><svg class="icon icon-round" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3a8 8 0 0 0-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.9 5.9 0 0 1 6 12a6 6 0 0 1 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.8.7 2.8a6 6 0 0 1-6 6v-3l-4 4l4 4v-3a8 8 0 0 0 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg><span id="disp-rd">0</span></div>
-    <span class="round-ac ac-tap" onclick="openNumpad('ac',null,this)"><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><span id="disp-ac" class="ac-val empty">?</span></span>
+    <span class="round-ac ac-tap" onclick="openNumpad('ac',null,this)"><span class="ac-tap-label">TARGET AC</span><span><svg class="icon icon-sm icon-ac" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><span id="disp-ac" class="ac-val empty">?</span></span></span>
     <input type="hidden" id="ref-ac" value="">
     <div class="tray-tabs">
       <button class="tray-tab" onclick="toggleTray('summon')" id="tab-summon">Summon</button>
@@ -523,7 +560,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 let B = {}; // bestiary: name -> {data, sna_level}
 let R = {}; // ratings: level -> name -> {tier, tags, note}
 let S = { round:0, groups:[], effects:[], feats:{}, buffs:{} };
-let nGid = 1, nCid = 1;
+let nGid = 1, nCid = 1, addBuffPopup = null;
 
 // ═══════════════════════════════════════════════════════════════
 //  ICONS (inline SVG)
@@ -581,7 +618,7 @@ const BD = {
   prayer:{a:1,d:1,s:1,ty:'morale'},bless:{a:1,d:0,s:0,ty:'morale'},
   destruction:{a:0,d:4,s:0,ty:'sacred'},justice:{a:3,d:0,s:0,ty:'sacred'},
   smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ty:'haste',extra:1},
-  flanking:{a:2,d:0,s:0,ty:'u'},heroism:{a:2,d:0,s:2,ty:'morale'},
+  heroism:{a:2,d:0,s:2,ty:'morale'},
   fh4:{a:0,d:0,s:0,ty:'sp',fh:4},
 };
 function bTotal(overrides) {
@@ -600,6 +637,24 @@ function bTotal(overrides) {
       by[t].a=Math.max(by[t].a,def.a); by[t].d=Math.max(by[t].d,def.d);
       by[t].s=Math.max(by[t].s,def.s);
       if(def.extra) by[t].extra=1; if(def.fh) by[t].fh=Math.max(by[t].fh,def.fh);
+    }
+  }
+  // Second pass: local-only buffs (override=true, global off)
+  if (overrides) {
+    for (const [id, val] of Object.entries(overrides)) {
+      if (val !== true || S.buffs[id]) continue;
+      const def = BD[id]; if (!def) continue;
+      const t = def.ty;
+      if (t==='u'||t==='sp'||t==='haste') {
+        by[id]=by[id]||{a:0,d:0,s:0,extra:0,fh:0};
+        by[id].a+=def.a;by[id].d+=def.d;by[id].s+=def.s;
+        if(def.extra)by[id].extra=1;if(def.fh)by[id].fh=def.fh;
+      } else {
+        by[t]=by[t]||{a:0,d:0,s:0,extra:0,fh:0};
+        by[t].a=Math.max(by[t].a,def.a);by[t].d=Math.max(by[t].d,def.d);
+        by[t].s=Math.max(by[t].s,def.s);
+        if(def.extra)by[t].extra=1;if(def.fh)by[t].fh=Math.max(by[t].fh,def.fh);
+      }
     }
   }
   const r={a:0,d:0,s:0,extra:0,fh:0};
@@ -722,6 +777,8 @@ document.addEventListener('click',e=>{
   // Close numpad on outside click
   const pad=document.getElementById('numpad');
   if(NP.open && pad && !pad.contains(e.target)) closeNumpad();
+  // Close buff-add popup on outside click
+  if(addBuffPopup && !addBuffPopup.contains(e.target) && !e.target.classList.contains('buff-add-btn')) closeAddBuff();
 });
 function toggleTray(name) {
   const panel = document.getElementById('tray-'+name);
@@ -771,24 +828,36 @@ function preRoll(c) {
     }
   }
 
-  // Maintain grapple roll (when grappling, not pouncing)
+  // Maintain grapple roll (always pre-roll if creature has grab)
   let maintainRoll = null;
-  if (c.grappling && !c.pouncing) {
-    maintainRoll = { d20: d20(), baseCmb: c.cmb + 4 }; // +4 for grab
+  let maintainDmgRaw = null;
+  let grabAtkName = '', grabAtkDmg = '';
+  const grabAtk = c.attacks.find(a => a.sp.includes('grab'));
+  if (grabAtk && c.cmb) {
+    maintainRoll = { d20: d20(), baseCmb: c.cmb + 9 }; // +4 grab, +5 circumstance
+    maintainDmgRaw = rdice(grabAtk.dmg);
+    grabAtkName = grabAtk.name;
+    grabAtkDmg = grabAtk.dmg;
   }
 
-  // Rake attacks (triggered by pounce OR started turn grappling)
-  // Always pre-roll the dice so they're ready; display handles conditionality
-  if (c.hasRake && (c.pouncing || c.grappling) && c.rakeAtks.length > 0) {
+  // Rake attacks (always pre-roll; computeRoll filters by pounce/grapple state)
+  if (c.hasRake && c.rakeAtks.length > 0) {
     for (const atk of c.rakeAtks) {
       const r = d20();
       const dr = rdice(atk.dmg);
+      const rThreat = r >= (atk.cr||20) && r !== 1;
+      let rCritConf = 0, rCritDmgRaw = 0, rFumbleConf = 0;
+      if (rThreat) {
+        rCritConf = d20();
+        const extraRolls = (atk.cm || 2) - 1;
+        for (let cr2 = 0; cr2 < extraRolls; cr2++) rCritDmgRaw += rdice(atk.dmg).t;
+      }
+      if (r === 1) rFumbleConf = d20();
       rawRows.push({
         name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg, dmgRolls: dr.r, dmgMod: dr.m,
-        critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:atk.bonus,
-        cr:20, cm:2, specials:atk.sp||[],
-        nat20:r===20, nat1:r===1, threat:false, isRake:true,
-        conditionalOnMaintain: c.grappling && !c.pouncing,
+        critConf:rCritConf, critDmgRaw:rCritDmgRaw, fumbleConf:rFumbleConf, fumbleBonus:atk.bonus,
+        cr:atk.cr||20, cm:atk.cm||2, specials:atk.sp||[],
+        nat20:r===20, nat1:r===1, threat:rThreat, isRake:true,
       });
     }
   }
@@ -807,23 +876,73 @@ function preRoll(c) {
     });
   }
 
-  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll };
+  // Constrict damage (always pre-roll if creature has constrict)
+  let constrictRaw = null;
+  if (c.constrictDmg) {
+    constrictRaw = rdice(c.constrictDmg);
+  }
+
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)
 function computeRoll(c) {
   if (!c.rawRoll) return null;
   const b = bTotal(c.buffOvr);
+  // Per-creature flanking
+  if (c.flanking) b.a += 2;
   const rows = [];
+  const autoRows = [];
   const grabs = [];
 
-  for (const raw of c.rawRoll.rows) {
-    // Skip haste row if haste isn't active
-    if (raw.isHaste && !b.extra) continue;
+  // Power Attack calculation
+  let paAtk = 0, paDmg = 0;
+  if (c.powerAttacking && c.hasPowerAttack) {
+    paAtk = -c.paX;
+    // Count non-auto attacks to determine single vs multi (2x vs 3x)
+    const maintainMode2 = c.grappling && S.round > (c.grappleRound || 0);
+    const visibleCount = c.rawRoll.rows.filter(raw => {
+      if (raw.isHaste && !b.extra) return false;
+      if (maintainMode2 && !raw.isRake) return false;
+      if (raw.isRake && !c.pouncing && !maintainMode2) return false;
+      return true;
+    }).length;
+    paDmg = visibleCount <= 1 ? c.paX * 3 : c.paX * 2;
+  }
 
-    const bonus = raw.baseBonus + b.a;
+  // Auto-damage rows: constrict (always shown if creature has it)
+  if (c.rawRoll.constrictRaw) {
+    const cr = c.rawRoll.constrictRaw;
+    autoRows.push({
+      name: 'Constrict', isConstrict: true,
+      dmg: Math.max(1, cr.t + b.d),
+      dmgDice: c.constrictDmg, dmgRolls: cr.r, dmgMod: (cr.m || 0) + b.d, buffDmg: b.d,
+    });
+  }
+  // Maintain mode = grappling AND past the round grapple started
+  const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
+
+  // Maintain auto-damage: grab attack's damage (only in maintain mode)
+  if (c.rawRoll.maintainDmgRaw) {
+    const md = c.rawRoll.maintainDmgRaw;
+    autoRows.push({
+      name: (c.rawRoll.grabAtkName || 'Attack') + ' (auto)',
+      isMaintainDmg: true,
+      dmg: Math.max(1, md.t + b.d),
+      dmgDice: c.rawRoll.grabAtkDmg || '?', dmgRolls: md.r, dmgMod: (md.m || 0) + b.d, buffDmg: b.d,
+    });
+  }
+
+  for (const raw of c.rawRoll.rows) {
+    if (raw.isHaste && !b.extra) continue;
+    // Maintain mode: suppress normal attacks + haste (standard action used for maintain)
+    if (maintainMode && !raw.isRake) continue;
+    // When not pouncing/grappling: suppress rake
+    if (raw.isRake && !c.pouncing && !maintainMode) continue;
+
+    const bonus = raw.baseBonus + b.a + paAtk;
     const total = raw.r + bonus;
-    const dmgBase = raw.baseDmg + b.d;
+    const dmgBase = raw.baseDmg + b.d + paDmg;
     let dmgWithCrit = dmgBase;
     let critOk = false, critConfTotal = 0;
     let fumbleConfTotal = 0;
@@ -846,8 +965,8 @@ function computeRoll(c) {
       nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
-      specials: raw.specials, isRake: raw.isRake, conditionalOnMaintain: raw.conditionalOnMaintain,
-      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d, buffDmg: b.d, buffAtk: b.a, baseBonus: raw.baseBonus,
+      specials: raw.specials, isRake: raw.isRake,
+      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d+paDmg, buffDmg: b.d, buffAtk: b.a, paAtk, paDmg, baseBonus: raw.baseBonus,
     });
   }
 
@@ -864,7 +983,7 @@ function computeRoll(c) {
     maintain = { d20: mr.d20, total: mr.d20 + mr.baseCmb + b.a };
   }
 
-  return { rows, grabs, maintain };
+  return { rows, autoRows, grabs, maintain };
 }
 
 function reroll() {
@@ -915,13 +1034,25 @@ function mkCreature(bEntry, aug) {
     }
   }
 
+  // Parse constrict damage
+  let constrictDmg = '';
+  if (specials.includes('constrict')) {
+    const cm2 = specials.match(/constrict\s*\((\d+d\d+(?:[+-]\d+)?)/);
+    if (cm2) constrictDmg = cm2[1];
+    if (!constrictDmg) {
+      const ca = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('constrict'));
+      if (ca) { const dm = ca.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) constrictDmg = dm[1]; }
+    }
+  }
+
   return {
     id:`C${nCid++}`, name:data.name, hp:card.HP||10, maxHp:card.HP||10,
     ac:card.AC||10, attacks:parseMelee(card.Melee||base.Melee||''), aug,
     cmb:card.CMB||base.CMB||0, cmd:card.CMD||base.CMD||10,
     fort:card.Fort||base.Fort||0, ref:card.Ref||base.Ref||0, will:card.Will||base.Will||0,
     speed:card.Speed||base.Speed||'30 ft.',
-    specials, hasPounce, hasRake, rakeAtks,
+    specials, hasPounce, hasRake, rakeAtks, constrictDmg,
+    hasGrab: parseMelee(card.Melee||base.Melee||'').some(a=>a.sp.includes('grab')),
     acBreak:card.AC_breakdown||base.AC_breakdown||'',
     specialAtks:card.Special_Attacks||base.Special_Attacks||'',
     specialQual:card.Special_Qualities||base.Special_Qualities||'',
@@ -937,6 +1068,15 @@ function mkCreature(bEntry, aug) {
     specialAbilities: data.special_abilities || [],
     snaLevel: bEntry.sna_level,
     preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
+    flanking:false,
+    hasPowerAttack: (full.Feats||'').toLowerCase().includes('power attack'),
+    paX: (full.Feats||'').toLowerCase().includes('power attack') ? 1+Math.floor((full.BAB||0)/4) : 0,
+    powerAttacking:false,
+    notableFeats: [
+      (full.Feats||'').toLowerCase().includes('combat expertise') ? 'CE' : '',
+      (full.Feats||'').toLowerCase().includes('lunge') ? 'Lunge' : '',
+      (full.Feats||'').match(/\bcleave\b/i) ? ((full.Feats||'').toLowerCase().includes('great cleave')?'Gt Cleave':'Cleave') : '',
+    ].filter(Boolean),
   };
 }
 
@@ -1169,21 +1309,39 @@ function renderCard(c, group, refAC, groupIdx) {
   const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
   const cTier = cRating?.tier || '';
 
-  // Per-creature buff chips
+  // Per-creature buff chips (global + local-only)
   const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
-  const buffHTML = activeBuffs.map(([id])=>{
+  const globalBuffHTML = activeBuffs.map(([id])=>{
     const off = c.buffOvr[id]===false;
     return `<span class="buff-chip ${off?'off':''}" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`;
   }).join('');
+  // Local-only buffs (override=true, global off)
+  const localBuffHTML = Object.entries(c.buffOvr||{}).filter(([id,v])=>v===true&&!S.buffs[id]&&BD[id]).map(([id])=>
+    `<span class="buff-chip local" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`
+  ).join('');
+  const addBuffBtn = `<span class="buff-add-btn" onclick="event.stopPropagation();showAddBuff('${c.id}',this)" title="Add buff to this creature only">+</span>`;
+  const buffHTML = globalBuffHTML + localBuffHTML;
 
   // Aug chip
   const augChip = c.aug ? `<span class="aug-chip">aug</span>` : '';
 
-  // Pounce toggle + grappling indicator
+  // Pre-turn decision toggles
+  const flankHTML = `<span class="flank-tag ${c.flanking?'active':''}" onclick="event.stopPropagation();togFlanking('${c.id}')" title="Flanking: +2 attack (untyped)">${c.flanking?'FLANKING':'Flank'}</span>`;
   const pounceHTML = c.hasPounce ?
-    `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce?'}</span>` : '';
-  const grapHTML = c.hasRake ?
-    `<span class="grapple-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Started turn grappling: gets rake">${c.grappling?'GRAPPLING':'Grapple?'}</span>` : '';
+    `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce'}</span>` : '';
+  const grapHTML = `<span class="grapple-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Grappling: maintain + constrict/rake (if available)">${c.grappling?'GRAPPLING':'Grapple'}</span>`;
+  const paHTML = c.hasPowerAttack ?
+    `<span class="pa-tag ${c.powerAttacking?'active':''}" onclick="event.stopPropagation();togPA('${c.id}')" title="Power Attack: -${c.paX} atk, +${c.paX*2} dmg (${c.paX*3} single)">${c.powerAttacking?'PWR ATK':'Pwr Atk'}</span>` : '';
+  // Compute notable feats at render time (survives localStorage without migration)
+  const featsStr = (c.feats||'').toLowerCase();
+  const notableFeats = [
+    featsStr.includes('combat expertise') ? 'CE' : '',
+    featsStr.includes('lunge') ? 'Lunge' : '',
+    /\bcleave\b/.test(featsStr) ? (featsStr.includes('great cleave')?'Gt Cleave':'Cleave') : '',
+  ].filter(Boolean);
+  const featBadges = notableFeats.map(f => `<span class="feat-badge">${f}</span>`).join('');
+  const badgeRow = featBadges ? `<div class="feat-badge-row">${featBadges}</div>` : '';
+  const decisionsHTML = `<div class="decisions-row">${flankHTML} ${pounceHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
 
   // Roll table — compute from raw rolls + current buffs
   let tableHTML='', summaryHTML='', specialsHTML='';
@@ -1197,6 +1355,25 @@ function renderCard(c, group, refAC, groupIdx) {
     let runningDmg = 0, runningDmgCrit = 0;
     const runningByType = {}; // {type: total} for tooltip
     tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">${IC.atk('icon-sm')}</th><th class="r">${IC.dmg('icon-sm')}</th><th class="r th-sum" title="Running damage total">Σ</th></tr>`;
+
+    // Auto-damage rows at top (constrict, maintain auto-dmg)
+    const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
+    for (const ar of pr.autoRows) {
+      if (ar.isMaintainDmg && !maintainMode) continue; // only show maintain dmg in maintain mode
+      const active = c.grappling;
+      const cls = active ? 'auto-active' : 'auto-muted';
+      if (active) {
+        runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
+        if (hasAC) { hitDmg += ar.dmg; }
+      }
+      const runCell = active ? runningDmg : '—';
+      const baseMod = ar.dmgMod - (ar.buffDmg||0);
+      const buffPart = ar.buffDmg ? ` +${ar.buffDmg} buff` : '';
+      const rollStr = ar.dmgRolls ? `[${ar.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
+      const dmgTip = `${ar.dmgDice}: ${rollStr}`;
+      tableHTML += `<tr class="${cls}"><td><span class="atk-pips"></span><span class="atk-name">${ar.name.toLowerCase()}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+    }
+
     for(const r of pr.rows){
       const isHit = hasAC ? r.hit_ac >= refAC : null;
       const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
@@ -1225,15 +1402,16 @@ function renderCard(c, group, refAC, groupIdx) {
       else if(isHit===true) cls = 'hit';
       else if(isHit===false) cls = 'miss';
 
-      let tag = '';
-      if(critConfirmed) tag = `<b class="tag-crit">CRIT!</b>`;
-      else if(r.critOk && hasAC) tag = `<span class="tag-muted">no conf</span>`;
-      else if(critPending) tag = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
-      else if(fumbleFail) tag = `<b class="tag-fumble">FUMBLE!</b>`;
-      else if(fumbleSafe) tag = `<span class="tag-muted">nat1</span>`;
-      else if(fumblePending) tag = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
-
-      const dmgCell = hasAC ? (isHit ? effectiveDmg : '-') : `${r.dmgNoCrit}${r.critOk?`/${r.dmg}`:''}`;
+      // Damage cell: shimmer on confirmed crits, yellow/shimmer split for pending
+      let dmgCell;
+      if (hasAC) {
+        if (!isHit) dmgCell = '-';
+        else if (critConfirmed) dmgCell = `<span class="shimmer-red">${effectiveDmg}</span>`;
+        else dmgCell = `${effectiveDmg}`;
+      } else {
+        if (r.critOk) dmgCell = `${r.dmgNoCrit}/<span class="shimmer-red">${r.dmg}</span>`;
+        else dmgCell = `${r.dmgNoCrit}`;
+      }
       // Running total: show normal/crit when there's an unresolved threat
       let runCell;
       if (isHit===false || r.nat1) { runCell = ''; }
@@ -1251,22 +1429,25 @@ function renderCard(c, group, refAC, groupIdx) {
         }
       }
 
-      const buffAtkStr = r.buffAtk ? ` (${r.baseBonus>=0?'+':''}${r.baseBonus} base ${r.buffAtk>=0?'+':''}${r.buffAtk} buffs)` : '';
+      const paAtkStr = r.paAtk ? ` ${r.paAtk} PA` : '';
+      const buffAtkStr = (r.buffAtk||r.paAtk) ? ` (${r.baseBonus>=0?'+':''}${r.baseBonus} base${r.buffAtk?` ${r.buffAtk>=0?'+':''}${r.buffAtk} buffs`:''}${paAtkStr})` : '';
       const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus}${buffAtkStr} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
-      // Atk cell: show CRIT/## or FAIL/## when pending, otherwise attack total
+      // Atk cell: CRIT/CONF/FAIL/FUMBLE states
       let atkCell = `${r.total}`;
       if (critPending) atkCell = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
+      else if (critConfirmed) atkCell = `<span class="shimmer-red">CONF</span>`;
+      else if (r.critOk && hasAC) atkCell = `<span class="tag-crit">CRIT</span>`;
       else if (fumblePending) atkCell = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
-      else if (critConfirmed) atkCell = `<b class="tag-crit">${r.total} CRIT!</b>`;
-      else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE!</b>`;
-      else if (fumbleSafe) atkCell = `<span class="tag-muted">${r.total}</span>`;
+      else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE</b>`;
+      else if (fumbleSafe) atkCell = `<span class="tag-muted">FAIL</span>`;
       const dmgType = getDmgType(r.name);
       const typeShort = dmgType;
       const typeNames = dmgType.split('/').map(t=>({B:'bludg.',S:'slash.',P:'pierc.'})[t]||t).join(', ');
       // Dmg tooltip: show individual rolls
-      const baseMod = r.dmgMod - (r.buffDmg||0);
+      const baseMod = r.dmgMod - (r.buffDmg||0) - (r.paDmg||0);
       const buffPart = r.buffDmg ? ` +${r.buffDmg} buff` : '';
-      const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
+      const paPart = r.paDmg ? ` +${r.paDmg} PA` : '';
+      const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}${paPart}` : '';
       const dmgTip = `${r.dmgDice||'?'}: ${rollStr} (${typeNames})`;
       // Running total tooltip: breakdown by damage type
       const runTip = (runCell && !r.nat1 && !(isHit===false)) ? Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ') : '';
@@ -1276,7 +1457,10 @@ function renderCard(c, group, refAC, groupIdx) {
 
     // ── Legend section below table: specials with pips + data ──
     const allSpecials = new Set();
-    pr.rows.forEach(r => r.specials.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
+    // Build from all attacks (not just visible rows) so grab shows when grappling
+    c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
+    // Skip constrict — it's in the attack table as an auto-damage row
+    allSpecials.delete('constrict');
 
     if (allSpecials.size > 0) {
       specialsHTML = `<div class="specials-section">`;
@@ -1288,15 +1472,19 @@ function renderCard(c, group, refAC, groupIdx) {
         const url = PFSRD[s] || '#';
         let info = '';
         if (s === 'grab') {
-          // Only show grab rolls for attacks that hit (when AC known)
-          let grabs = pr.grabs;
-          if (hasAC) {
-            const hitNames = new Set(pr.rows.filter(r => r.hit_ac >= refAC).map(r => r.name));
-            grabs = grabs.filter(g => hitNames.has(g.atk));
+          if (maintainMode) {
+            // Maintain mode: show maintain check only (shimmer blue)
+            info = pr.maintain ? ` <span class="shimmer-blue">maintain ${pr.maintain.total} vs CMD</span>` : '';
+          } else {
+            // Normal: show grab checks for attacks that hit
+            let grabs = pr.grabs;
+            if (hasAC) {
+              const hitNames = new Set(pr.rows.filter(r => r.hit_ac >= refAC).map(r => r.name));
+              grabs = grabs.filter(g => hitNames.has(g.atk));
+            }
+            const rolls = grabs.map(g=>g.total).join(', ');
+            info = rolls ? ` ${rolls} vs CMD` : '';
           }
-          const rolls = grabs.map(g=>g.total).join(', ');
-          const maintain = pr.maintain ? ` │ maintain ${pr.maintain.total}` : '';
-          info = rolls ? ` ${rolls} vs CMD${maintain}` : '';
         } else {
           const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
           if (detail?.desc) {
@@ -1440,11 +1628,11 @@ function renderCard(c, group, refAC, groupIdx) {
         <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}',true)">Full</button>
       </div>
     </div>`;
-    return `<div class="dead-wrap" style="width:80px;height:280px">${deadCard}</div>`;
+    return `<div class="dead-wrap">${deadCard}</div>`;
   }
 
-  // Pounce/Grapple toggles — below attack block, not with buffs
-  const togglesHTML = (pounceHTML || grapHTML) ? `<div class="buff-pounce-row">${pounceHTML} ${grapHTML}</div>` : '';
+  // Buff footer (muted, bottom of card)
+  const buffFooterHTML = (augChip || buffHTML || addBuffBtn) ? `<div class="buff-chips-muted">${augChip} ${buffHTML} ${addBuffBtn}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     ${gpillHTML}
@@ -1456,16 +1644,14 @@ function renderCard(c, group, refAC, groupIdx) {
     <div class="ccard-head">
       ${hpTap}<span class="ccard-ac">${c.ac}${IC.ac()}</span>
     </div>
-    <div class="hpbar"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
+    <div class="hpbar" onclick="event.stopPropagation();openNumpad('hp','${c.id}',this)"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
     <div class="hp-row">
       <span class="ccard-cmd">CMD ${c.cmd}</span>
     </div>
-    <div class="buff-pounce-row">
-      ${augChip} ${buffHTML}
-    </div>
     ${abilityHTML}
+    ${decisionsHTML}
     ${summaryHTML}${tableHTML}${specialsHTML||''}
-    ${togglesHTML}
+    ${buffFooterHTML}
     <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span><span class="meta-right">${c.size}</span></div>
     ${sbHTML}
   </div>`;
@@ -1480,8 +1666,10 @@ function healC(id,n){const c=findC(id);if(c){c.hp=Math.min(c.maxHp,c.hp+n);c.ali
 function hpAdj(id,n){const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,c.hp+n));if(c.hp<=0)c.alive=false;render();}}
 function hpSet(id,val){if(!val)return;const n=parseInt(val);if(isNaN(n))return;if(val.startsWith('+')||val.startsWith('-')){hpAdj(id,n);}else{const c=findC(id);if(c){c.hp=Math.max(0,Math.min(c.maxHp,n));if(c.hp<=0)c.alive=false;render();}}}
 function reviveC(id,full){const c=findC(id);if(c){c.alive=true;c.hp=full?c.maxHp:1;preRoll(c);render();}}
-function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;preRoll(c);render();}}
-function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling)c.pouncing=false;preRoll(c);render();}}
+function togPounce(id){const c=findC(id);if(c){c.pouncing=!c.pouncing;if(c.pouncing)c.grappling=false;render();}}
+function togGrapple(id){const c=findC(id);if(c){c.grappling=!c.grappling;if(c.grappling){c.pouncing=false;c.grappleRound=S.round;}else{c.grappleRound=0;}render();}}
+function togFlanking(id){const c=findC(id);if(c){c.flanking=!c.flanking;render();}}
+function togPA(id){const c=findC(id);if(c){c.powerAttacking=!c.powerAttacking;render();}}
 let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {
@@ -1516,12 +1704,49 @@ function restoreFromDismissed(idx) {
   render();
 }
 function manifest(gid){const g=S.groups.find(x=>x.id===gid);if(g){g.casting=false;render();}}
-function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];reroll();}
+function tFeat(el){S.feats[el.dataset.feat]=!S.feats[el.dataset.feat];render();}
 function tBuff(el){S.buffs[el.dataset.buff]=!S.buffs[el.dataset.buff];render();}
 function togCBuff(cid,bid){
   for(const g of S.groups){const c=g.creatures.find(x=>x.id===cid);
-    if(c){c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;render();return;}}
+    if(c){
+      if(S.buffs[bid]) { // Global buff: toggle override off/on
+        c.buffOvr[bid]=c.buffOvr[bid]===false?undefined:false;
+      } else { // Local-only buff: remove it
+        delete c.buffOvr[bid];
+      }
+      render();return;
+    }
+  }
 }
+// Add a local-only buff to a creature
+function addLocalBuff(cid,bid){
+  const c=findC(cid);if(!c)return;
+  c.buffOvr[bid]=true;
+  closeAddBuff();
+  render();
+}
+function showAddBuff(cid,el){
+  event.stopPropagation();
+  closeAddBuff();
+  const rect=el.getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.className='buff-add-popup';
+  // List buffs from BD not globally active and not already local on this creature
+  const c=findC(cid);if(!c)return;
+  const items=Object.entries(BD).filter(([id])=>!S.buffs[id]&&c.buffOvr[id]!==true);
+  if(!items.length){pop.innerHTML='<div class="buff-add-item" style="color:var(--muted)">No buffs available</div>';}
+  else{pop.innerHTML=items.map(([id,def])=>{
+    const info=[def.a?`+${def.a}a`:'',def.d?`+${def.d}d`:'',def.s?`+${def.s}s`:'',def.extra?'haste':'',def.fh?`fh${def.fh}`:''].filter(Boolean).join('/');
+    return `<div class="buff-add-item" onclick="event.stopPropagation();addLocalBuff('${cid}','${id}')">${id} <span style="color:var(--muted)">${info}</span></div>`;
+  }).join('');}
+  let left=rect.left,top=rect.top-items.length*28-8;
+  if(top<4)top=rect.bottom+4;
+  if(left+140>window.innerWidth)left=window.innerWidth-144;
+  pop.style.left=left+'px';pop.style.top=top+'px';
+  document.body.appendChild(pop);
+  addBuffPopup=pop;
+}
+function closeAddBuff(){if(addBuffPopup){addBuffPopup.remove();addBuffPopup=null;}}
 function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];document.getElementById('ref-ac').value='';updACDisplay();localStorage.removeItem(SAVE_KEY);render();}
 
 // ═══════════════════════════════════════════════════════════════

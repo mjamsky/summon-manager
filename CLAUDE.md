@@ -37,13 +37,13 @@ No build step, no npm, no bundler. Reload browser to test. Verify: summon a crea
 
 ## File Structure
 
-Single file: `index.html` (~1550 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
+Single file: `index.html` (~1900 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
 
 | Section | Lines (approx) | Contents |
 |---------|-------|----------|
-| `<style>` | 9–390 | `:root` color tokens, all component styles, responsive breakpoints (≤1024px, ≤480px) |
-| `<body>` | 390–500 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
-| `<script>` | 500–1550 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, persistence, init |
+| `<style>` | 9–430 | `:root` color tokens, all component styles, shimmer animations, responsive breakpoints (≤1024px, ≤480px) |
+| `<body>` | 430–540 | Static shell: title bar, numpad popup, setup drawer, output divs, bottom dock |
+| `<script>` | 540–1920 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
 
 Section markers: `<!-- ═══ Section ═══ -->` in HTML, `// ═══ SECTION ═══` in JS.
 
@@ -57,7 +57,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 - **Do**: use CSS transitions/animations for visual state changes
 - **Don't**: use inline `style=` in template literals for fixed or categorical values
 - **Exception**: HP bar fill width (`style="width:${pct}%"`) is acceptable — it's per-instance continuous data
-- **Migrate**: dead card dimensions and dropdown column width currently use JS-computed inline styles and should move to CSS
+- **Migrate**: dropdown column width currently uses JS-computed inline style and should move to CSS
 
 ### State & Render Cycle
 
@@ -65,7 +65,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 - **`B`** = bestiary (name→data), **`R`** = ratings (level→name→tier) — both read-only after init
 - **`dismissed`** = dismissed creatures (separate from `S`, persisted in localStorage)
 - **Cycle**: mutate `S` → call `render()` → DOM rebuilt via template literals → `saveState()` called automatically
-- **Pre-roll strategy**: `preRoll(c)` stores raw d20s and damage dice at summon time. `computeRoll(c)` recalculates bonuses from current `S.buffs`/`S.feats` at render time. Buff toggles call `render()` (recalculate only). Feat toggles call `reroll()` (re-roll all dice, because feats like Haste add/remove attack rows).
+- **Pre-roll strategy**: `preRoll(c)` stores raw d20s and damage dice at summon time — including rake, maintain, constrict, and haste rolls regardless of current toggle state. `computeRoll(c)` recalculates bonuses and filters visible rows based on current `S.buffs`/`S.feats`/pounce/grapple toggles at render time. All toggles (buff, feat, pounce, grapple) call `render()` only — never `preRoll()`. Rerolls happen only on RE-ROLL ALL or NEXT ROUND.
 
 ### Event Handling
 
@@ -94,6 +94,7 @@ CSS Grid (`repeat(auto-fill, 280px)`) — all cards (creatures + spells) flow in
 1. Add entry to `BD` object: `name: {a: atkBonus, d: dmgBonus, s: saveBonus, ty: 'type'}` — types: `'morale'`/`'sacred'` (highest wins), `'u'` (untyped, stacks), `'haste'` (extra attack), `'sp'` (special handling)
 2. Add `<span class="chip" data-buff="name" onclick="tBuff(this)">Label</span>` to `#tray-buffs` in HTML
 3. Stacking math in `bTotal()` is automatic
+4. Per-creature local buffs: `c.buffOvr[id]=true` enables a non-global buff for one creature. `bTotal()` has a second pass for these. The `[+]` button on each card opens a popup to add local-only buffs.
 
 ### Adding a UI Section
 
@@ -110,11 +111,15 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 | Buff stacking | Same named type (morale, sacred) → highest only. Untyped always stacks. |
 | Pounce + rake | Charge → all natural attacks + rake. No grapple needed. |
 | Grapple rake | Only if creature started turn already grappling AND succeeds maintain CMB. |
-| Grab | Only on attacks listing "plus grab" (lion: bite only, not claws). CMB +4 for grab/maintain. |
+| Grab | Only on attacks listing "plus grab" (lion: bite only, not claws). CMB +4 for grab, +4 grab +5 circ for maintain. |
+| Constrict | Auto-damage on ANY successful grapple check (initial grab + maintain). No attack roll. Shown as no-roll row in attack table. |
+| Maintain grapple | Standard action. On success: auto grab-attack damage + constrict (if any) + rake attacks (if any). Normal attacks suppressed (standard action consumed). |
 | Crit | Confirm roll vs AC. Per-attack multiplier (×2 default, ×3 for some). |
 | Fumble | House rule: nat 1 → reroll → miss = crit fail. Not RAW. |
 | Damage types | Per UMR: bite=B/P/S, claw=B/S, gore=P, slam=B, etc. See `DMG_TYPE` object. |
 | Augment Summoning | +4 Str/+4 Con at creature creation, not as a runtime buff. Affects HP, atk, dmg, CMB, CMD, Fort. |
+| Power Attack | NOT baked into statblock numbers (verified against AoN). Toggle applies -X atk / +2X dmg. Single natural attack = +3X (two-handed). X = 1+floor(BAB/4). |
+| Flanking | Per-creature toggle, +2 untyped attack. Not a global buff. |
 
 ## Gotchas
 
@@ -122,7 +127,10 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 - **Naz cannot cast spells** — Fighter class, no exceptions
 - **Lion figurines**: 1hr/day duration, not permanent. `rl:600` in code.
 - **Branch is `master`**, no remote configured
-- **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses, call `render()`. `tBuff()` → `render()`. `tFeat()` → `reroll()` (which calls `preRoll` for all creatures).
+- **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses or toggle visibility, call `render()`. ALL toggles (`tBuff`, `tFeat`, `togPounce`, `togGrapple`, `togFlanking`, `togPA`) → `render()`. Only `reroll()` and `nextRound()` call `preRoll`.
+- **Creature card layout**: decisions row (Flank / Pounce / Pwr Atk / Grapple) above attack table. Feat badges (Cleave, CE, Lunge) below toggles. Buff chips muted at card bottom with `[+]` for local-only buffs.
+- **Grapple round tracking**: `c.grappleRound` records when grapple toggled. Same round = initial grab (constrict active, all attacks visible). Next round = maintain mode (normal attacks suppressed, auto-dmg + rake only).
+- **Shimmer animations**: `.legend-active` (green/gold), `.shimmer-blue` (maintain text), `.shimmer-red` (confirmed crits). All use same `legend-shimmer` keyframes with different gradient colors.
 
 ## Do Not
 

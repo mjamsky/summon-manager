@@ -1,0 +1,253 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vollkorn:wght@400;500;600;700&family=Cormorant:wght@400;500;600;700&family=Alegreya+Sans:wght@400;500;700&display=swap');
+* { box-sizing: border-box; margin: 0; }
+
+/* Background cards (dimmed) */
+.scene { position: relative; min-height: 700px; background: #2a2520; border-radius: 12px; overflow: hidden; padding: 12px; }
+.scene::before { content:''; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; }
+.bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; opacity: 0.3; filter: blur(1px); }
+.bg-card { border-radius: 10px; padding: 10px 12px; background: linear-gradient(165deg, #403a32, #36302a); height: 200px; box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3); }
+.bg-card .n { font-family: 'Vollkorn', serif; font-weight: 600; font-size: 13px; color: #ede0c4; margin-bottom: 4px; }
+.bg-card .bar { height: 4px; border-radius: 2px; background: #221e18; margin-bottom: 6px; }
+.bg-card .bar-fill { height: 100%; border-radius: 2px; background: #6b7a3a; }
+.bg-card .placeholder { height: 8px; background: rgba(255,255,255,0.03); border-radius: 2px; margin-bottom: 4px; }
+
+/* Scrim */
+.scrim { position: absolute; inset: 0; background: rgba(20,18,14,0.7); z-index: 5; }
+
+/* Popover */
+.pop-outer {
+  position: absolute; z-index: 10;
+  top: 20px; left: 50%; transform: translateX(-50%);
+  width: 460px; max-width: calc(100% - 24px);
+  border-radius: 14px; padding: 3px;
+  background: #3a3530;
+  box-shadow: -6px -6px 14px rgba(255,235,200,0.06), 6px 6px 24px rgba(0,0,0,0.7), 0 0 60px rgba(0,0,0,0.4);
+}
+.pop {
+  border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+  background: linear-gradient(165deg, #423c34, #38322c);
+  box-shadow: inset 2px 2px 8px rgba(0,0,0,0.25), inset -1px -1px 4px rgba(255,230,180,0.03);
+}
+.pop::before { content:''; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events:none; border-radius:12px; }
+.z { position: relative; z-index: 1; }
+
+/* Close button */
+.close-btn { position: absolute; top: 12px; right: 14px; z-index: 2; font-family: 'Alegreya Sans', sans-serif; font-size: 18px; color: #8a7e68; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+
+/* Section band — inspired by PF1e colored header bands */
+.section-band {
+  margin: 0 -20px; padding: 3px 20px;
+  background: linear-gradient(90deg, #2a2520, #322c26 30%, #322c26 70%, #2a2520);
+  border-top: 1px solid #4a4438;
+  border-bottom: 1px solid #1a1610;
+  margin-top: 10px; margin-bottom: 8px;
+}
+.section-band span {
+  font-family: 'Vollkorn', serif; font-weight: 600; font-size: 11px; color: #a09078; letter-spacing: 0.12em;
+}
+
+/* Groove */
+.groove-ember { height: 2px; background: linear-gradient(90deg, #221e18 0%, #3a2818 40%, #4a3018 50%, #3a2818 60%, #221e18 100%); box-shadow: 0 1px 0 rgba(255,235,200,0.06), 0 0 8px rgba(200,140,50,0.08); margin: 8px 0; }
+
+/* Tags */
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag { padding: 2px 8px; border-radius: 3px; font-family: 'Alegreya Sans', sans-serif; font-size: 10px; font-weight: 700; background: #2a2620; border: 1px solid #4a4438; color: #a09078; }
+
+/* Featured stat cluster — HP and AC as heroes */
+.hero-stats { display: flex; gap: 16px; align-items: flex-start; margin: 10px 0; }
+.hero-block { padding: 8px 14px; border-radius: 8px; background: #2a2620; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.35); text-align: center; min-width: 80px; }
+.hero-label { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: #8a7e68; margin-bottom: 2px; }
+.hero-num { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 28px; color: #ede0c4; font-feature-settings: 'tnum' 1; line-height: 1; }
+.hero-sub { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: #8a7e68; margin-top: 2px; }
+.hero-detail { display: flex; flex-direction: column; justify-content: center; gap: 4px; font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #8a7e68; }
+
+/* Saves row */
+.saves { display: flex; gap: 14px; }
+.save { text-align: center; }
+.save-label { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: #8a7e68; }
+.save-val { font-family: 'Vollkorn', serif; font-weight: 600; font-size: 15px; color: #ede0c4; font-feature-settings: 'tnum' 1; }
+
+/* Ability scores — inset wells */
+.ab-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+.ab-cell { text-align: center; padding: 4px 0; border-radius: 4px; background: #2a2620; box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3); }
+.ab-label { font-family: 'Alegreya Sans', sans-serif; font-size: 9px; color: #8a7e68; letter-spacing: 0.04em; }
+.ab-score { font-family: 'Vollkorn', serif; font-weight: 600; font-size: 15px; color: #ede0c4; font-feature-settings: 'tnum' 1; }
+.ab-mod { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: #a09078; }
+
+/* Inlay */
+.inlay { background: #282320; border-radius: 6px; padding: 7px 10px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4); border: 1px solid rgba(0,0,0,0.15); position: relative; margin-bottom: 5px; }
+.inlay::before { content:''; position:absolute; inset:0; border-radius:6px; background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E"); pointer-events:none; }
+.inlay > * { position: relative; z-index: 1; }
+
+/* Melee */
+.melee-row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
+.melee-row + .melee-row { border-top: 1px dotted #4a4438; }
+
+/* Body text */
+.body { font-family: 'Alegreya Sans', sans-serif; font-size: 12px; color: #c0ae8e; line-height: 1.5; }
+.body b { font-weight: 700; color: #ede0c4; }
+.muted { color: #8a7e68; }
+.link { color: #a09078; text-decoration: underline; text-decoration-color: rgba(160,144,120,0.3); }
+
+/* Inline stat */
+.st-l { font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #8a7e68; }
+.st-v { font-family: 'Vollkorn', serif; font-weight: 500; font-size: 13px; color: #c0ae8e; font-feature-settings: 'tnum' 1; }
+
+/* Pips */
+.pip { display: inline-block; width: 7px; height: 7px; vertical-align: 0; margin-right: 3px; }
+.pip-grab { background: #a89060; clip-path: polygon(50% 0%, 50% 100%, 0% 100%, 0% 0%); }
+.pip-trip { background: #b08848; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+
+.flavor { font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #8a7e68; font-style: italic; line-height: 1.5; margin-top: 4px; }
+</style>
+<div class="scene">
+
+  <!-- Background cards -->
+  <div class="bg-grid">
+    <div class="bg-card"><div class="n">Leopard</div><div class="bar"><div class="bar-fill" style="width:74%"></div></div><div class="placeholder"></div><div class="placeholder" style="width:60%"></div></div>
+    <div class="bg-card"><div class="n">Leopard</div><div class="bar"><div class="bar-fill" style="width:100%"></div></div><div class="placeholder"></div><div class="placeholder" style="width:80%"></div></div>
+    <div class="bg-card"><div class="n">Leopard</div><div class="bar"><div class="bar-fill" style="width:50%"></div></div><div class="placeholder"></div><div class="placeholder" style="width:45%"></div></div>
+    <div class="bg-card"><div class="n">Bison</div><div class="bar"><div class="bar-fill" style="width:100%"></div></div><div class="placeholder"></div></div>
+    <div class="bg-card"><div class="n">Water Elemental</div><div class="bar"><div class="bar-fill" style="width:100%"></div></div><div class="placeholder"></div></div>
+    <div class="bg-card"><div class="n">Lion</div><div class="bar"><div class="bar-fill" style="width:88%"></div></div><div class="placeholder"></div><div class="placeholder" style="width:70%"></div></div>
+  </div>
+
+  <!-- Scrim -->
+  <div class="scrim"></div>
+
+  <!-- Popover -->
+  <div class="pop-outer"><div class="pop">
+    <span class="close-btn">×</span>
+
+    <!-- Header -->
+    <div class="z" style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div style="font-family:'Cormorant',serif; font-weight:700; font-size:24px; color:#ede0c4; line-height:1.1;">Crocodile, Dire</div>
+        <div class="tags" style="margin-top:6px;">
+          <span class="tag">N</span>
+          <span class="tag">Gargantuan</span>
+          <span class="tag">Animal</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Vollkorn',serif; font-weight:600; font-size:14px; color:#a09078;">CR 9</div>
+        <div style="font-family:'Alegreya Sans',sans-serif; font-size:10px; color:#8a7e68;">XP 6,400</div>
+      </div>
+    </div>
+
+    <div class="z flavor">This reptilian behemoth, a crocodile of monstrous proportions, is large enough to swallow a horse in one tremendous bite.</div>
+
+    <div class="z groove-ember"></div>
+
+    <!-- Hero stats: HP and AC as dominant numbers -->
+    <div class="z hero-stats">
+      <div class="hero-block">
+        <div class="hero-label">HP</div>
+        <div class="hero-num">138</div>
+        <div class="hero-sub">12d8+84</div>
+      </div>
+      <div class="hero-block" style="min-width:100px;">
+        <div class="hero-label">AC</div>
+        <div class="hero-num">21</div>
+        <div class="hero-sub">touch 6 · flat 21</div>
+      </div>
+      <div class="hero-detail">
+        <span><span class="st-l">Init</span> <span class="st-v">+4</span></span>
+        <span><span class="st-l">Senses</span> <span style="font-family:'Alegreya Sans',sans-serif; font-size:11px; color:#c0ae8e;">low-light vision</span></span>
+        <span><span class="st-l">Perception</span> <span class="st-v">+14</span></span>
+      </div>
+    </div>
+
+    <!-- Saves -->
+    <div class="z saves" style="margin-bottom:4px;">
+      <div class="save"><span class="save-label">Fort</span><br><span class="save-val">+15</span></div>
+      <div class="save"><span class="save-label">Ref</span><br><span class="save-val">+8</span></div>
+      <div class="save"><span class="save-label">Will</span><br><span class="save-val">+8</span></div>
+    </div>
+
+    <!-- OFFENSE band -->
+    <div class="z section-band"><span>Offense</span></div>
+
+    <div class="z" style="display:flex; gap:16px; margin-bottom:8px;">
+      <div><span class="st-l">Speed</span> <span class="body"><b>20 ft.</b>, swim <b>30 ft.</b></span> <span class="muted" style="font-size:11px;">· sprint</span></div>
+    </div>
+    <div class="z" style="display:flex; gap:16px; margin-bottom:8px;">
+      <span class="st-l">Space</span> <span class="st-v">20 ft.</span>
+      <span class="st-l">Reach</span> <span class="st-v">15 ft.</span>
+    </div>
+
+    <div class="z" style="margin-bottom:4px;">
+      <div class="st-l" style="margin-bottom:4px;">Melee</div>
+      <div class="melee-row">
+        <div>
+          <span style="font-family:'Alegreya Sans',sans-serif; font-size:13px; color:#c0ae8e; font-weight:500;">Bite</span>
+          <span style="font-family:'Vollkorn',serif; font-weight:500; font-size:13px; color:#ede0c4; font-feature-settings:'tnum' 1; margin-left:6px;">+18</span>
+          <span class="muted" style="font-size:11px; margin-left:6px;">3d6+13 / 19–20</span>
+        </div>
+        <div><span class="pip pip-grab"></span><span class="muted" style="font-size:11px;">grab</span></div>
+      </div>
+      <div class="melee-row">
+        <div>
+          <span style="font-family:'Alegreya Sans',sans-serif; font-size:13px; color:#c0ae8e; font-weight:500;">Tail Slap</span>
+          <span style="font-family:'Vollkorn',serif; font-weight:500; font-size:13px; color:#ede0c4; font-feature-settings:'tnum' 1; margin-left:6px;">+13</span>
+          <span class="muted" style="font-size:11px; margin-left:6px;">4d8+6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="z" style="margin-top:8px;">
+      <div class="st-l" style="margin-bottom:5px;">Special Attacks</div>
+      <div class="inlay">
+        <div style="font-family:'Vollkorn',serif; font-weight:600; font-size:13px; color:#ede0c4;">Death Roll</div>
+        <div style="font-family:'Alegreya Sans',sans-serif; font-size:11px; color:#c0ae8e; margin-top:2px;">3d6+19 damage · <span class="pip pip-trip"></span>trip</div>
+      </div>
+      <div class="inlay">
+        <div style="font-family:'Vollkorn',serif; font-weight:600; font-size:13px; color:#ede0c4;">Swallow Whole</div>
+        <div style="font-family:'Alegreya Sans',sans-serif; font-size:11px; color:#c0ae8e; margin-top:2px;">3d6+13 damage · AC 16 · 13 HP to escape</div>
+      </div>
+    </div>
+
+    <!-- STATISTICS band -->
+    <div class="z section-band"><span>Statistics</span></div>
+
+    <div class="z ab-grid" style="margin-bottom:10px;">
+      <div class="ab-cell"><div class="ab-label">Str</div><div class="ab-score">37</div><div class="ab-mod">+13</div></div>
+      <div class="ab-cell"><div class="ab-label">Dex</div><div class="ab-score">10</div><div class="ab-mod">+0</div></div>
+      <div class="ab-cell"><div class="ab-label">Con</div><div class="ab-score">25</div><div class="ab-mod">+7</div></div>
+      <div class="ab-cell"><div class="ab-label">Int</div><div class="ab-score">1</div><div class="ab-mod">–5</div></div>
+      <div class="ab-cell"><div class="ab-label">Wis</div><div class="ab-score">14</div><div class="ab-mod">+2</div></div>
+      <div class="ab-cell"><div class="ab-label">Cha</div><div class="ab-score">2</div><div class="ab-mod">–4</div></div>
+    </div>
+
+    <div class="z" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+      <span><span class="st-l">Base Atk</span> <span class="st-v">+9</span></span>
+      <span><span class="st-l">CMB</span> <span class="st-v">+26</span> <span class="muted" style="font-size:10px;">(+30 grapple)</span></span>
+      <span><span class="st-l">CMD</span> <span class="st-v">36</span> <span class="muted" style="font-size:10px;">(40 vs trip)</span></span>
+    </div>
+
+    <div class="z body" style="margin-bottom:6px;">
+      <span class="st-l">Feats</span> &nbsp;<b>Improved Critical</b> (bite), <b>Improved Initiative</b>, <b>Iron Will</b>, <b>Run</b>, <b>Skill Focus</b> (Perception, Stealth)
+    </div>
+
+    <div class="z body" style="margin-bottom:6px;">
+      <span class="st-l">Skills</span> &nbsp;<b>Perception</b> +14 · <b>Stealth</b> +0 <span class="muted">(+8 in water)</span> · <b>Swim</b> +21
+    </div>
+
+    <div class="z body">
+      <span class="st-l">SQ</span> &nbsp;<span class="link">Hold breath</span>
+    </div>
+
+    <!-- ECOLOGY band -->
+    <div class="z section-band"><span>Ecology</span></div>
+    <div class="z body">
+      <b>Environment</b> warm rivers and marshes · <b>Organization</b> solitary, pair, or colony (3–6) · <b>Treasure</b> none
+    </div>
+
+    <div class="z" style="margin-top:10px; text-align:right;">
+      <span class="link" style="font-family:'Alegreya Sans',sans-serif; font-size:11px;">View on d20pfsrd.com ↗</span>
+    </div>
+
+  </div></div>
+
+</div>

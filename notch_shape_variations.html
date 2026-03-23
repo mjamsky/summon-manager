@@ -1,0 +1,205 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&display=swap');
+* { box-sizing: border-box; margin: 0; }
+.wrap { padding: 0.5rem 0; }
+.row { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+.item { text-align: center; }
+.item-label { font-size: 10px; color: var(--color-text-secondary); margin-top: 6px; }
+.item-sublabel { font-size: 9px; color: var(--color-text-secondary); opacity: 0.6; margin-top: 2px; }
+
+/* Dock strip for context */
+.dock-strip {
+  background: #2a2520; border-radius: 8px; padding: 0 16px 12px;
+  display: inline-block; position: relative; overflow: visible;
+}
+.dock-strip::before { content:''; position:absolute; inset:0; border-radius:8px; background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; }
+.dock-strip > * { position: relative; z-index: 1; }
+.notch-name { font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #5e5540; margin-top: 5px; font-feature-settings: 'smcp' 1; font-variant: small-caps; }
+
+/* Notch shapes via SVG for precise control */
+.notch-svg { display: block; margin: 0 auto; }
+
+/* Active chevron */
+.chev-inactive { fill: #3a3228; }
+.chev-active { fill: #6a8a3a; filter: drop-shadow(0 0 3px rgba(100,140,50,0.4)); }
+
+.section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-secondary); font-weight: 500; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+
+/* Full dock preview */
+.dock-full {
+  background: #2a2520; border-radius: 10px; position: relative; overflow: visible;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,235,200,0.06);
+  padding: 0 12px 8px;
+  display: flex; align-items: flex-end; gap: 0;
+}
+.dock-full::before { content:''; position:absolute; inset:0; border-radius:10px; background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:0; }
+.dock-full > * { position: relative; z-index: 1; }
+.round-well { display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:6px; background:#1c1810; box-shadow:inset 2px 2px 4px rgba(0,0,0,0.4); margin-right:8px; flex-shrink:0; align-self:center; }
+.round-icon { color:#d4a040; font-size:14px; }
+.round-num { font-family:'Fira Code',monospace; font-size:16px; font-weight:500; color:#d4c4a0; }
+.dock-divider { width:1px; height:24px; background:#352e24; margin:0 6px; flex-shrink:0; align-self:center; }
+.notch-group-full { display:flex; gap:12px; flex:1; justify-content:center; align-self:stretch; }
+.notch-unit-full { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+.dock-actions { display:flex; gap:6px; margin-left:auto; flex-shrink:0; align-self:center; }
+.btn-primary { font-family:'Vollkorn',serif; font-size:13px; font-weight:600; padding:6px 14px; border-radius:6px; cursor:pointer; background:#3a3018; border:1px solid #6a5830; color:#d4a840; }
+.btn-secondary { font-family:'Alegreya Sans',sans-serif; font-size:12px; font-weight:500; padding:6px 14px; border-radius:6px; cursor:pointer; background:transparent; border:1px solid #3a3228; color:#8a7d65; }
+.btn-cta { font-family:'Vollkorn',serif; font-size:13px; font-weight:600; padding:7px 18px; border-radius:6px; cursor:pointer; background:linear-gradient(180deg,#6b7a3a,#5a6830); border:1px solid #7a8a40; color:#e8e8d0; }
+.note { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-top: 10px; }
+.note strong { color: var(--color-text-primary); font-weight: 500; }
+</style>
+<div class="wrap">
+
+<div class="section-title">Notch shape options</div>
+<div class="row">
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="44" height="18" class="notch-svg" style="margin-top:-1px;">
+      <path d="M0,0 L44,0 L44,0 Q44,0 44,0 L38,18 Q37,18 36,18 L8,18 Q7,18 6,18 L0,0 Z" fill="#151210"/>
+      <path d="M0,0 L44,0 L38,18 L6,18 Z" fill="#151210" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));"/>
+      <polygon points="22,6 17,13 27,13" class="chev-inactive"/>
+    </svg>
+    <div class="notch-name">Buffs</div>
+  </div>
+  <div class="item-label">Subtle taper</div>
+  <div class="item-sublabel">top 44px → bottom 32px</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+      <defs><clipPath id="notch-b"><path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z"/></clipPath></defs>
+      <rect x="0" y="0" width="48" height="18" fill="#151210" clip-path="url(#notch-b)" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));"/>
+      <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+      <polygon points="24,6 19,13 29,13" class="chev-inactive"/>
+    </svg>
+    <div class="notch-name">Buffs</div>
+  </div>
+  <div class="item-label">Rounded keystone</div>
+  <div class="item-sublabel">top 48px → bottom 28px, rounded</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="50" height="20" class="notch-svg" style="margin-top:-1px;">
+      <path d="M3,0 Q0,0 1,3 L9,17 Q10,20 13,20 L37,20 Q40,20 41,17 L49,3 Q50,0 47,0 Z" fill="#151210"/>
+      <polygon points="25,7 20,14 30,14" class="chev-inactive"/>
+    </svg>
+    <div class="notch-name">Buffs</div>
+  </div>
+  <div class="item-label">Inverted (wider bottom)</div>
+  <div class="item-sublabel">for comparison — top narrow, bottom wide</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="46" height="16" class="notch-svg" style="margin-top:-1px;">
+      <path d="M0,0 L46,0 L46,2 Q46,4 44,5 L38,12 Q36,14 33,14 L13,14 Q10,14 8,12 L2,5 Q0,4 0,2 Z" fill="#151210"/>
+      <polygon points="23,4 18,11 28,11" class="chev-inactive"/>
+    </svg>
+    <div class="notch-name">Buffs</div>
+  </div>
+  <div class="item-label">Shallow keystone</div>
+  <div class="item-sublabel">less depth, more subtle</div>
+</div>
+
+</div>
+
+<div class="section-title">Active state — chevron lights up</div>
+<div class="row">
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+      <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+      <polygon points="24,6 19,13 29,13" class="chev-inactive"/>
+    </svg>
+    <div class="notch-name">Summon</div>
+  </div>
+  <div class="item-label">Inactive</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+      <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+      <polygon points="24,6 19,13 29,13" fill="#6a8a3a" style="filter:drop-shadow(0 0 4px rgba(100,140,50,0.5));"/>
+    </svg>
+    <div class="notch-name" style="color:#8aaa58;">Buffs</div>
+  </div>
+  <div class="item-label">Active (buffs)</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+      <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+      <polygon points="24,6 19,13 29,13" fill="#d4a040" style="filter:drop-shadow(0 0 4px rgba(200,160,50,0.5));"/>
+    </svg>
+    <div class="notch-name" style="color:#d4a040;">Summon</div>
+  </div>
+  <div class="item-label">Active (summon)</div>
+</div>
+
+<div class="item">
+  <div class="dock-strip">
+    <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+      <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+      <polygon points="24,6 19,13 29,13" fill="#a05a40" style="filter:drop-shadow(0 0 4px rgba(160,80,50,0.4));"/>
+    </svg>
+    <div class="notch-name" style="color:#a08050;">Dismissed <span style="font-variant:normal; font-feature-settings:normal; font-size:10px; color:#a05a40;">(10)</span></div>
+  </div>
+  <div class="item-label">Active (dismissed)</div>
+</div>
+
+</div>
+
+<div class="section-title">In context — rounded keystone with full dock</div>
+<div class="dock-full">
+  <div class="round-well">
+    <span class="round-icon">↻</span>
+    <span class="round-num">3</span>
+  </div>
+  <div class="dock-divider"></div>
+  <div class="notch-group-full">
+    <div class="notch-unit-full">
+      <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+        <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+        <polygon points="24,6 19,13 29,13" class="chev-inactive"/>
+      </svg>
+      <div class="notch-name">Summon</div>
+    </div>
+    <div class="notch-unit-full">
+      <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+        <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+        <polygon points="24,6 19,13 29,13" fill="#6a8a3a" style="filter:drop-shadow(0 0 4px rgba(100,140,50,0.5));"/>
+      </svg>
+      <div class="notch-name" style="color:#8aaa58;">Buffs</div>
+    </div>
+    <div class="notch-unit-full">
+      <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+        <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+        <polygon points="24,6 19,13 29,13" class="chev-inactive"/>
+      </svg>
+      <div class="notch-name">Dismissed <span class="notch-badge" style="font-variant:normal; font-feature-settings:normal; font-size:10px; color:#a05a40;">(10)</span></div>
+    </div>
+    <div class="notch-unit-full">
+      <svg width="48" height="18" class="notch-svg" style="margin-top:-1px;">
+        <path d="M2,0 L46,0 Q48,0 47,2 L40,16 Q39,18 37,18 L11,18 Q9,18 8,16 L1,2 Q0,0 2,0 Z" fill="#151210"/>
+        <polygon points="24,6 19,13 29,13" class="chev-inactive"/>
+      </svg>
+      <div class="notch-name">Setup</div>
+    </div>
+  </div>
+  <div class="dock-divider"></div>
+  <div class="dock-actions">
+    <span class="btn-primary">Re-Roll All</span>
+    <span class="btn-secondary">Clear</span>
+    <span class="btn-cta">Next Round</span>
+  </div>
+</div>
+<div class="note">
+  The <strong>rounded keystone</strong> (second option) feels the most like a physical slot cut into stone — wider at the top where the chisel enters, narrowing as it goes deeper. The rounded corners soften it enough to feel modern rather than literally medieval. The inverted version is there for comparison but reads as a funnel rather than a slot. The shallow variant works if you want a subtler cut.
+</div>
+
+</div>

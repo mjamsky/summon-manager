@@ -28,6 +28,14 @@
 
 ## Polish
 - [x] HP numpad tap target — HP bar is now clickable with expanded touch area
+- [x] Visual revamp Phase 1 — Foundation: CSS token system (spacing, text hierarchy, surfaces, HP ramp), self-hosted Vollkorn + Alegreya Sans fonts (base64 woff2), noise texture, font-feature-settings tnum on roll numbers
+- [x] Visual revamp Phase 2 — Surface & Depth: Twilight Stone palette, neumorphic card shadows, inset troughs (HP bar, inputs, AC well), inlaid windows (ability sections), warm HP ramp (olive→gold→ember)
+- [x] Visual revamp Phase 3 — Attack Table: ember glow AC threshold line, dotted row separators, warm roll state colors (muted miss, olive hit, gold crit, ember fumble), 2-variant shimmer (glint + crit)
+- [x] Visual revamp Phase 4 — Toggles & Pips: unified 3-tier toggle system (situational/state/decision), clip-path shaped pips (half-circle, triangle, diamond, star, square, hexagon)
+- [x] Visual revamp Phase 5 — Dock & Trays: stone slab dock with noise, keystone clip-path tabs, inlaid tray panels with accent bars, groove+ember junction, button hierarchy (ghost/gold/olive-green CTA)
+- [x] Visual revamp Phase 6 — Cards & Groups: groove+glow group identity (top border, 5 warm colors), removed gpill system, warm numpad/buff popup, inset groove card section separators
+- [x] Visual revamp Phase 8 — Polish: centered grid, dead CSS removal, warm HP text, phone breakpoint (280px centered)
+- [ ] Visual revamp Phase 7 — Stat Block Popover (deferred): new component, centered popover on creature name tap
 - [ ] Statblock popup vs expand — currently expands card downward (`.show-stats`). Consider: modal/popup overlay instead? Pros: doesn't reflow grid, can be larger, dismiss on outside click. Cons: loses card context, overlay management. Discuss.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
 

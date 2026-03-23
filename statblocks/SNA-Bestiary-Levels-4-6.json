@@ -59,7 +59,17 @@
             "CMD": 26,
             "Str": 31,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +14 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasTrample": true,
+          "trampleDmg": "2d6+12",
+          "trampleDC": 20
         },
         {
           "name": "Deinonychus",
@@ -163,7 +173,9 @@
             "CMD": 24,
             "Str": 23,
             "Con": 20
-          }
+          },
+          "hasRend": true,
+          "rendDmg": "1d4+6"
         },
         {
           "name": "Dire Boar",
@@ -319,7 +331,15 @@
             "CMD": 26,
             "Str": 18,
             "Con": 18
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 14
         },
         {
           "name": "Medium Earth Elemental",
@@ -371,7 +391,15 @@
             "CMD": 22,
             "Str": 24,
             "Con": 21
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +11 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Medium Fire Elemental",
@@ -475,7 +503,10 @@
             "CMD": 22,
             "Str": 20,
             "Con": 19
-          }
+          },
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 15
         },
         {
           "name": "Giant Scorpion",
@@ -584,7 +615,10 @@
             "CMD": 24,
             "Str": 23,
             "Con": 19
-          }
+          },
+          "hasTrample": true,
+          "trampleDmg": "1d6+6",
+          "trampleDC": 17
         },
         {
           "name": "Giant Wasp",
@@ -1010,7 +1044,9 @@
             "CMD": 24,
             "Str": 26,
             "Con": 23
-          }
+          },
+          "hasPowerfulCharge": true,
+          "powerfulChargeDmg": "4d6+12"
         },
         {
           "name": "Satyr",
@@ -1466,7 +1502,19 @@
             "CMD": 31,
             "Str": 31,
             "Con": 21
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +19 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +19 overrun (no AoO)",
+              "greater": false
+            }
+          ]
         },
         {
           "name": "Cyclops",
@@ -1523,7 +1571,14 @@
             "CMD": 26,
             "Str": 25,
             "Con": 19
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +15 push (no AoO)",
+              "greater": false
+            }
+          ]
         },
         {
           "name": "Dire Lion",
@@ -1627,7 +1682,19 @@
             "CMD": 35,
             "Str": 22,
             "Con": 20
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "7 AoOs/round"
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 18
         },
         {
           "name": "Large Earth Elemental",
@@ -1679,7 +1746,20 @@
             "CMD": 29,
             "Str": 28,
             "Con": 21
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +18 push (no AoO); pushed foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +18 overrun (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Large Fire Elemental",
@@ -1731,7 +1811,13 @@
             "CMD": 31,
             "Str": 18,
             "Con": 18
-          }
+          },
+          "badges": [
+            {
+              "name": "Spring Attack",
+              "tooltip": "Move -> melee attack during move -> continue moving."
+            }
+          ]
         },
         {
           "name": "Large Water Elemental",
@@ -1783,7 +1869,10 @@
             "CMD": 31,
             "Str": 24,
             "Con": 21
-          }
+          },
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 19
         },
         {
           "name": "Ettin",
@@ -1840,7 +1929,14 @@
             "CMD": 27,
             "Str": 27,
             "Con": 19
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +16 overrun (no AoO)",
+              "greater": false
+            }
+          ]
         },
         {
           "name": "Giant Moray Eel",
@@ -1897,7 +1993,8 @@
             "CMD": 28,
             "Str": 26,
             "Con": 20
-          }
+          },
+          "hasGnaw": true
         },
         {
           "name": "Girallon",
@@ -1949,7 +2046,9 @@
             "CMD": 29,
             "Str": 23,
             "Con": 22
-          }
+          },
+          "hasRend": true,
+          "rendDmg": "1d4+6"
         },
         {
           "name": "Manticore",
@@ -2006,7 +2105,13 @@
             "CMD": 28,
             "Str": 24,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            }
+          ]
         },
         {
           "name": "Orca",
@@ -2110,7 +2215,19 @@
             "CMD": 30,
             "Str": 32,
             "Con": 25
-          }
+          },
+          "badges": [
+            {
+              "name": "Diehard",
+              "tooltip": "Fights until -Con HP. Auto-stabilizes."
+            }
+          ],
+          "hasDiehard": true,
+          "hasPowerfulCharge": true,
+          "powerfulChargeDmg": "4d8+18",
+          "hasTrample": true,
+          "trampleDmg": "2d6+13",
+          "trampleDC": 23
         },
         {
           "name": "Emperor Cobra",
@@ -2276,7 +2393,9 @@
             "CMD": 31,
             "Str": 34,
             "Con": 27
-          }
+          },
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "2d6+10 bludgeoning damage, AC 15, hp 7"
         }
       ]
     },
@@ -2546,7 +2665,19 @@
             "CMD": 42,
             "Str": 26,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "9 AoOs/round"
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 21
         },
         {
           "name": "Huge Earth Elemental",
@@ -2598,7 +2729,25 @@
             "CMD": 34,
             "Str": 32,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +23 push (no AoO); pushed foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +23 overrun (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +21 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Huge Fire Elemental",
@@ -2650,7 +2799,17 @@
             "CMD": 38,
             "Str": 22,
             "Con": 20
-          }
+          },
+          "badges": [
+            {
+              "name": "Spring Attack",
+              "tooltip": "Move -> melee attack during move -> continue moving."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "7 AoOs/round"
+            }
+          ]
         },
         {
           "name": "Huge Water Elemental",
@@ -2702,7 +2861,17 @@
             "CMD": 38,
             "Str": 28,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +21 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 22
         },
         {
           "name": "Elephant",
@@ -2754,7 +2923,14 @@
             "CMD": 34,
             "Str": 34,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +22 push (no AoO)",
+              "greater": false
+            }
+          ]
         },
         {
           "name": "Giant Octopus",
@@ -2811,7 +2987,13 @@
             "CMD": 31,
             "Str": 24,
             "Con": 21
-          }
+          },
+          "badges": [
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "2 AoOs/round"
+            }
+          ]
         },
         {
           "name": "Hill Giant",
@@ -2863,7 +3045,9 @@
             "CMD": 28,
             "Str": 29,
             "Con": 23
-          }
+          },
+          "hasRockThrowing": true,
+          "rockThrowingRange": "120 ft."
         },
         {
           "name": "Stegosaurus",
@@ -2915,7 +3099,14 @@
             "CMD": 35,
             "Str": 31,
             "Con": 21
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +21 overrun (no AoO)",
+              "greater": false
+            }
+          ]
         },
         {
           "name": "Stone Giant",
@@ -2972,7 +3163,9 @@
             "CMD": 34,
             "Str": 31,
             "Con": 23
-          }
+          },
+          "hasRockThrowing": true,
+          "rockThrowingRange": "180 ft."
         },
         {
           "name": "Triceratops",
@@ -2992,7 +3185,7 @@
             "Ref": 8,
             "Will": 5,
             "Speed": "30 ft.",
-            "Melee": "gore +17 (2d10+12)",
+            "Melee": "gore +17 (2d10+12/19-20)",
             "CMB": 20,
             "CMB_full": "20",
             "CMD": 29,
@@ -3019,12 +3212,24 @@
             "HP": 147,
             "HD": "14d8+84",
             "Fort": 17,
-            "Melee": "gore +19 (2d10+14)",
+            "Melee": "gore +19 (2d10+14/19-20)",
             "CMB": 22,
             "CMD": 33,
             "Str": 30,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +22 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasPowerfulCharge": true,
+          "powerfulChargeDmg": "4d10+16",
+          "hasTrample": true,
+          "trampleDmg": "1d8+12",
+          "trampleDC": 25
         },
         {
           "name": "Shambling Mound",
@@ -3133,7 +3338,9 @@
             "CMD": 39,
             "Str": 38,
             "Con": 26
-          }
+          },
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "2d6+12 bludgeoning, AC 16, hp 10"
         }
       ]
     }

@@ -733,7 +733,15 @@
             "CMD": 19,
             "Str": 16,
             "Con": 16
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 12
         },
         {
           "name": "Small Earth Elemental",
@@ -785,7 +793,15 @@
             "CMD": 17,
             "Str": 20,
             "Con": 17
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +6 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Small Fire Elemental",
@@ -889,7 +905,10 @@
             "CMD": 17,
             "Str": 18,
             "Con": 17
-          }
+          },
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 13
         },
         {
           "name": "Giant Frog",
@@ -946,7 +965,9 @@
             "CMD": 18,
             "Str": 19,
             "Con": 20
-          }
+          },
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "1d4 bludgeoning damage, AC 10, 1 hp"
         },
         {
           "name": "Giant Spider",
@@ -1496,7 +1517,8 @@
             "CMD": 20,
             "Str": 18,
             "Con": 21
-          }
+          },
+          "hasRage": true
         },
         {
           "name": "Giant Porcupine",
@@ -1781,7 +1803,10 @@
             "CMD": 23,
             "Str": 27,
             "Con": 21
-          }
+          },
+          "hasTrample": true,
+          "trampleDmg": "2d6+9",
+          "trampleDC": 17
         },
         {
           "name": "Boar",
@@ -1999,7 +2024,9 @@
             "CMD": 22,
             "Str": 23,
             "Con": 21
-          }
+          },
+          "hasDeathRoll": true,
+          "deathRollDmg": "1d8+6 plus trip"
         },
         {
           "name": "Dire Bat",
@@ -2388,7 +2415,8 @@
             "CMD": 20,
             "Str": 19,
             "Con": 19
-          }
+          },
+          "hasRage": true
         }
       ]
     }

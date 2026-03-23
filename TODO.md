@@ -22,11 +22,12 @@
 
 ## Polish
 - [x] HP numpad tap target — HP bar is now clickable with expanded touch area
+- [ ] Statblock popup vs expand — currently expands card downward (`.show-stats`). Consider: modal/popup overlay instead? Pros: doesn't reflow grid, can be larger, dismiss on outside click. Cons: loses card context, overlay management. Discuss.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
 
 ## Refactor (after features stabilize)
-- [ ] renderCard() decomposition — extract renderRollTable(), renderSpecialsLegend(), renderSummary(), renderStatBlock(), renderAbilities() as sub-functions. renderCard() becomes assembly. Currently 315 lines doing too much.
-- [ ] CSS/JS separation — move remaining inline styles out of JS template literals into semantic CSS classes. New code should follow CSS-first convention now; this is backporting the old stuff.
+- [x] renderCard() decomposition — extracted renderDeadCard(), renderBuffChips(), renderDecisions(), renderRollTable(), renderSpecialsLegend(), renderAbilities(), renderStatBlock(). renderCard() is now ~40 lines of assembly.
+- [x] CSS/JS separation — all inline styles migrated to CSS. HP bar uses raw custom properties (`--hp-cur`, `--hp-max`) with CSS `calc()`. Dropdown stats, buff popup text use CSS classes. Zero inline `style=` rules remain.
 - [x] Dead card wrapper — moved inline style to `.dead-wrap` CSS class
 - [ ] Dead creatures: [x] dismiss to Dismissed tray (current sideways layout is fine)
 - [ ] updTiers() called inside render() rebuilds dropdown every render — only needed when slot/tier selection changes.

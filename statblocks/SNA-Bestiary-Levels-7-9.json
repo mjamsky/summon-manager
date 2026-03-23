@@ -59,7 +59,17 @@
             "CMD": 44,
             "Str": 41,
             "Con": 25
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +32 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasTrample": true,
+          "trampleDmg": "2d6+19",
+          "trampleDC": 32
         },
         {
           "name": "Dire Crocodile",
@@ -111,7 +121,11 @@
             "CMD": 40,
             "Str": 41,
             "Con": 29
-          }
+          },
+          "hasDeathRoll": true,
+          "deathRollDmg": "3d6+19 plus trip",
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "3d6+13, AC 16, 13 hp"
         },
         {
           "name": "Dire Shark",
@@ -163,7 +177,10 @@
             "CMD": 41,
             "Str": 34,
             "Con": 21
-          }
+          },
+          "hasBleedingCrit": true,
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "2d6+15 damage, AC 17, 11 hp"
         },
         {
           "name": "Greater Air Elemental",
@@ -215,7 +232,19 @@
             "CMD": 47,
             "Str": 28,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "10 AoOs/round"
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 23
         },
         {
           "name": "Greater Earth Elemental",
@@ -267,7 +296,30 @@
             "CMD": 38,
             "Str": 34,
             "Con": 25
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +27 push (no AoO); pushed foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +27 overrun (no AoO); overrun foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +27 sunder (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +25 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Greater Fire Elemental",
@@ -319,7 +371,17 @@
             "CMD": 45,
             "Str": 28,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Spring Attack",
+              "tooltip": "Move -> melee attack during move -> continue moving."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "8 AoOs/round"
+            }
+          ]
         },
         {
           "name": "Greater Water Elemental",
@@ -371,7 +433,22 @@
             "CMD": 44,
             "Str": 32,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +26 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +26 sunder (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 25
         },
         {
           "name": "Fire Giant",
@@ -428,7 +505,21 @@
             "CMD": 35,
             "Str": 35,
             "Con": 25
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +24 overrun (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +24 sunder (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasRockThrowing": true,
+          "rockThrowingRange": "120 ft."
         },
         {
           "name": "Frost Giant",
@@ -480,7 +571,21 @@
             "CMD": 33,
             "Str": 33,
             "Con": 24
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +22 overrun (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +22 sunder (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasRockThrowing": true,
+          "rockThrowingRange": "120 ft."
         },
         {
           "name": "Giant Squid",
@@ -532,7 +637,13 @@
             "CMD": 35,
             "Str": 29,
             "Con": 23
-          }
+          },
+          "badges": [
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "3 AoOs/round"
+            }
+          ]
         },
         {
           "name": "Mastodon",
@@ -584,7 +695,17 @@
             "CMD": 39,
             "Str": 38,
             "Con": 25
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +26 push (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasTrample": true,
+          "trampleDmg": "2d8+18",
+          "trampleDC": 29
         },
         {
           "name": "Roc",
@@ -636,7 +757,13 @@
             "CMD": 41,
             "Str": 32,
             "Con": 21
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            }
+          ]
         },
         {
           "name": "Tyrannosaurus",
@@ -693,7 +820,17 @@
             "CMD": 43,
             "Str": 36,
             "Con": 23
-          }
+          },
+          "badges": [
+            {
+              "name": "Diehard",
+              "tooltip": "Fights until -Con HP. Auto-stabilizes."
+            }
+          ],
+          "hasDiehard": true,
+          "hasBleedingCrit": true,
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "2d8+11, AC 17, hp 15"
         },
         {
           "name": "Giant Anaconda",
@@ -802,7 +939,9 @@
             "CMD": 36,
             "Str": 29,
             "Con": 29
-          }
+          },
+          "hasVitalStrike": true,
+          "vitalStrikeLevel": "normal"
         },
         {
           "name": "Giant Snapping Turtle",
@@ -859,7 +998,9 @@
             "CMD": 35,
             "Str": 36,
             "Con": 25
-          }
+          },
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "2d8+16 bludgeoning, AC 23, 22 hp"
         }
       ]
     },
@@ -921,7 +1062,26 @@
             "CMD": 41,
             "Str": 39,
             "Con": 27
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +28 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +28 overrun (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +26 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasRockThrowing": true,
+          "rockThrowingRange": "140 ft."
         },
         {
           "name": "Elder Air Elemental",
@@ -973,7 +1133,19 @@
             "CMD": 53,
             "Str": 32,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Flyby Attack",
+              "tooltip": "Move -> attack -> continue moving. No AoO from target."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "11 AoOs/round"
+            }
+          ],
+          "hasWhirlwind": true,
+          "whirlwindDC": 27
         },
         {
           "name": "Elder Earth Elemental",
@@ -1025,7 +1197,30 @@
             "CMD": 43,
             "Str": 38,
             "Con": 25
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +32 push (no AoO); pushed foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Overrun",
+              "desc": "CMB +32 overrun (no AoO); overrun foe provokes AoOs",
+              "greater": true
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +32 sunder (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +30 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasEarthMastery": true
         },
         {
           "name": "Elder Fire Elemental",
@@ -1077,7 +1272,17 @@
             "CMD": 50,
             "Str": 30,
             "Con": 22
-          }
+          },
+          "badges": [
+            {
+              "name": "Spring Attack",
+              "tooltip": "Move -> melee attack during move -> continue moving."
+            },
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "9 AoOs/round"
+            }
+          ]
         },
         {
           "name": "Elder Water Elemental",
@@ -1129,7 +1334,22 @@
             "CMD": 49,
             "Str": 34,
             "Con": 23
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +30 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +30 sunder (no AoO)",
+              "greater": false
+            }
+          ],
+          "hasWaterMastery": true,
+          "hasVortex": true,
+          "vortexDC": 28
         },
         {
           "name": "Purple Worm",
@@ -1186,7 +1406,22 @@
             "CMD": 44,
             "Str": 39,
             "Con": 29
-          }
+          },
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +34 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +32 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasStaggeringCrit": true,
+          "hasSwallowWhole": true,
+          "swallowWholeInfo": "4d8+18 bludgeoning damage, AC 21, 20 hp"
         }
       ]
     },
@@ -1305,7 +1540,32 @@
             "CMD": 46,
             "Str": 43,
             "Con": 27
-          }
+          },
+          "badges": [
+            {
+              "name": "Combat Reflexes",
+              "tooltip": "2 AoOs/round"
+            }
+          ],
+          "cmbFeats": [
+            {
+              "name": "Improved Bull Rush",
+              "desc": "CMB +32 push (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Improved Sunder",
+              "desc": "CMB +32 sunder (no AoO)",
+              "greater": false
+            },
+            {
+              "name": "Awesome Blow",
+              "desc": "CMB +30 -> 10ft knockback + prone",
+              "greater": false
+            }
+          ],
+          "hasVitalStrike": true,
+          "vitalStrikeLevel": "improved"
         }
       ]
     }

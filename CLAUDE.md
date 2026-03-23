@@ -37,7 +37,7 @@ No build step, no npm, no bundler. Reload browser to test. Verify: summon a crea
 
 ## File Structure
 
-Single file: `index.html` (~1900 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
+Single file: `index.html` (~1925 lines). Do not split unless explicitly doing the CSS/JS separation backlog item.
 
 | Section | Lines (approx) | Contents |
 |---------|-------|----------|
@@ -51,12 +51,13 @@ Section markers: `<!-- ═══ Section ═══ -->` in HTML, `// ═══ S
 
 ### CSS-First Principle
 
-JS is the "backend" — it manages state and data. CSS handles all presentation.
+JS is the "backend" — it manages state and data. CSS handles all presentation. No exceptions.
 
 - **Do**: set data attributes or CSS classes in JS, style them in CSS (e.g., `.chip.on`, `.ccard.dead`, `.casting`)
 - **Do**: use CSS transitions/animations for visual state changes
-- **Don't**: use inline `style=` in template literals for fixed or categorical values
-- **Exception**: HP bar fill width (`style="width:${pct}%"`) is acceptable — it's per-instance continuous data
+- **Do**: pass dynamic values to CSS via custom properties (`style="--hp:${pct}%"` + CSS `width: var(--hp)`), not inline style rules
+- **Don't**: use inline `style=` to set CSS properties directly (e.g., `style="width:42%"`, `style="color:red"`)
+- **Why**: CSS custom properties keep presentation in CSS where it belongs. JS passes data, CSS decides how to render it. If the backend changes (React, Rust/WASM, server-rendered), the CSS works unchanged — only the data source swaps out.
 - **Migrate**: dropdown column width currently uses JS-computed inline style and should move to CSS
 
 ### State & Render Cycle

@@ -65,12 +65,14 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .cdrop-item:hover, .cdrop-item.active { background: #333648; }
 .cdrop-item .tier { width: 14px; height: 14px; line-height: 14px; font-size: 9px; margin: 0 6px 0 0; }
 .cdrop-item .cdrop-stats { color: var(--muted); white-space: nowrap; font-size: 11px; text-align: right; }
+.cdrop-display .cdrop-stats { margin-left: auto; }
 .cdrop-stats .icon { margin-left: 2px; }
 .cdrop-stats .icon-ac { margin-left: 5px; }
 .cdrop-item .cdrop-name { color: var(--text); padding-left: 6px; }
 .cdrop-item .cdrop-note { color: var(--muted); font-size: 10px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Creature Cards — flat CSS grid, no group wrappers ── */
+#creatures-out { flex: 1; }
 .creatures-flow { display: grid; grid-template-columns: repeat(auto-fill, 280px); gap: 16px; align-items: start; }
 /* Group pill — centered on card top border, left-aligned, colored per group */
 .gpill { position: absolute; top: 0; left: 12px; transform: translateY(-50%); font-size: 9px; padding: 1px 6px; border-radius: 6px; white-space: nowrap; z-index: 1; }
@@ -130,10 +132,17 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .legend-trip .sp-link { color: #f0a050; font-size: 11px; }
 .legend-burn { color: #ff6030; }
 .legend-burn .sp-link { color: #ff6030; font-size: 11px; }
+.legend-disease { color: #c8b040; }
+.legend-disease .sp-link { color: #c8b040; font-size: 11px; }
+.legend-stun { color: #e0e0e8; }
+.legend-stun .sp-link { color: #e0e0e8; font-size: 11px; }
+/* Tactical badges — non-interactive, with tooltips */
+.tac-badge { font-size: 9px; padding: 1px 5px; border-radius: 6px; background: #1a2a3a; color: #6aaacf; border: 1px solid #2a4a5a; cursor: help; position: relative; }
+.tac-badge[title]:hover::after { content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 10px; white-space: nowrap; z-index: 50; pointer-events: none; margin-bottom: 4px; }
 /* HP controls + AC/CMD on same row */
 .hp-row { display: flex; align-items: center; gap: 3px; margin-bottom: 6px; }
 .hpbar { background: #111; border-radius: 2px; height: 4px; margin-bottom: 6px; cursor: pointer; }
-.hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; box-shadow: 0 0 4px var(--green); }
+.hpfill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.2s; box-shadow: 0 0 4px var(--green); width: calc(var(--hp-cur) / var(--hp-max) * 100%); }
 .hpfill.low { background: var(--crit); box-shadow: 0 0 8px var(--crit); }
 .hpfill.crit { background: var(--red); box-shadow: 0 0 12px var(--red); animation: pulse-hp 1.5s ease-in-out infinite; }
 @keyframes pulse-hp {
@@ -282,8 +291,9 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .buff-add-btn:hover { background: var(--accent); color: #fff; }
 /* Buff add popup */
 .buff-add-popup { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px; z-index: 200; min-width: 120px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-.buff-add-popup .buff-add-item { padding: 4px 8px; cursor: pointer; font-size: 11px; border-radius: 3px; }
+.buff-add-popup .buff-add-item { padding: 4px 8px; cursor: pointer; font-size: 11px; border-radius: 3px; color: var(--muted); }
 .buff-add-popup .buff-add-item:hover { background: #333648; }
+.buff-add-popup .buff-add-detail { color: var(--muted); }
 
 /* ── Inline-style replacements ── */
 .label-inline { display: inline; }
@@ -455,7 +465,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 
 <!-- ═══ Creatures + Spell Cards (main viewport) ═══ -->
-<div id="creatures-out" style="flex:1"></div>
+<div id="creatures-out"></div>
 
 <!-- ═══ Numpad Popup ═══ -->
 <div class="numpad" id="numpad">
@@ -584,6 +594,8 @@ const IC = {
   trip: `<svg class="icon-pip icon-trip" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#f0a050"/></svg>`,
   poison: `<svg class="icon-pip icon-poison" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#a0e050"/></svg>`,
   burn: `<svg class="icon-pip icon-burn" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#ff6030"/></svg>`,
+  disease: `<svg class="icon-pip icon-disease" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#c8b040"/></svg>`,
+  stun: `<svg class="icon-pip icon-stun" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#e0e0e8"/></svg>`,
 };
 
 // Damage type by attack name (PF1e Universal Monster Rules)
@@ -752,7 +764,7 @@ function updDropDisplay(){
   const c=creatureList.find(x=>x.name===selectedCreature);
   const el=document.getElementById('cdrop-text');
   if(!el) return;
-  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> ${c.name} <span class="cdrop-stats" style="margin-left:auto">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span>`;
+  if(c) el.innerHTML=`<span class="tier tier-${c.tier}">${c.tier}</span> ${c.name} <span class="cdrop-stats">${c.hp}${IC.hp('icon-sm')} ${c.ac}${IC.ac('icon-sm')}</span>`;
   else el.textContent='Select...';
 }
 function selectCreature(name){
@@ -1283,6 +1295,11 @@ const PFSRD = {
   poison:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Poison',
   disease:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Disease',
   burn:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Burn',
+  stun:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Stun',
+  'bull rush':'https://www.d20pfsrd.com/gamemastering/combat/#Bull_Rush',
+  'overrun':'https://www.d20pfsrd.com/gamemastering/combat/#Overrun',
+  'sunder':'https://www.d20pfsrd.com/gamemastering/combat/#Sunder',
+  'awesome blow':'https://www.d20pfsrd.com/feats/monster-feats/awesome-blow/',
 };
 function spLink(s) {
   const url = PFSRD[s.toLowerCase()];
@@ -1291,48 +1308,43 @@ function spLink(s) {
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
 
-function renderCard(c, group, refAC, groupIdx) {
-  const casting = group.casting;
-  const pct=c.maxHp>0?(c.hp/c.maxHp*100):0;
-  const hpCls=pct>50?'':pct>25?'low':'crit';
-  const cardCls=(!c.alive?'dead':casting?'casting':'');
-  const rlTxt=group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
-  const durBadge = rlTxt;
+function renderDeadCard(c) {
+  return `<div class="dead-wrap"><div class="ccard dead">
+    <div class="ccard-head">
+      <span class="ccard-name">${c.name}</span>
+      <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
+    </div>
+    <div class="dead-bar">
+      <span class="dead-label">DEAD</span>
+      <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}')">1 HP</button>
+      <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}',true)">Full</button>
+    </div>
+  </div></div>`;
+}
 
-  // Group pill for multi-creature groups — colored per group
-  const multi = group.creatures.length > 1;
-  const gpillLabel = group.src === 'figurine' ? 'Figurine' : group.src === 'sna' ? `SNA ${group.slot||''}` : '';
-  const gpillCls = `gpill gpill-${(groupIdx||0) % 5}`;
-  const gpillHTML = multi && gpillLabel ? `<span class="${gpillCls}">${gpillLabel}</span>` : '';
-
-  // Tier for data attribute (dropdown uses it, cards don't display it)
-  const cRating = c.snaLevel && R[c.snaLevel]?.[c.name];
-  const cTier = cRating?.tier || '';
-
-  // Per-creature buff chips (global + local-only)
+function renderBuffChips(c) {
   const activeBuffs = Object.entries(S.buffs).filter(([_,on])=>on);
-  const globalBuffHTML = activeBuffs.map(([id])=>{
+  const globalHTML = activeBuffs.map(([id])=>{
     const off = c.buffOvr[id]===false;
     return `<span class="buff-chip ${off?'off':''}" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`;
   }).join('');
-  // Local-only buffs (override=true, global off)
-  const localBuffHTML = Object.entries(c.buffOvr||{}).filter(([id,v])=>v===true&&!S.buffs[id]&&BD[id]).map(([id])=>
+  const localHTML = Object.entries(c.buffOvr||{}).filter(([id,v])=>v===true&&!S.buffs[id]&&BD[id]).map(([id])=>
     `<span class="buff-chip local" onclick="event.stopPropagation();togCBuff('${c.id}','${id}')">${id}</span>`
   ).join('');
-  const addBuffBtn = `<span class="buff-add-btn" onclick="event.stopPropagation();showAddBuff('${c.id}',this)" title="Add buff to this creature only">+</span>`;
-  const buffHTML = globalBuffHTML + localBuffHTML;
-
-  // Aug chip
+  const addBtn = `<span class="buff-add-btn" onclick="event.stopPropagation();showAddBuff('${c.id}',this)" title="Add buff to this creature only">+</span>`;
   const augChip = c.aug ? `<span class="aug-chip">aug</span>` : '';
+  const chips = globalHTML + localHTML;
+  return (augChip || chips || addBtn) ? `<div class="buff-chips-muted">${augChip} ${chips} ${addBtn}</div>` : '';
+}
 
-  // Pre-turn decision toggles
+function renderDecisions(c) {
   const flankHTML = `<span class="flank-tag ${c.flanking?'active':''}" onclick="event.stopPropagation();togFlanking('${c.id}')" title="Flanking: +2 attack (untyped)">${c.flanking?'FLANKING':'Flank'}</span>`;
   const pounceHTML = c.hasPounce ?
     `<span class="pounce-tag ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce'}</span>` : '';
   const grapHTML = `<span class="grapple-tag ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Grappling: maintain + constrict/rake (if available)">${c.grappling?'GRAPPLING':'Grapple'}</span>`;
   const paHTML = c.hasPowerAttack ?
     `<span class="pa-tag ${c.powerAttacking?'active':''}" onclick="event.stopPropagation();togPA('${c.id}')" title="Power Attack: -${c.paX} atk, +${c.paX*2} dmg (${c.paX*3} single)">${c.powerAttacking?'PWR ATK':'Pwr Atk'}</span>` : '';
-  // Compute notable feats at render time (survives localStorage without migration)
+  // Notable feats computed at render time (survives localStorage without migration)
   const featsStr = (c.feats||'').toLowerCase();
   const notableFeats = [
     featsStr.includes('combat expertise') ? 'CE' : '',
@@ -1340,198 +1352,275 @@ function renderCard(c, group, refAC, groupIdx) {
     /\bcleave\b/.test(featsStr) ? (featsStr.includes('great cleave')?'Gt Cleave':'Cleave') : '',
   ].filter(Boolean);
   const featBadges = notableFeats.map(f => `<span class="feat-badge">${f}</span>`).join('');
-  const badgeRow = featBadges ? `<div class="feat-badge-row">${featBadges}</div>` : '';
-  const decisionsHTML = `<div class="decisions-row">${flankHTML} ${pounceHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
 
-  // Roll table — compute from raw rolls + current buffs
-  let tableHTML='', summaryHTML='', specialsHTML='';
-  const pr = c.rawRoll ? computeRoll(c) : null;
-  if(pr && c.alive) {
-    const hasAC = refAC > 0;
-    let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
-    let acLineDrawn = false;
+  // Tactical badges — non-interactive, with tooltips
+  const tacBadges = [];
+  if (featsStr.includes('flyby attack')) tacBadges.push({name:'Flyby', tip:'Move → attack → continue moving. No AoO from target.'});
+  if (featsStr.includes('spring attack')) tacBadges.push({name:'Spring Atk', tip:'Move → melee attack during move → continue moving.'});
+  if (featsStr.includes('combat reflexes')) {
+    const aoos = Math.max(1, mod(c.dex));
+    tacBadges.push({name:`CR ${aoos}`, tip:`Combat Reflexes: ${aoos} AoOs/round (Dex mod).`});
+  }
+  if (featsStr.includes('diehard')) tacBadges.push({name:'Diehard', tip:`Fights until -${c.con} HP. Auto-stabilizes.`});
+  const tacHTML = tacBadges.map(b => `<span class="tac-badge" title="${b.tip}">${b.name}</span>`).join('');
 
-    const triggeredSpecials = new Set();
-    let runningDmg = 0, runningDmgCrit = 0;
-    const runningByType = {}; // {type: total} for tooltip
-    tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">${IC.atk('icon-sm')}</th><th class="r">${IC.dmg('icon-sm')}</th><th class="r th-sum" title="Running damage total">Σ</th></tr>`;
+  const allBadges = featBadges + tacHTML;
+  const badgeRow = allBadges ? `<div class="feat-badge-row">${allBadges}</div>` : '';
+  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
+}
 
-    // Auto-damage rows at top (constrict, maintain auto-dmg)
-    const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
-    for (const ar of pr.autoRows) {
-      if (ar.isMaintainDmg && !maintainMode) continue; // only show maintain dmg in maintain mode
-      const active = c.grappling;
-      const cls = active ? 'auto-active' : 'auto-muted';
-      if (active) {
-        runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
-        if (hasAC) { hitDmg += ar.dmg; }
-      }
-      const runCell = active ? runningDmg : '—';
-      const baseMod = ar.dmgMod - (ar.buffDmg||0);
-      const buffPart = ar.buffDmg ? ` +${ar.buffDmg} buff` : '';
-      const rollStr = ar.dmgRolls ? `[${ar.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
-      const dmgTip = `${ar.dmgDice}: ${rollStr}`;
-      tableHTML += `<tr class="${cls}"><td><span class="atk-pips"></span><span class="atk-name">${ar.name.toLowerCase()}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+function renderRollTable(c, pr, refAC) {
+  const hasAC = refAC > 0;
+  let hitDmg=0, hitCount=0, totalAtks=pr.rows.length;
+  let acLineDrawn = false;
+  const triggeredSpecials = new Set();
+  let runningDmg = 0, runningDmgCrit = 0;
+  const runningByType = {};
+  let tableHTML=`<table class="roll-table"><tr><th>Attack</th><th class="r">${IC.atk('icon-sm')}</th><th class="r">${IC.dmg('icon-sm')}</th><th class="r th-sum" title="Running damage total">Σ</th></tr>`;
+
+  // Auto-damage rows at top (constrict, maintain auto-dmg)
+  const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
+  for (const ar of pr.autoRows) {
+    if (ar.isMaintainDmg && !maintainMode) continue;
+    const active = c.grappling;
+    const cls = active ? 'auto-active' : 'auto-muted';
+    if (active) {
+      runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
+      if (hasAC) { hitDmg += ar.dmg; }
     }
+    const runCell = active ? runningDmg : '—';
+    const baseMod = ar.dmgMod - (ar.buffDmg||0);
+    const buffPart = ar.buffDmg ? ` +${ar.buffDmg} buff` : '';
+    const rollStr = ar.dmgRolls ? `[${ar.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}` : '';
+    const dmgTip = `${ar.dmgDice}: ${rollStr}`;
+    tableHTML += `<tr class="${cls}"><td><span class="atk-pips"></span><span class="atk-name">${ar.name.toLowerCase()}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+  }
 
-    for(const r of pr.rows){
-      const isHit = hasAC ? r.hit_ac >= refAC : null;
-      const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
-      const critPending = r.critOk && !hasAC;
-      const fumbleFail = r.nat1 && hasAC && r.fumbleConfTotal < refAC;
-      const fumbleSafe = r.nat1 && hasAC && r.fumbleConfTotal >= refAC;
-      const fumblePending = r.nat1 && !hasAC;
-      const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
-      if(isHit) { hitDmg += effectiveDmg; hitCount++; }
-      // Running totals: split only when AC unknown and threats exist
-      const countForRunning = isHit === true || isHit === null;
-      if(countForRunning && !r.nat1) {
-        const thisDmg = hasAC ? effectiveDmg : r.dmgNoCrit;
-        runningDmg += thisDmg;
-        runningDmgCrit += hasAC ? effectiveDmg : r.dmg;
-        // Track by damage type for tooltip
-        const dt = getDmgType(r.name);
-        runningByType[dt] = (runningByType[dt]||0) + thisDmg;
-      }
-      let acLine='';
-      if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
-
-      let cls = '';
-      if(fumbleFail) cls = '';
-      else if(critConfirmed) cls = 'crit';
-      else if(isHit===true) cls = 'hit';
-      else if(isHit===false) cls = 'miss';
-
-      // Damage cell: shimmer on confirmed crits, yellow/shimmer split for pending
-      let dmgCell;
-      if (hasAC) {
-        if (!isHit) dmgCell = '-';
-        else if (critConfirmed) dmgCell = `<span class="shimmer-red">${effectiveDmg}</span>`;
-        else dmgCell = `${effectiveDmg}`;
-      } else {
-        if (r.critOk) dmgCell = `${r.dmgNoCrit}/<span class="shimmer-red">${r.dmg}</span>`;
-        else dmgCell = `${r.dmgNoCrit}`;
-      }
-      // Running total: show normal/crit when there's an unresolved threat
-      let runCell;
-      if (isHit===false || r.nat1) { runCell = ''; }
-      else if (runningDmg !== runningDmgCrit) { runCell = `${runningDmg}/${runningDmgCrit}`; }
-      else { runCell = runningDmg; }
-
-      const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
-      const pipCell = spPips ? `<span class="atk-pips">${spPips}</span>` : `<span class="atk-pips"></span>`;
-      const nameCls = r.isRake ? 'atk-name atk-rake' : 'atk-name';
-      const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>`;
-
-      if ((isHit || !hasAC) && r.specials.length) {
-        for (const s of r.specials.filter(x=>x!=='rake')) {
-          triggeredSpecials.add(s);
-        }
-      }
-
-      const paAtkStr = r.paAtk ? ` ${r.paAtk} PA` : '';
-      const buffAtkStr = (r.buffAtk||r.paAtk) ? ` (${r.baseBonus>=0?'+':''}${r.baseBonus} base${r.buffAtk?` ${r.buffAtk>=0?'+':''}${r.buffAtk} buffs`:''}${paAtkStr})` : '';
-      const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus}${buffAtkStr} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
-      // Atk cell: CRIT/CONF/FAIL/FUMBLE states
-      let atkCell = `${r.total}`;
-      if (critPending) atkCell = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
-      else if (critConfirmed) atkCell = `<span class="shimmer-red">CONF</span>`;
-      else if (r.critOk && hasAC) atkCell = `<span class="tag-crit">CRIT</span>`;
-      else if (fumblePending) atkCell = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
-      else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE</b>`;
-      else if (fumbleSafe) atkCell = `<span class="tag-muted">FAIL</span>`;
-      const dmgType = getDmgType(r.name);
-      const typeShort = dmgType;
-      const typeNames = dmgType.split('/').map(t=>({B:'bludg.',S:'slash.',P:'pierc.'})[t]||t).join(', ');
-      // Dmg tooltip: show individual rolls
-      const baseMod = r.dmgMod - (r.buffDmg||0) - (r.paDmg||0);
-      const buffPart = r.buffDmg ? ` +${r.buffDmg} buff` : '';
-      const paPart = r.paDmg ? ` +${r.paDmg} PA` : '';
-      const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}${paPart}` : '';
-      const dmgTip = `${r.dmgDice||'?'}: ${rollStr} (${typeNames})`;
-      // Running total tooltip: breakdown by damage type
-      const runTip = (runCell && !r.nat1 && !(isHit===false)) ? Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ') : '';
-      tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="running" title="${runTip}">${runCell}</td></tr>`;
+  for(const r of pr.rows){
+    const isHit = hasAC ? r.hit_ac >= refAC : null;
+    const critConfirmed = r.critOk && hasAC && r.critConfTotal >= refAC;
+    const critPending = r.critOk && !hasAC;
+    const fumbleFail = r.nat1 && hasAC && r.fumbleConfTotal < refAC;
+    const fumbleSafe = r.nat1 && hasAC && r.fumbleConfTotal >= refAC;
+    const fumblePending = r.nat1 && !hasAC;
+    const effectiveDmg = critConfirmed ? r.dmg : r.dmgNoCrit;
+    if(isHit) { hitDmg += effectiveDmg; hitCount++; }
+    const countForRunning = isHit === true || isHit === null;
+    if(countForRunning && !r.nat1) {
+      const thisDmg = hasAC ? effectiveDmg : r.dmgNoCrit;
+      runningDmg += thisDmg;
+      runningDmgCrit += hasAC ? effectiveDmg : r.dmg;
+      const dt = getDmgType(r.name);
+      runningByType[dt] = (runningByType[dt]||0) + thisDmg;
     }
-    tableHTML+=`</table>`;
+    let acLine='';
+    if(hasAC && !acLineDrawn && isHit===false){ acLineDrawn=true; acLine=' ac-line'; }
 
-    // ── Legend section below table: specials with pips + data ──
-    const allSpecials = new Set();
-    // Build from all attacks (not just visible rows) so grab shows when grappling
-    c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
-    // Skip constrict — it's in the attack table as an auto-damage row
-    allSpecials.delete('constrict');
+    let cls = '';
+    if(fumbleFail) cls = '';
+    else if(critConfirmed) cls = 'crit';
+    else if(isHit===true) cls = 'hit';
+    else if(isHit===false) cls = 'miss';
 
-    if (allSpecials.size > 0) {
-      specialsHTML = `<div class="specials-section">`;
-      for (const s of allSpecials) {
-        const isTriggered = triggeredSpecials.has(s);
-        const pip = IC[s] || '';
-        const mark = (isTriggered && hasAC) ? ' ✓' : '';
-        const sName = s.charAt(0).toUpperCase()+s.slice(1);
-        const url = PFSRD[s] || '#';
-        let info = '';
-        if (s === 'grab') {
-          if (maintainMode) {
-            // Maintain mode: show maintain check only (shimmer blue)
-            info = pr.maintain ? ` <span class="shimmer-blue">maintain ${pr.maintain.total} vs CMD</span>` : '';
-          } else {
-            // Normal: show grab checks for attacks that hit
-            let grabs = pr.grabs;
-            if (hasAC) {
-              const hitNames = new Set(pr.rows.filter(r => r.hit_ac >= refAC).map(r => r.name));
-              grabs = grabs.filter(g => hitNames.has(g.atk));
-            }
-            const rolls = grabs.map(g=>g.total).join(', ');
-            info = rolls ? ` ${rolls} vs CMD` : '';
-          }
-        } else {
-          const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
-          if (detail?.desc) {
-            const dcMatch = detail.desc.match(/DC\s*(\d+)/);
-            const saveMatch = detail.desc.match(/(Fort|Ref|Will)/);
-            const effectMatch = detail.desc.match(/effect\s+(.+?)(?:;|$)/);
-            const parts = [];
-            if (saveMatch) parts.push(saveMatch[1]);
-            if (dcMatch) parts.push(`DC ${dcMatch[1]}`);
-            if (effectMatch) parts.push(effectMatch[1].trim().replace(/\s*damage\s*/gi,'').slice(0,20));
-            if (parts.length) info = ` ${parts.join(' ')}`;
-          }
-        }
-        const infoCls = (isTriggered && hasAC) ? 'legend-active' : '';
-        specialsHTML += `<div class="special-legend legend-${s}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark} <span class="${infoCls}">${info}</span></div>`;
-      }
-      specialsHTML += `</div>`;
-    }
-
-    const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
-    const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
-    const critNote = nCrits ? ` | <span class="tag-crit">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
-    const fumbleNote = nFumbles ? ` | <span class="tag-fumble">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
-
-    // Summary total: show normal/crit split when threats exist
-    const dmgDisplay = runningDmg !== runningDmgCrit ? `${runningDmg}/<span class="tag-crit">${runningDmgCrit}</span>` : `${runningDmg}`;
-    const summaryTip = Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ');
-
-    if(hasAC) {
-      summaryHTML=`<div class="roll-summary">
-        <table class="roll-summary-table"><tr>
-          <td class="summary-label"><b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
-          <td class="total-dmg" title="${summaryTip}">${hitDmg}</td>
-        </tr></table>
-      </div>`;
+    let dmgCell;
+    if (hasAC) {
+      if (!isHit) dmgCell = '-';
+      else if (critConfirmed) dmgCell = `<span class="shimmer-red">${effectiveDmg}</span>`;
+      else dmgCell = `${effectiveDmg}`;
     } else {
-      summaryHTML=`<div class="roll-summary">
-        <table class="roll-summary-table"><tr>
-          <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
-          <td class="total-dmg" title="${summaryTip}">${dmgDisplay}</td>
-        </tr></table>
-      </div>`;
+      if (r.critOk) dmgCell = `${r.dmgNoCrit}/<span class="shimmer-red">${r.dmg}</span>`;
+      else dmgCell = `${r.dmgNoCrit}`;
+    }
+    let runCell;
+    if (isHit===false || r.nat1) { runCell = ''; }
+    else if (runningDmg !== runningDmgCrit) { runCell = `${runningDmg}/${runningDmgCrit}`; }
+    else { runCell = runningDmg; }
+
+    const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
+    const pipCell = spPips ? `<span class="atk-pips">${spPips}</span>` : `<span class="atk-pips"></span>`;
+    const nameCls = r.isRake ? 'atk-name atk-rake' : 'atk-name';
+    const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>`;
+
+    if ((isHit || !hasAC) && r.specials.length) {
+      for (const s of r.specials.filter(x=>x!=='rake')) {
+        triggeredSpecials.add(s);
+      }
+    }
+
+    const paAtkStr = r.paAtk ? ` ${r.paAtk} PA` : '';
+    const buffAtkStr = (r.buffAtk||r.paAtk) ? ` (${r.baseBonus>=0?'+':''}${r.baseBonus} base${r.buffAtk?` ${r.buffAtk>=0?'+':''}${r.buffAtk} buffs`:''}${paAtkStr})` : '';
+    const atkTip = `d20: ${r.r} ${r.bonus>=0?'+':''}${r.bonus}${buffAtkStr} = ${r.total}${r.critOk?' | conf: '+r.critConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.critConfTotal:''}${r.nat1?' | reroll: '+r.fumbleConf+' '+((r.bonus>=0?'+':'')+r.bonus)+' = '+r.fumbleConfTotal:''}`;
+    let atkCell = `${r.total}`;
+    if (critPending) atkCell = `<span class="tag-threat">CRIT/${r.critConfTotal}</span>`;
+    else if (critConfirmed) atkCell = `<span class="shimmer-red">CONF</span>`;
+    else if (r.critOk && hasAC) atkCell = `<span class="tag-crit">CRIT</span>`;
+    else if (fumblePending) atkCell = `<span class="tag-nat1">FAIL/${r.fumbleConfTotal}</span>`;
+    else if (fumbleFail) atkCell = `<b class="tag-fumble">FUMBLE</b>`;
+    else if (fumbleSafe) atkCell = `<span class="tag-muted">FAIL</span>`;
+    const dmgType = getDmgType(r.name);
+    const typeNames = dmgType.split('/').map(t=>({B:'bludg.',S:'slash.',P:'pierc.'})[t]||t).join(', ');
+    const baseMod = r.dmgMod - (r.buffDmg||0) - (r.paDmg||0);
+    const buffPart = r.buffDmg ? ` +${r.buffDmg} buff` : '';
+    const paPart = r.paDmg ? ` +${r.paDmg} PA` : '';
+    const rollStr = r.dmgRolls ? `[${r.dmgRolls.join('+')}]${baseMod>=0?'+':''}${baseMod}${buffPart}${paPart}` : '';
+    const dmgTip = `${r.dmgDice||'?'}: ${rollStr} (${typeNames})`;
+    const runTip = (runCell && !r.nat1 && !(isHit===false)) ? Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ') : '';
+    tableHTML+=`<tr class="${cls}${acLine}"><td>${nameCell}</td><td class="total" title="${atkTip}">${atkCell}</td><td class="dmg" title="${dmgTip}">${dmgCell}</td><td class="running" title="${runTip}">${runCell}</td></tr>`;
+  }
+  tableHTML+=`</table>`;
+
+  // Specials legend
+  const specialsHTML = renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode);
+
+  // Summary
+  const nCrits = pr.rows.filter(r=>r.critOk && (!hasAC || r.critConfTotal >= refAC)).length;
+  const nFumbles = pr.rows.filter(r=>r.nat1 && hasAC && r.fumbleConfTotal < refAC).length;
+  const critNote = nCrits ? ` | <span class="tag-crit">${nCrits} CRIT${nCrits>1?'S':''}</span>` : '';
+  const fumbleNote = nFumbles ? ` | <span class="tag-fumble">${nFumbles} FUMBLE${nFumbles>1?'S':''}</span>` : '';
+  const dmgDisplay = runningDmg !== runningDmgCrit ? `${runningDmg}/<span class="tag-crit">${runningDmgCrit}</span>` : `${runningDmg}`;
+  const summaryTip = Object.entries(runningByType).map(([t,v])=>`${v} (${t})`).join(', ');
+  let summaryHTML;
+  if(hasAC) {
+    summaryHTML=`<div class="roll-summary"><table class="roll-summary-table"><tr>
+      <td class="summary-label"><b class="tag-hit">${hitCount}</b>/${totalAtks} hit${critNote}${fumbleNote}</td>
+      <td class="total-dmg" title="${summaryTip}">${hitDmg}</td>
+    </tr></table></div>`;
+  } else {
+    summaryHTML=`<div class="roll-summary"><table class="roll-summary-table"><tr>
+      <td class="summary-label">${totalAtks} attacks${critNote}${fumbleNote}</td>
+      <td class="total-dmg" title="${summaryTip}">${dmgDisplay}</td>
+    </tr></table></div>`;
+  }
+
+  return { tableHTML, specialsHTML, summaryHTML };
+}
+
+function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
+  const hasAC = refAC > 0;
+  const allSpecials = new Set();
+  c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
+  allSpecials.delete('constrict');
+  if (allSpecials.size === 0) return '';
+
+  let html = `<div class="specials-section">`;
+  for (const s of allSpecials) {
+    const isTriggered = triggeredSpecials.has(s);
+    const pip = IC[s] || '';
+    const mark = (isTriggered && hasAC) ? ' ✓' : '';
+    const sName = s.charAt(0).toUpperCase()+s.slice(1);
+    const url = PFSRD[s] || '#';
+    let info = '';
+    if (s === 'grab') {
+      if (maintainMode) {
+        info = pr.maintain ? ` <span class="shimmer-blue">maintain ${pr.maintain.total} vs CMD</span>` : '';
+      } else {
+        let grabs = pr.grabs;
+        if (hasAC) {
+          const hitNames = new Set(pr.rows.filter(r => r.hit_ac >= refAC).map(r => r.name));
+          grabs = grabs.filter(g => hitNames.has(g.atk));
+        }
+        const rolls = grabs.map(g=>g.total).join(', ');
+        info = rolls ? ` ${rolls} vs CMD` : '';
+      }
+    } else {
+      const detail = c.specialAbilities?.find(a => a.name.toLowerCase().includes(s));
+      if (detail?.desc) {
+        const dcMatch = detail.desc.match(/DC\s*(\d+)/);
+        const saveMatch = detail.desc.match(/(Fort|Ref|Will)/);
+        const effectMatch = detail.desc.match(/effect\s+(.+?)(?:;|$)/);
+        const parts = [];
+        if (saveMatch) parts.push(saveMatch[1]);
+        if (dcMatch) parts.push(`DC ${dcMatch[1]}`);
+        if (effectMatch) parts.push(effectMatch[1].trim().replace(/\s*damage\s*/gi,'').slice(0,20));
+        if (parts.length) info = ` ${parts.join(' ')}`;
+      }
+    }
+    const infoCls = (isTriggered && hasAC) ? 'legend-active' : '';
+    html += `<div class="special-legend legend-${s}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark} <span class="${infoCls}">${info}</span></div>`;
+  }
+  // Crit rider feats — show conditionally when a crit confirms
+  const featsLow = (c.feats||'').toLowerCase();
+  const hasConfirmedCrit = pr.rows.some(r => r.critOk && (!hasAC || r.critConfTotal >= refAC));
+  if (hasConfirmedCrit) {
+    if (featsLow.includes('bleeding critical')) {
+      const cls = hasAC ? 'legend-active' : '';
+      html += `<div class="special-legend"><span class="${cls}">Bleeding Critical: 2d6 bleed/round (stacks)</span></div>`;
+    }
+    if (featsLow.includes('staggering critical')) {
+      const bab = c.bab || 0;
+      const dc = 10 + bab;
+      const cls = hasAC ? 'legend-active' : '';
+      html += `<div class="special-legend"><span class="${cls}">Staggering Critical: Fort DC ${dc} or staggered 1d4+1 rounds</span></div>`;
     }
   }
 
-  // Stat block (hidden until toggled)
-  const sbHTML = `<div class="statblock">
+  return html + `</div>`;
+}
+
+function renderAbilities(c) {
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce']);
+  const keyAbilities = (c.specialAbilities || []).filter(a => {
+    const kw = a.name.split(/[\s(]/)[0].toLowerCase();
+    return !meleeSpecials.has(kw);
+  });
+  const saText = c.specialAtks || '';
+  const saTextParsed = [...saText.matchAll(/(\w[\w\s]*?)\s*\(([^)]+)\)/g)];
+  for (const m of saTextParsed) {
+    const name = m[1].trim().toLowerCase();
+    if (meleeSpecials.has(name)) continue;
+    if (keyAbilities.find(a => a.name.toLowerCase().includes(name))) continue;
+    const pfsrdName = name.replace(/\s+/g, '-');
+    const url = PFSRD[name] || `https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#${pfsrdName}`;
+    keyAbilities.push({ name: m[1].trim(), desc: m[2], _fromText: true, _url: url });
+  }
+  // CMB feat maneuvers — parse from Feats string
+  const cmbFeats = [];
+  const fs = (c.feats||'');
+  const fsLow = fs.toLowerCase();
+  const cmbVal = c.cmb || 0;
+  if (fsLow.includes('improved bull rush')) {
+    const hasGreater = fsLow.includes('greater bull rush');
+    const desc = hasGreater ? `CMB ${fmtMod(cmbVal+2)}, pushed foe provokes AoOs` : `CMB ${fmtMod(cmbVal+2)} (no AoO)`;
+    cmbFeats.push({name: hasGreater ? 'Gr. Bull Rush' : 'Imp. Bull Rush', desc, url: PFSRD['bull rush']});
+  }
+  if (fsLow.includes('improved overrun')) {
+    const hasGreater = fsLow.includes('greater overrun');
+    const desc = hasGreater ? `CMB ${fmtMod(cmbVal+2)}, overrun foe provokes AoOs` : `CMB ${fmtMod(cmbVal+2)} (no AoO)`;
+    cmbFeats.push({name: hasGreater ? 'Gr. Overrun' : 'Imp. Overrun', desc, url: PFSRD['overrun']});
+  }
+  if (fsLow.includes('improved sunder')) {
+    cmbFeats.push({name: 'Imp. Sunder', desc: `CMB ${fmtMod(cmbVal+2)} (no AoO)`, url: PFSRD['sunder']});
+  }
+  if (fsLow.includes('awesome blow')) {
+    cmbFeats.push({name: 'Awesome Blow', desc: `CMB ${fmtMod(cmbVal)} → 10ft knockback + prone`, url: PFSRD['awesome blow']});
+  }
+  for (const cf of cmbFeats) {
+    keyAbilities.push({name: cf.name, desc: cf.desc, _fromText: true, _url: cf.url});
+  }
+
+  if (keyAbilities.length === 0) return '';
+  let html = '<div class="ability-section">';
+  for (const a of keyAbilities) {
+    const dcMatch = a.desc.match(/DC\s*(\d+)/);
+    const dcStr = dcMatch ? `DC ${dcMatch[1]}` : '';
+    const rangeMatch = a.desc.match(/(\d+)[- ](?:foot|ft)/);
+    const rangeStr = rangeMatch ? `${rangeMatch[1]}ft` : '';
+    const saveMatch = a.desc.match(/(Will|Fort|Ref)\s*(?:save)?/i);
+    const saveStr = saveMatch ? saveMatch[1] : '';
+    const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
+    const typeStr = typeMatch ? typeMatch[1] : '';
+    const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
+    const nameDisp = a._url ? `<a class="ability-name sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">${a.name.split('(')[0].trim()}</a>` : `<span class="ability-name">${a.name.split('(')[0].trim()}</span>`;
+    html += `<div class="ability-row">
+      <span>${nameDisp} <span class="ability-type">${typeStr}</span></span>
+      <span class="ability-dc">${info}</span>
+    </div>`;
+  }
+  return html + '</div>';
+}
+
+function renderStatBlock(c) {
+  return `<div class="statblock">
     <div class="sb-row">
       <span class="sb-label">AC</span><span class="sb-val">${c.ac} ${c.acBreak?'('+c.acBreak+')':''}</span>
     </div>
@@ -1569,70 +1658,32 @@ function renderCard(c, group, refAC, groupIdx) {
       ${c.pfsrdUrl?` | <a href="${c.pfsrdUrl}" target="_blank" onclick="event.stopPropagation()">d20pfsrd</a>`:''}
     </div>
   </div>`;
+}
 
-  // Tappable HP readout — opens numpad popup
+function renderCard(c, group, refAC, groupIdx) {
+  if (!c.alive) return renderDeadCard(c);
+
+  const hpPct=c.maxHp>0?(c.hp/c.maxHp*100):0;
+  const hpCls=hpPct>50?'':hpPct>25?'low':'crit';
+  const cardCls=group.casting?'casting':'';
+  const durBadge=group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
+
+  // Group pill
+  const multi = group.creatures.length > 1;
+  const gpillLabel = group.src === 'figurine' ? 'Figurine' : group.src === 'sna' ? `SNA ${group.slot||''}` : '';
+  const gpillHTML = multi && gpillLabel ? `<span class="gpill gpill-${(groupIdx||0) % 5}">${gpillLabel}</span>` : '';
+
+  // Roll table + specials + summary
+  let summaryHTML='', tableHTML='', specialsHTML='';
+  const pr = c.rawRoll ? computeRoll(c) : null;
+  if (pr) {
+    const result = renderRollTable(c, pr, refAC);
+    tableHTML = result.tableHTML;
+    specialsHTML = result.specialsHTML;
+    summaryHTML = result.summaryHTML;
+  }
+
   const hpTap = `<span class="hp-tap" onclick="openNumpad('hp','${c.id}',this)" title="Tap to adjust HP">${IC.hp()}${c.hp}/${c.maxHp}</span>`;
-
-  // Key abilities: non-melee special abilities with DCs/combat actions
-  // Sources: specialAbilities[] AND Special_Attacks text (for whirlwind, trample, etc.)
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce']);
-  const keyAbilities = (c.specialAbilities || []).filter(a => {
-    const kw = a.name.split(/[\s(]/)[0].toLowerCase();
-    return !meleeSpecials.has(kw);
-  });
-  // Also parse Special_Attacks text for abilities not in specialAbilities[]
-  // e.g. "whirlwind (DC 14)" → extract name + DC
-  const saText = c.specialAtks || '';
-  const saTextParsed = [...saText.matchAll(/(\w[\w\s]*?)\s*\(([^)]+)\)/g)];
-  for (const m of saTextParsed) {
-    const name = m[1].trim().toLowerCase();
-    if (meleeSpecials.has(name)) continue;
-    // Skip if already in keyAbilities
-    if (keyAbilities.find(a => a.name.toLowerCase().includes(name))) continue;
-    const pfsrdName = name.replace(/\s+/g, '-');
-    const url = PFSRD[name] || `https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#${pfsrdName}`;
-    keyAbilities.push({ name: m[1].trim(), desc: m[2], _fromText: true, _url: url });
-  }
-  let abilityHTML = '';
-  if (keyAbilities.length > 0) {
-    abilityHTML = '<div class="ability-section">';
-    for (const a of keyAbilities) {
-      const dcMatch = a.desc.match(/DC\s*(\d+)/);
-      const dcStr = dcMatch ? `DC ${dcMatch[1]}` : '';
-      const rangeMatch = a.desc.match(/(\d+)[- ](?:foot|ft)/);
-      const rangeStr = rangeMatch ? `${rangeMatch[1]}ft` : '';
-      const saveMatch = a.desc.match(/(Will|Fort|Ref)\s*(?:save)?/i);
-      const saveStr = saveMatch ? saveMatch[1] : '';
-      const typeMatch = a.name.match(/\((Su|Ex|Sp)\)/);
-      const typeStr = typeMatch ? typeMatch[1] : '';
-      const info = [dcStr, saveStr, rangeStr].filter(Boolean).join(' ');
-      const nameDisp = a._url ? `<a class="ability-name sp-link" href="${a._url}" target="_blank" onclick="event.stopPropagation()">${a.name.split('(')[0].trim()}</a>` : `<span class="ability-name">${a.name.split('(')[0].trim()}</span>`;
-      abilityHTML += `<div class="ability-row">
-        <span>${nameDisp} <span class="ability-type">${typeStr}</span></span>
-        <span class="ability-dc">${info}</span>
-      </div>`;
-    }
-    abilityHTML += '</div>';
-  }
-
-  // Dead card — collapsed, rotated sideways with wrapper for layout
-  if (!c.alive) {
-    const deadCard = `<div class="ccard dead">
-      <div class="ccard-head">
-        <span class="ccard-name">${c.name}</span>
-        <span class="ccard-hp">${c.hp}/${c.maxHp}</span>
-      </div>
-      <div class="dead-bar">
-        <span class="dead-label">DEAD</span>
-        <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}')">1 HP</button>
-        <button class="sm revive-btn" onclick="event.stopPropagation();reviveC('${c.id}',true)">Full</button>
-      </div>
-    </div>`;
-    return `<div class="dead-wrap">${deadCard}</div>`;
-  }
-
-  // Buff footer (muted, bottom of card)
-  const buffFooterHTML = (augChip || buffHTML || addBuffBtn) ? `<div class="buff-chips-muted">${augChip} ${buffHTML} ${addBuffBtn}</div>` : '';
 
   return `<div class="ccard ${cardCls}" onclick="this.classList.toggle('show-stats')">
     ${gpillHTML}
@@ -1644,16 +1695,16 @@ function renderCard(c, group, refAC, groupIdx) {
     <div class="ccard-head">
       ${hpTap}<span class="ccard-ac">${c.ac}${IC.ac()}</span>
     </div>
-    <div class="hpbar" onclick="event.stopPropagation();openNumpad('hp','${c.id}',this)"><div class="hpfill ${hpCls}" style="width:${pct}%"></div></div>
+    <div class="hpbar" onclick="event.stopPropagation();openNumpad('hp','${c.id}',this)"><div class="hpfill ${hpCls}" style="--hp-cur:${c.hp}; --hp-max:${c.maxHp}"></div></div>
     <div class="hp-row">
       <span class="ccard-cmd">CMD ${c.cmd}</span>
     </div>
-    ${abilityHTML}
-    ${decisionsHTML}
-    ${summaryHTML}${tableHTML}${specialsHTML||''}
-    ${buffFooterHTML}
+    ${renderAbilities(c)}
+    ${renderDecisions(c)}
+    ${summaryHTML}${tableHTML}${specialsHTML}
+    ${renderBuffChips(c)}
     <div class="ccard-meta"><span>Spd ${c.speed}</span><span>Reach ${c.reach}</span><span class="meta-right">${c.size}</span></div>
-    ${sbHTML}
+    ${renderStatBlock(c)}
   </div>`;
 }
 
@@ -1734,10 +1785,10 @@ function showAddBuff(cid,el){
   // List buffs from BD not globally active and not already local on this creature
   const c=findC(cid);if(!c)return;
   const items=Object.entries(BD).filter(([id])=>!S.buffs[id]&&c.buffOvr[id]!==true);
-  if(!items.length){pop.innerHTML='<div class="buff-add-item" style="color:var(--muted)">No buffs available</div>';}
+  if(!items.length){pop.innerHTML='<div class="buff-add-item">No buffs available</div>';}
   else{pop.innerHTML=items.map(([id,def])=>{
     const info=[def.a?`+${def.a}a`:'',def.d?`+${def.d}d`:'',def.s?`+${def.s}s`:'',def.extra?'haste':'',def.fh?`fh${def.fh}`:''].filter(Boolean).join('/');
-    return `<div class="buff-add-item" onclick="event.stopPropagation();addLocalBuff('${cid}','${id}')">${id} <span style="color:var(--muted)">${info}</span></div>`;
+    return `<div class="buff-add-item" onclick="event.stopPropagation();addLocalBuff('${cid}','${id}')">${id} <span class="buff-add-detail">${info}</span></div>`;
   }).join('');}
   let left=rect.left,top=rect.top-items.length*28-8;
   if(top<4)top=rect.bottom+4;

@@ -386,6 +386,236 @@ def compute_augmented(base: dict) -> dict:
     return aug
 
 
+def apply_improved_critical(melee: str, feats: str) -> str:
+    """Apply Improved Critical feat to melee line — doubles crit range.
+
+    Parses "Improved Critical (weapon)" from feats, then appends /19-20
+    (or adjusts existing crit range) to matching attacks in the melee string.
+    """
+    if not melee or not feats:
+        return melee
+    # Find all Improved Critical targets
+    ic_weapons = re.findall(r'Improved Critical\s*\(([^)]+)\)', feats, re.IGNORECASE)
+
+    # Handle bare "Improved Critical" without weapon qualifier (e.g., Triceratops SRD)
+    if not ic_weapons and re.search(r'Improved Critical(?!\s*\()', feats, re.IGNORECASE):
+        # Infer weapon from Weapon Focus feat, or first melee attack
+        wf = re.findall(r'Weapon Focus\s*\(([^)]+)\)', feats, re.IGNORECASE)
+        if wf:
+            ic_weapons = [wf[0].strip()]
+        else:
+            # Use first weapon name from melee line
+            first = re.match(r'(?:\d+\s+)?(\w+)', melee)
+            if first:
+                ic_weapons = [first.group(1)]
+
+    if not ic_weapons:
+        return melee
+
+    ic_set = {w.strip().lower() for w in ic_weapons}
+
+    # For each weapon, find the attack in the melee line and add crit range
+    # Melee format: "gore +17 (2d10+12)" or "bite +20 (4d6+22/19-20)"
+    def add_crit_range(m):
+        full = m.group(0)
+        weapon = m.group(1).strip().lower()
+        # Normalize: "2 claws" -> "claw", "bite" -> "bite"
+        weapon_base = re.sub(r'^\d+\s+', '', weapon).rstrip('s')
+        if weapon_base not in ic_set:
+            return full
+        # Check if already has a crit range
+        if re.search(r'/\d+-\d+', full):
+            return full  # already has crit range, leave it
+        # Add /19-20 before closing paren
+        return full.replace(')', '/19-20)')
+
+    # Match each attack: "weapon +N (damage)" or "N weapons +N (damage)"
+    result = re.sub(
+        r'([\w\s]+?)\s+[+-]\d+(?:/[+-]\d+)*\s+\([^)]+\)',
+        add_crit_range, melee
+    )
+    return result
+
+
+# ═══ FEAT & ABILITY PARSERS ═══
+
+# Badge feat definitions: feat_name → tooltip template
+BADGE_FEATS = {
+    "Flyby Attack": "Move -> attack -> continue moving. No AoO from target.",
+    "Spring Attack": "Move -> melee attack during move -> continue moving.",
+    "Combat Reflexes": "X AoOs/round",  # X computed from Dex
+    "Diehard": "Fights until -Con HP. Auto-stabilizes.",
+}
+
+# CMB feat definitions
+CMB_FEATS = {
+    "Improved Bull Rush": {"action": "push", "greater": "Greater Bull Rush",
+                           "greater_note": "pushed foe provokes AoOs"},
+    "Improved Overrun": {"action": "overrun", "greater": "Greater Overrun",
+                         "greater_note": "overrun foe provokes AoOs"},
+    "Improved Sunder": {"action": "sunder", "greater": None, "greater_note": None},
+}
+
+
+def parse_badges(feats: str, dex: int = 10) -> list[dict]:
+    """Parse badge feats from feats string. Returns list of {name, tooltip}."""
+    if not feats:
+        return []
+    badges = []
+    for feat, tooltip in BADGE_FEATS.items():
+        if feat in feats:
+            tip = tooltip
+            if feat == "Combat Reflexes":
+                dex_mod = (dex - 10) // 2
+                tip = f"{max(1, dex_mod)} AoOs/round"
+            badges.append({"name": feat, "tooltip": tip})
+    return badges
+
+
+def parse_cmb_feats(feats: str, cmb: int, display_name: str = "") -> list[dict]:
+    """Parse CMB-related feats. Returns list of {name, desc, greater}."""
+    if not feats:
+        return []
+    results = []
+
+    # Standard Improved/Greater CMB feats
+    for imp_name, info in CMB_FEATS.items():
+        if imp_name not in feats:
+            continue
+        has_greater = bool(info["greater"] and info["greater"] in feats)
+        effective_cmb = cmb + 2  # +2 from Improved feat
+        desc = f"CMB +{effective_cmb} {info['action']} (no AoO)"
+        if has_greater:
+            desc += f"; {info['greater_note']}"
+        results.append({
+            "name": imp_name,
+            "desc": desc,
+            "greater": has_greater,
+        })
+
+    # Awesome Blow (standalone)
+    if "Awesome Blow" in feats:
+        results.append({
+            "name": "Awesome Blow",
+            "desc": f"CMB +{cmb} -> 10ft knockback + prone",
+            "greater": False,
+        })
+
+    return results
+
+
+def parse_ability_flags(data: dict, display_name: str = "") -> dict:
+    """Parse creature ability flags from special_attacks, feats, and special_abilities.
+
+    Returns a dict of flag fields to merge into the creature entry.
+    Only includes flags that are True / have data (omits False flags).
+    """
+    sa = data.get("special_attacks", "")
+    feats = data.get("feats", "")
+    abilities = data.get("special_abilities", [])
+    sa_lower = sa.lower()
+    feats_lower = feats.lower()
+    name_lower = display_name.lower()
+
+    # Build a combined abilities text for searching
+    ab_text = " ".join(a.get("desc", "") + " " + a.get("name", "") for a in abilities).lower()
+
+    flags = {}
+
+    # Rend
+    m = re.search(r'rend\s*\([^,]*,\s*(\d+d\d+[+-]?\d*)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasRend"] = True
+        flags["rendDmg"] = m.group(1)
+
+    # Death Roll
+    m = re.search(r'death roll\s*\(([^)]+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasDeathRoll"] = True
+        flags["deathRollDmg"] = m.group(1)
+
+    # Gnaw
+    if "gnaw" in sa_lower:
+        flags["hasGnaw"] = True
+
+    # Diehard
+    if "diehard" in feats_lower:
+        flags["hasDiehard"] = True
+
+    # Powerful Charge
+    m = re.search(r'powerful charge\s*\([^,]*,\s*([^)]+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasPowerfulCharge"] = True
+        flags["powerfulChargeDmg"] = m.group(1)
+
+    # Earth Mastery
+    if "earth elemental" in name_lower or "earth mastery" in sa_lower or "earth mastery" in ab_text:
+        flags["hasEarthMastery"] = True
+
+    # Water Mastery
+    if "water elemental" in name_lower or "water mastery" in sa_lower or "water mastery" in ab_text:
+        flags["hasWaterMastery"] = True
+
+    # Rage
+    if "rage" in sa_lower or "rage" in ab_text:
+        flags["hasRage"] = True
+
+    # Bleeding Critical
+    if "bleeding critical" in feats_lower:
+        flags["hasBleedingCrit"] = True
+
+    # Staggering Critical
+    if "staggering critical" in feats_lower:
+        flags["hasStaggeringCrit"] = True
+
+    # Vital Strike
+    if "improved vital strike" in feats_lower:
+        flags["hasVitalStrike"] = True
+        flags["vitalStrikeLevel"] = "improved"
+    elif "vital strike" in feats_lower:
+        flags["hasVitalStrike"] = True
+        flags["vitalStrikeLevel"] = "normal"
+
+    # Whirlwind
+    m = re.search(r'whirlwind\s*\(DC\s*(\d+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasWhirlwind"] = True
+        flags["whirlwindDC"] = int(m.group(1))
+    elif "whirlwind" in sa_lower:
+        flags["hasWhirlwind"] = True
+
+    # Vortex
+    m = re.search(r'vortex\s*\(DC\s*(\d+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasVortex"] = True
+        flags["vortexDC"] = int(m.group(1))
+    elif "vortex" in sa_lower:
+        flags["hasVortex"] = True
+
+    # Trample
+    m = re.search(r'trample\s*\(([^,]+),\s*DC\s*(\d+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasTrample"] = True
+        flags["trampleDmg"] = m.group(1).strip()
+        flags["trampleDC"] = int(m.group(2))
+
+    # Rock Throwing
+    m = re.search(r'rock throwing\s*\((\d+)\s*ft\.\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasRockThrowing"] = True
+        flags["rockThrowingRange"] = f"{m.group(1)} ft."
+    elif "rock throwing" in sa_lower or "rock throwing" in ab_text:
+        flags["hasRockThrowing"] = True
+
+    # Swallow Whole
+    m = re.search(r'swallow whole\s*\(([^)]+)\)', sa, re.IGNORECASE)
+    if m:
+        flags["hasSwallowWhole"] = True
+        flags["swallowWholeInfo"] = m.group(1)
+
+    return flags
+
+
 def build_combat_card(data: dict) -> dict:
     """Build a combat_card dict from parsed data."""
     return {
@@ -433,8 +663,22 @@ def main():
                 continue
 
             found += 1
+
+            # Apply Improved Critical to melee lines before building card
+            feats = data.get("feats", "")
+            data["melee"] = apply_improved_critical(data["melee"], feats)
+
             card = build_combat_card(data)
             aug = compute_augmented(data)
+
+            # Apply Improved Critical to augmented melee too
+            aug_melee = aug.get("Melee", card["Melee"])
+            aug["Melee"] = apply_improved_critical(aug_melee, feats)
+
+            # Parse new feat/ability fields
+            badges = parse_badges(feats, data.get("dex", 10))
+            cmb_feats = parse_cmb_feats(feats, data["cmb"], display_name)
+            ability_flags = parse_ability_flags(data, display_name)
 
             is_alt = source != "core"
             creature_entry = {
@@ -466,13 +710,21 @@ def main():
                     "HP": aug["HP"],
                     "HD": aug["HD"],
                     "Fort": aug["Fort"],
-                    "Melee": aug.get("Melee", card["Melee"]),
+                    "Melee": aug["Melee"],
                     "CMB": aug["CMB"],
                     "CMD": aug["CMD"],
                     "Str": aug["Str"],
                     "Con": aug["Con"],
                 },
             }
+
+            # Add optional fields only when present
+            if badges:
+                creature_entry["badges"] = badges
+            if cmb_feats:
+                creature_entry["cmbFeats"] = cmb_feats
+            if ability_flags:
+                creature_entry.update(ability_flags)
 
             level_data["creatures"].append(creature_entry)
             print(f"  OK: {display_name} (AC {data['ac']}, HP {data['hp']}, Str {data.get('str','?')})")

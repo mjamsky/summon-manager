@@ -25,6 +25,8 @@
 - [x] Effect damage rendering inline — superseded by spell cards (alert removed)
 - [ ] Versatile Summoning feat in setup (Aerial/Aqueous/Chthonic/Dark/Fiery templates)
 - [ ] Poison expanded info — onset, frequency, cure, specific ability damage in legend
+- [ ] Bulette pounce — "Leap" ability is a conditional pounce (DC 20 Acrobatics, claws only, no bite). Needs `pounce` in Special_Attacks or custom Leap toggle logic.
+- [ ] Stirge attach-only attack — `touch +7 (attach)` has no damage dice (correct per PF1e). Suppress empty damage column for attach-only attacks.
 
 ## Polish
 - [x] HP numpad tap target — HP bar is now clickable with expanded touch area

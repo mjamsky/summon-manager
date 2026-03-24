@@ -656,6 +656,7 @@ function mkCreature(bEntry, aug) {
     space:full.Space||'5 ft.', reach:full.Reach||'5 ft.',
     type:data.type||'', size:data.size||'', cr:data.cr||'',
     pfsrdUrl:data.pfsrd_url||'',
+    bName: data.name,
     specialAbilities: data.special_abilities || [],
     snaLevel: bEntry.sna_level,
     preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
@@ -1334,10 +1335,10 @@ function renderCard(c, group, refAC, groupIdx) {
 
   const hpTap = `<span class="hp-tap" onclick="openNumpad('hp','${c.id}',this)" title="Tap to adjust HP">${IC.hp()}${c.hp}/${c.maxHp}</span>`;
 
-  return `<div class="ccard ${cardCls}" data-group="${groupIdx % 5}" onclick="this.classList.toggle('show-stats')">
-        <span class="ccard-id">${c.id} <span class="ccard-dismiss" onclick="event.stopPropagation();dismissCreature('${c.id}','${group.id}')" title="Dismiss">×</span></span>
+  return `<div class="ccard ${cardCls}" data-group="${groupIdx % 5}">
+        <span class="ccard-id">${c.id} <span class="ccard-dismiss" onclick="dismissCreature('${c.id}','${group.id}')" title="Dismiss">×</span></span>
     <div class="ccard-namerow">
-      <span class="ccard-name">${c.name}</span>
+      <span class="ccard-name" onclick="event.stopPropagation();openStatPopover('${(c.bName||c.name).replace(/'/g,"\\'")}')">${c.name}</span>
       <span class="ccard-dur">${durBadge}</span>
     </div>
     <div class="ccard-head">
@@ -1623,6 +1624,112 @@ function loadState() {
     return true;
   } catch(e) { console.warn('load failed', e); localStorage.removeItem(SAVE_KEY); return false; }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  STAT BLOCK POPOVER
+// ═══════════════════════════════════════════════════════════════
+function openStatPopover(bName) {
+  closeNumpad(); // mutual exclusion
+  const entry = B[bName.toLowerCase()];
+  if (!entry) return;
+  const d = entry.data;
+  const fs = d.full_statblock || {};
+  const cc = d.combat_card || {};
+
+  let html = '';
+
+  // Header: name + tags + CR
+  html += `<div class="sp-header"><div>`;
+  html += `<div class="sp-name">${d.name}</div>`;
+  html += `<div class="sp-tags">`;
+  if (d.type) html += `<span class="sp-tag">${d.type}</span>`;
+  if (d.size) html += `<span class="sp-tag">${d.size}</span>`;
+  html += `</div></div>`;
+  if (d.cr) html += `<div class="sp-cr">CR ${d.cr}</div>`;
+  html += `</div>`;
+
+  // Groove+ember divider
+  html += `<div class="sp-divider"></div>`;
+
+  // Hero stats: HP + AC wells, then info
+  const acFull = cc.AC_breakdown || '';
+  const acSub = acFull.match(/touch\s+(\d+)/) && acFull.match(/flat[- ]footed?\s+(\d+)/)
+    ? `touch ${acFull.match(/touch\s+(\d+)/)[1]} · flat ${acFull.match(/flat[- ]footed?\s+(\d+)/)[1]}`
+    : '';
+  html += `<div class="sp-hero">`;
+  html += `<div class="sp-well"><div class="sp-well-label">HP</div><div class="sp-well-value">${cc.HP || '—'}</div>${cc.HD ? `<div class="sp-well-sub">${cc.HD}</div>` : ''}</div>`;
+  html += `<div class="sp-well"><div class="sp-well-label">AC</div><div class="sp-well-value">${cc.AC || '—'}</div>${acSub ? `<div class="sp-well-sub">${acSub}</div>` : ''}</div>`;
+  html += `<div class="sp-info">`;
+  const sq = cc.Special_Qualities || '';
+  if (sq) html += `<span><span class="sp-info-label">Senses </span><span class="sp-info-value">${sq}</span></span>`;
+  html += `</div></div>`;
+
+  // Saves
+  html += `<div class="sp-saves">`;
+  html += `<div class="sp-save"><div class="sp-save-label">Fort</div><div class="sp-save-value">${fmtMod(cc.Fort || 0)}</div></div>`;
+  html += `<div class="sp-save"><div class="sp-save-label">Ref</div><div class="sp-save-value">${fmtMod(cc.Ref || 0)}</div></div>`;
+  html += `<div class="sp-save"><div class="sp-save-label">Will</div><div class="sp-save-value">${fmtMod(cc.Will || 0)}</div></div>`;
+  html += `</div>`;
+
+  // OFFENSE band
+  html += `<div class="sp-band">OFFENSE</div>`;
+  html += `<div class="sp-section">`;
+  if (cc.Speed) html += `<div><span class="sp-kw">Speed </span>${cc.Speed}</div>`;
+  if (cc.Melee) html += `<div><span class="sp-kw">Melee </span>${cc.Melee}</div>`;
+  if (fs.Space || fs.Reach) html += `<div><span class="sp-kw">Space </span>${fs.Space || '5 ft.'}; <span class="sp-kw">Reach </span>${fs.Reach || '5 ft.'}</div>`;
+  if (cc.Special_Attacks) html += `<div class="sp-inlaid"><span class="sp-kw">Special Attacks </span>${cc.Special_Attacks}</div>`;
+  html += `</div>`;
+
+  // STATISTICS band
+  html += `<div class="sp-band">STATISTICS</div>`;
+  html += `<div class="sp-section">`;
+  // Ability scores grid
+  const abs = ['Str','Dex','Con','Int','Wis','Cha'];
+  html += `<div class="sp-abilities">`;
+  for (const ab of abs) {
+    const score = fs[ab];
+    const mod = score != null ? Math.floor((score - 10) / 2) : null;
+    const modStr = mod != null ? (mod >= 0 ? `+${mod}` : `${mod}`) : '';
+    html += `<div class="sp-ab"><div class="sp-ab-label">${ab}</div><div class="sp-ab-score">${score != null ? score : '—'}</div><div class="sp-ab-mod">${modStr}</div></div>`;
+  }
+  html += `</div>`;
+  if (fs.BAB != null) html += `<div><span class="sp-kw">BAB </span>${fmtMod(fs.BAB)}; <span class="sp-kw">CMB </span>${cc.CMB_full || fmtMod(cc.CMB || 0)}; <span class="sp-kw">CMD </span>${cc.CMD_full || cc.CMD || '—'}</div>`;
+  if (fs.Feats) html += `<div><span class="sp-kw">Feats </span>${fs.Feats}</div>`;
+  if (fs.Skills) html += `<div><span class="sp-kw">Skills </span>${fs.Skills}</div>`;
+  if (cc.Special_Qualities) html += `<div><span class="sp-kw">SQ </span>${cc.Special_Qualities}</div>`;
+  html += `</div>`;
+
+  // Special abilities (if any)
+  if (d.special_abilities && d.special_abilities.length) {
+    html += `<div class="sp-band">SPECIAL ABILITIES</div>`;
+    html += `<div class="sp-section">`;
+    for (const sa of d.special_abilities) {
+      html += `<div class="sp-inlaid"><span class="sp-kw">${sa.name} </span>${sa.desc || ''}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Footer — SRD link
+  if (d.pfsrd_url) {
+    html += `<div class="sp-footer"><a href="${d.pfsrd_url}" target="_blank">View on d20pfsrd.com ↗</a></div>`;
+  }
+
+  document.getElementById('stat-popover-content').innerHTML = html;
+  document.getElementById('stat-popover-scrim').classList.add('open');
+  document.body.classList.add('popover-open');
+}
+
+function closeStatPopover() {
+  document.getElementById('stat-popover-scrim').classList.remove('open');
+  document.body.classList.remove('popover-open');
+}
+
+// Close popover on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('stat-popover-scrim').classList.contains('open')) {
+    closeStatPopover();
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  INIT

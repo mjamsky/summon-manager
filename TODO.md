@@ -37,8 +37,8 @@
 - [x] Visual revamp Phase 5 — Dock & Trays: stone slab dock with noise, keystone clip-path tabs, inlaid tray panels with accent bars, groove+ember junction, button hierarchy (ghost/gold/olive-green CTA)
 - [x] Visual revamp Phase 6 — Cards & Groups: groove+glow group identity (top border, 5 warm colors), removed gpill system, warm numpad/buff popup, inset groove card section separators
 - [x] Visual revamp Phase 8 — Polish: centered grid, dead CSS removal, warm HP text, phone breakpoint (280px centered)
-- [ ] Visual revamp Phase 7 — Stat Block Popover (deferred): new component, centered popover on creature name tap
-- [ ] Statblock popup vs expand — currently expands card downward (`.show-stats`). Consider: modal/popup overlay instead? Pros: doesn't reflow grid, can be larger, dismiss on outside click. Cons: loses card context, overlay management. Discuss.
+- [x] Visual revamp Phase 7 — Stat Block Popover: centered popover on creature name tap, replaces inline show-stats expand
+- [x] Statblock popup vs expand — implemented as modal/popup overlay. Scrim click, × button, Escape to dismiss. No grid reflow.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
 
 ## Refactor (after features stabilize)

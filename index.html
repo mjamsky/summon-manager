@@ -122,6 +122,14 @@
   </div>
 </div>
 
+<!-- ═══ Stat Block Popover ═══ -->
+<div class="stat-popover-scrim" id="stat-popover-scrim" onclick="closeStatPopover()">
+  <div class="stat-popover" id="stat-popover" onclick="event.stopPropagation()">
+    <button class="stat-popover-close" onclick="closeStatPopover()">&times;</button>
+    <div id="stat-popover-content"></div>
+  </div>
+</div>
+
 <script src="bestiary.js"></script>
 <script src="app.js"></script>
 </body>

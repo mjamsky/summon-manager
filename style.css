@@ -110,7 +110,8 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 }
 .ccard.casting { border-style: dashed; border-color: var(--crit); animation: cast-pulse 2s ease-in-out infinite; }
 .ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
-.ccard-name { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; }
+.ccard-name { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ccard-name:hover { color: var(--roll-threat); }
 .ccard-dur { font-size: 9px; color: var(--text-muted); flex-shrink: 0; align-self: flex-end; }
 .ccard-id { font-size: 10px; color: var(--text); position: absolute; top: 6px; right: 8px; display: flex; align-items: center; gap: 6px; }
 .ccard-dismiss { color: var(--muted); cursor: pointer; font-size: 12px; }
@@ -433,6 +434,81 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .revive-btn:hover { background: rgba(138,154,74,0.25); }
 /* Wrapper to reserve correct layout space for rotated card */
 .dead-wrap { display: inline-block; vertical-align: top; width: 80px; height: 280px; }
+
+
+/* ═══ Stat Block Popover ═══ */
+body.popover-open { overflow: hidden; }
+.stat-popover-scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; justify-content: center; align-items: center; }
+.stat-popover-scrim.open { display: flex; }
+
+.stat-popover {
+  --sp-pad: 20px;
+  background: linear-gradient(165deg, #423c34, #38322c);
+  border-radius: 8px;
+  max-width: 500px; width: 90vw;
+  max-height: 85vh; overflow-y: auto;
+  padding: var(--sp-pad);
+  box-shadow: -6px -6px 14px rgba(255,235,200,0.06), 6px 6px 24px rgba(0,0,0,0.7), 0 0 60px rgba(0,0,0,0.4);
+  position: relative;
+  scrollbar-width: thin; scrollbar-color: #4a4438 #282320;
+}
+
+.stat-popover-close { position: absolute; top: 8px; right: 12px; background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 4px 8px; z-index: 1; min-height: auto; }
+.stat-popover-close:hover { color: var(--text); }
+
+/* Header */
+.sp-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.sp-name { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 22px; color: var(--text-primary); line-height: 1.1; }
+.sp-cr { font-size: 14px; font-family: 'Vollkorn', serif; font-weight: 600; color: var(--text-label); text-align: right; flex-shrink: 0; }
+.sp-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.sp-tag { background: #2a2620; border: 1px solid #4a4438; color: var(--text-label); font-family: 'Alegreya Sans', sans-serif; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+
+/* Groove+ember divider */
+.sp-divider { height: 2px; background: linear-gradient(90deg, #221e18 0%, #3a2818 40%, #4a3018 50%, #3a2818 60%, #221e18 100%); box-shadow: 0 1px 0 rgba(255,235,200,0.06), 0 0 8px rgba(200,140,50,0.08); margin: 8px 0; }
+
+/* Hero stats row */
+.sp-hero { display: flex; gap: 16px; align-items: flex-start; margin: 10px 0; }
+.sp-well { background: #2a2620; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.35); border-radius: 8px; padding: 8px 14px; text-align: center; min-width: 80px; }
+.sp-well-label { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+.sp-well-value { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 28px; color: var(--text-primary); font-feature-settings: 'tnum' 1; line-height: 1; }
+.sp-well-sub { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sp-info { font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: var(--muted); line-height: 1.6; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.sp-info-label { font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: var(--muted); }
+.sp-info-value { font-family: 'Vollkorn', serif; font-weight: 500; font-size: 13px; color: var(--text-body); font-feature-settings: 'tnum' 1; }
+
+/* Saves */
+.sp-saves { display: flex; gap: 14px; margin: 4px 0 8px; }
+.sp-save { text-align: center; }
+.sp-save-label { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: var(--muted); }
+.sp-save-value { font-family: 'Vollkorn', serif; font-weight: 600; font-size: 15px; color: var(--text-primary); font-feature-settings: 'tnum' 1; }
+
+/* Section bands — full width dark strips */
+.sp-band {
+  background: linear-gradient(90deg, #2a2520, #322c26 30%, #322c26 70%, #2a2520);
+  border-top: 1px solid #4a4438; border-bottom: 1px solid #1a1610;
+  margin: 10px calc(-1 * var(--sp-pad)); padding: 3px var(--sp-pad);
+  font-family: 'Vollkorn', serif; font-weight: 600; font-size: 11px;
+  color: var(--text-label); letter-spacing: 0.12em;
+}
+
+/* Content sections */
+.sp-section { font-family: 'Alegreya Sans', sans-serif; font-size: 12px; color: var(--text-body); line-height: 1.5; padding: 6px 0; }
+.sp-kw { font-weight: 700; color: var(--text-primary); }
+
+/* Special attacks in inlaid window */
+.sp-inlaid { background: var(--trough); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4); border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 7px 10px; margin: 4px 0; font-size: 12px; }
+
+/* Ability scores grid */
+.sp-abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin: 6px 0; }
+.sp-ab { text-align: center; padding: 4px 0; border-radius: 4px; background: #2a2620; box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3); }
+.sp-ab-label { font-family: 'Alegreya Sans', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: 0.04em; }
+.sp-ab-score { font-family: 'Vollkorn', serif; font-weight: 600; font-size: 15px; color: var(--text-primary); font-feature-settings: 'tnum' 1; }
+.sp-ab-mod { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: var(--text-label); }
+
+/* Footer link */
+.sp-footer { text-align: right; margin-top: 10px; }
+.sp-footer a { color: var(--text-label); text-decoration: underline; text-decoration-color: rgba(160,144,120,0.3); font-family: 'Alegreya Sans', sans-serif; font-size: 11px; }
+.sp-footer a:hover { text-decoration-color: var(--text-label); }
 
 
 /* ── iPad / Tablet responsive (≤1024px) ── */

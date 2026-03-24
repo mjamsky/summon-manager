@@ -31,7 +31,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: var(--n
 body { font-family: 'Alegreya Sans', sans-serif; background: var(--bg); color: var(--text); padding: var(--sp-2); font-size: 13px; line-height: 1.4; min-height: 100dvh; display: flex; flex-direction: column; }
 
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
-button { font-family: inherit; background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button { font-family: inherit; background: transparent; color: var(--text-body); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 button:hover { background: #4a4438; }
 button:active { transform: scale(0.96); }
 button.act { font-family: 'Vollkorn', serif; background: rgba(200,168,64,0.2); border-color: var(--accent); color: var(--text); font-weight: bold; }
@@ -111,15 +111,15 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ccard.casting { border-style: dashed; border-color: var(--crit); animation: cast-pulse 2s ease-in-out infinite; }
 .ccard-namerow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
 .ccard-name { font-family: 'Vollkorn', serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2; min-height: 2.4em; display: flex; align-items: flex-end; }
-.ccard-dur { font-size: 9px; color: var(--muted); flex-shrink: 0; align-self: flex-end; }
+.ccard-dur { font-size: 9px; color: var(--text-muted); flex-shrink: 0; align-self: flex-end; }
 .ccard-id { font-size: 10px; color: var(--text); position: absolute; top: 6px; right: 8px; display: flex; align-items: center; gap: 6px; }
 .ccard-dismiss { color: var(--muted); cursor: pointer; font-size: 12px; }
 .ccard-dismiss:hover { color: var(--hp-critical); }
 .ccard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .ccard-hp { font-size: 14px; color: var(--text-primary); font-weight: bold; white-space: nowrap; flex-shrink: 0; }
-.ccard-ac { font-size: 11px; color: var(--muted); margin-left: auto; }
-.ccard-cmd { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-left: auto; }
-.ccard-meta { font-size: 10px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
+.ccard-ac { font-size: 11px; color: var(--text-label); margin-left: auto; }
+.ccard-cmd { font-size: 9px; color: var(--text-label); flex-shrink: 0; margin-left: auto; }
+.ccard-meta { font-size: 10px; color: var(--text-muted); margin-top: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
 .ccard-meta .meta-spd { min-width: 0; }
 .ccard-meta .meta-right { flex-shrink: 0; text-align: right; line-height: 1.4; }
 .aug-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: rgba(236,200,104,0.1); color: var(--crit); border: 1px solid rgba(236,200,104,0.3); }
@@ -144,6 +144,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 /* Attack name pip column */
 .atk-pips { display: inline-block; width: 10px; text-align: center; }
 .atk-name { text-transform: lowercase; }
+.atk-primary { font-weight: bold; }
 .atk-rake { color: var(--crit); }
 /* Legend colors match pips */
 .legend-grab { color: #a89060; }
@@ -179,7 +180,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* ── Sorted Roll Table — THE KEY UX ── */
 .roll-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.roll-table th { text-align: left; font-size: 10px; color: var(--muted); padding: 2px 4px; border-bottom: 1px solid var(--border); }
+.roll-table th { text-align: left; font-size: 10px; color: var(--text-label); padding: 2px 4px; border-bottom: 1px solid var(--border); }
 .roll-table th.r { text-align: right; }
 .roll-table .th-sum { color: var(--crit); font-size: 12px; font-weight: bold; cursor: help; }
 .roll-table td { padding: var(--sp-1); }
@@ -191,7 +192,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .roll-table .total { font-weight: bold; font-size: 14px; text-align: right; }
 .roll-table .dmg { font-weight: bold; font-size: 14px; text-align: right; }
 .roll-table .total, .roll-table .dmg, .roll-table .running { font-family: 'Vollkorn', serif; font-feature-settings: 'tnum' 1; }
-.roll-table .special { font-size: 10px; color: var(--accent); }
+.roll-table .special { font-size: 10px; color: var(--text-body); }
 /* Tooltip for breakdown */
 .roll-table td[title] { cursor: help; border-bottom: 1px dotted var(--muted); }
 
@@ -331,7 +332,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .buff-ac-ref { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
 /* Bottom dock — round bar + slide-up trays */
-.bottom-dock { position: sticky; bottom: 0; z-index: 50; background: var(--bg); border-top: 1px solid rgba(255,235,200,0.08); box-shadow: 0 -4px 12px rgba(0,0,0,0.4); overflow: visible; padding-top: 4px; }
+.bottom-dock { position: sticky; bottom: 0; z-index: 50; background: linear-gradient(180deg, #3e3830, #362f28); border-top: 1px solid rgba(255,235,200,0.08); box-shadow: 0 -4px 12px rgba(0,0,0,0.4); overflow: visible; padding-top: 4px; }
 
 /* Tray panels slide up from the bar */
 .tray-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
@@ -397,7 +398,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 
 /* Specials legend below roll table */
 .specials-section { margin-top: 6px; padding-top: 6px; border-top: 2px solid #221e18; box-shadow: 0 1px 0 rgba(255,235,200,0.04); font-size: 11px; }
-.special-legend { color: var(--muted); margin-bottom: 2px; }
+.special-legend { color: var(--text-body); margin-bottom: 2px; }
 .special-legend .sp-link { font-size: 11px; }
 .legend-active { font-weight: bold; color: rgba(200,168,64,0.1); background: linear-gradient(90deg, currentColor, rgba(255,245,220,0.9) 50%, currentColor); background-size: 80px 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: legend-shimmer 1.2s linear infinite; background-repeat: no-repeat; background-color: currentColor; }
 /* .shimmer-blue aliased to glint (legacy class name, used for maintain text) */
@@ -416,7 +417,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .ability-section { border: none; background: var(--inlaid); border-radius: 4px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6); padding: 6px 8px; margin-bottom: 6px; font-size: 11px; }
 .ability-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 8px; cursor: pointer; }
 .ability-name { color: var(--roll-threat); font-weight: bold; }
-.ability-type { color: var(--muted); font-size: 9px; }
+.ability-type { color: var(--text-muted); font-size: 9px; }
 .ability-dc { color: var(--crit); font-weight: bold; }
 .ability-detail { display: none; width: 100%; color: var(--muted); font-size: 10px; line-height: 1.3; padding-top: 2px; }
 .ability-row.expanded .ability-detail { display: block; }

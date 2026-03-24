@@ -268,7 +268,7 @@ function preRoll(c) {
       name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg, dmgRolls: dr.r, dmgMod: dr.m,
       critConf, critDmgRaw, fumbleConf, fumbleBonus: atk.bonus,
       cr: atk.cr, cm: atk.cm, specials: atk.sp,
-      nat20: r===20, nat1: r===1, threat, isRake: false,
+      nat20: r===20, nat1: r===1, threat, isRake: false, primary: atk.primary || false,
     });
 
     if (atk.sp.includes('grab') && c.cmb) {
@@ -466,7 +466,7 @@ function computeRoll(c) {
       nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
-      specials: raw.specials, isRake: raw.isRake,
+      specials: raw.specials, isRake: raw.isRake, primary: raw.primary || false,
       dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d+paDmg, buffDmg: b.d, buffAtk: b.a, paAtk, paDmg, baseBonus: raw.baseBonus,
     });
   }
@@ -632,7 +632,7 @@ function mkCreature(bEntry, aug) {
   const triggers = [];
   if (hasRage) triggers.push({ on:'damage', apply:'rage' });
 
-  return {
+  const c = {
     id:`C${nCid++}`, name:data.name, hp:card.HP||10, maxHp:card.HP||10,
     ac:card.AC||10, attacks:parseMelee(card.Melee||base.Melee||''), aug,
     cmb:card.CMB||base.CMB||0, cmd:card.CMD||base.CMD||10,
@@ -669,6 +669,8 @@ function mkCreature(bEntry, aug) {
       (full.Feats||'').match(/\bcleave\b/i) ? ((full.Feats||'').toLowerCase().includes('great cleave')?'Gt Cleave':'Cleave') : '',
     ].filter(Boolean),
   };
+  if (c.attacks.length > 1) c.attacks[0].primary = true;
+  return c;
 }
 
 function doSummon() {
@@ -1049,7 +1051,7 @@ function renderRollTable(c, pr, refAC) {
 
     const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
     const pipCell = spPips ? `<span class="atk-pips">${spPips}</span>` : `<span class="atk-pips"></span>`;
-    const nameCls = r.isRake ? 'atk-name atk-rake' : 'atk-name';
+    const nameCls = r.isRake ? 'atk-name atk-rake' : r.primary ? 'atk-name atk-primary' : 'atk-name';
     const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>`;
 
     if ((isHit || !hasAC) && r.specials.length) {

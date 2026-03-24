@@ -77,6 +77,11 @@
 ## Refactor (future)
 - [ ] Triggered buff system migration — annotate existing hardcoded conditional logic (constrict, rake, pounce, death at 0 HP) as candidates for trigger system unification
 
+## Deployment & Portability
+- [ ] `build.py` — inline script that concatenates style.css, bestiary.js, app.js into index.html → produces single `sna-manager.html`. Keep 4-file split for dev, single file for deploy.
+- [ ] PWA support — add `manifest.json` + minimal service worker for offline caching and iPad "Add to Home Screen" with app icon. Layered on top of build output.
+- [ ] iCloud / AirDrop workflow — document how to drop built file into iCloud Drive or AirDrop to iPad for zero-server usage.
+
 ## Future
 - [ ] Spell layer — broader spell management beyond quick buttons (spell slots, concentration tracking, CL overrides, full spell list from Battlefield-Entities-Reference.md)
 - [ ] Expanded spell/item support (wand charges, figurine activation, overrideable CL)

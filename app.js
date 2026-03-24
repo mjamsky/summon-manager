@@ -36,10 +36,10 @@ const IC = {
 const DMG_TYPE = {
   bite:'B/P/S', claw:'B/S', gore:'P', horn:'P', slam:'B', sting:'P',
   rake:'B/S', hoof:'B', tail:'B', talon:'S', wing:'B', pincers:'B',
-  tentacle:'B', dagger:'P/S', sword:'S', mace:'B',
+  tentacle:'B', dagger:'P/S', sword:'S', mace:'B', rock:'B',
 };
 function getDmgType(name) {
-  const n = name.toLowerCase().replace(/\s*\d+$/,'');
+  const n = name.toLowerCase().replace(/\s*\d+$/, '').replace(/\s*\([^)]*\)/, '').trim();
   return DMG_TYPE[n] || 'B/P/S';
 }
 
@@ -355,8 +355,50 @@ function preRoll(c) {
     chargeCritExtra = rdice(c.powerfulChargeDmg).t; // gore is ×2, so 1 extra roll
   }
 
+  // Rock Throwing (pre-roll attack + damage)
+  let rockRaw = null;
+  if (c.hasRockThrowing && c.rockAtk) {
+    const r = d20();
+    const dr = rdice(c.rockAtk.dmg);
+    const threat = r >= 20 && r !== 1;
+    let rockCritConf = 0, rockCritDmgRaw = 0;
+    if (threat) { rockCritConf = d20(); rockCritDmgRaw = rdice(c.rockAtk.dmg).t; }
+    const fumbleConf = r === 1 ? d20() : 0;
+    rockRaw = { r, baseDmg: dr.t, dmgRolls: dr.r, dmgMod: dr.m, critConf: rockCritConf, critDmgRaw: rockCritDmgRaw, fumbleConf, threat, nat20: r===20, nat1: r===1 };
+  }
+
+  // Trample (pre-roll damage)
+  let trampleRaw = null;
+  if (c.hasTrample && c.trampleDmg) {
+    trampleRaw = rdice(c.trampleDmg);
+  }
+
+  // Vital Strike (pre-roll extra weapon dice)
+  // vitalStrikeLevel: 1=VS(2x), 2=IVS(3x), 3=GVS(4x) — roll (level) extra copies of primary attack dice
+  let vitalStrikeExtraRaws = [];
+  if (c.hasVitalStrike && c.attacks.length > 0) {
+    const primaryAtk = c.attacks[0];
+    // Roll (vitalStrikeLevel) extra copies of the primary attack's dice (no modifier on extras)
+    for (let i = 0; i < c.vitalStrikeLevel; i++) {
+      vitalStrikeExtraRaws.push(rdice(primaryAtk.dmg));
+    }
+  }
+
+  // Whirlwind (pre-roll damage if it has damage)
+  let whirlwindRaw = null;
+  if (c.hasWhirlwind && c.whirlwindDmg) {
+    whirlwindRaw = rdice(c.whirlwindDmg);
+  }
+
+  // Vortex (pre-roll damage)
+  let vortexRaw = null;
+  if (c.hasVortex && c.vortexDmg) {
+    vortexRaw = rdice(c.vortexDmg);
+  }
+
   c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg,
-    rendRaw, deathRollRaw, gnawRaw, chargeRaw, chargeCritExtra };
+    rendRaw, deathRollRaw, gnawRaw, chargeRaw, chargeCritExtra,
+    rockRaw, trampleRaw, vitalStrikeExtraRaws, whirlwindRaw, vortexRaw };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)
@@ -434,12 +476,59 @@ function computeRoll(c) {
   // Rend auto-damage (bottom of table, after normal attacks computed)
   // Deferred — pushed after rows are built so we can count claw hits
 
+  // Whirlwind / Vortex state: suppress ALL normal rows, show only the state autoRow
+  const whirlwindActive = c.whirlwinding && c.hasWhirlwind;
+  const vortexActive = c.vortexing && c.hasVortex;
+  const stateActive = whirlwindActive || vortexActive; // full attack suppression
+
+  // Whirlwind autoRow
+  if (whirlwindActive && c.rawRoll.whirlwindRaw) {
+    const wr = c.rawRoll.whirlwindRaw;
+    autoRows.push({
+      name: 'Whirlwind', isWhirlwind: true,
+      dmg: Math.max(1, wr.t + b.d),
+      dmgDice: c.whirlwindDmg, dmgRolls: wr.r, dmgMod: (wr.m||0)+b.d, buffDmg: b.d,
+      dc: c.whirlwindDC,
+    });
+  }
+
+  // Vortex autoRow
+  if (vortexActive && c.rawRoll.vortexRaw) {
+    const vr = c.rawRoll.vortexRaw;
+    autoRows.push({
+      name: 'Vortex', isVortex: true,
+      dmg: Math.max(1, vr.t + b.d),
+      dmgDice: c.vortexDmg, dmgRolls: vr.r, dmgMod: (vr.m||0)+b.d, buffDmg: b.d,
+      dc: c.vortexDC,
+    });
+  }
+
+  // Trample autoRow (when trampling toggle is active)
+  if (c.trampling && c.hasTrample && c.rawRoll.trampleRaw) {
+    const tr = c.rawRoll.trampleRaw;
+    autoRows.push({
+      name: 'Trample', isTrample: true,
+      dmg: Math.max(1, tr.t + b.d),
+      dmgDice: c.trampleDmg, dmgRolls: tr.r, dmgMod: (tr.m||0)+b.d, buffDmg: b.d,
+      dc: c.trampleDC,
+    });
+  }
+
   for (const raw of c.rawRoll.rows) {
     if (raw.isHaste && !b.extra) continue;
+    // Whirlwind/Vortex state: suppress ALL normal attack rows
+    if (stateActive) continue;
     // Maintain mode: suppress normal attacks + haste (standard action used for maintain)
     if (maintainMode && !raw.isRake) continue;
     // When not pouncing/grappling: suppress rake
     if (raw.isRake && !c.pouncing && !maintainMode) continue;
+    // Vital Strike mode: only show the primary (first non-rake, non-haste) attack
+    if (c.vitalStriking && c.hasVitalStrike) {
+      if (raw.isRake || raw.isHaste) continue;
+      // Find the primary attack row — suppress all but the first (highest bonus) normal attack
+      const firstNormal = c.rawRoll.rows.find(r2 => !r2.isRake && !r2.isHaste);
+      if (raw !== firstNormal) continue;
+    }
 
     const bonus = raw.baseBonus + b.a + paAtk;
     const total = raw.r + bonus;
@@ -486,6 +575,47 @@ function computeRoll(c) {
       dmg: Math.max(1, rn.t + b.d),
       dmgDice: c.rendDmg, dmgRolls: rn.r, dmgMod: (rn.m || 0) + b.d, buffDmg: b.d,
     });
+  }
+
+  // Rock Throwing: add ranged attack row (visible when not in state mode)
+  if (c.hasRockThrowing && c.rawRoll.rockRaw && c.rockAtk && !stateActive) {
+    const rk = c.rawRoll.rockRaw;
+    const bonus = c.rockAtk.bonus + b.a; // buff applies to ranged attack too
+    const total = rk.r + bonus;
+    const dmgBase = rk.baseDmg + b.d;
+    let dmgWithCrit = dmgBase;
+    let critOk = false, critConfTotal = 0;
+    if (rk.threat) {
+      critConfTotal = rk.critConf + bonus;
+      critOk = true;
+      dmgWithCrit = dmgBase + rk.critDmgRaw + b.d; // ×2 crit
+    }
+    const fumbleConfTotal = rk.nat1 ? rk.fumbleConf + c.rockAtk.bonus + b.a : 0;
+    const hit_ac = rk.nat20 ? 999 : rk.nat1 ? 0 : total;
+    rows.push({
+      name: `rock (${c.rockAtk.range})`, r: rk.r, bonus, total, hit_ac,
+      dmg: dmgWithCrit, dmgNoCrit: dmgBase,
+      nat20: rk.nat20, nat1: rk.nat1, threat: rk.threat, critOk,
+      critConf: rk.critConf, critConfTotal,
+      fumbleConf: rk.fumbleConf, fumbleConfTotal,
+      specials: [], isRake: false, primary: false, isRanged: true,
+      dmgDice: c.rockAtk.dmg, dmgRolls: rk.dmgRolls, dmgMod: (rk.dmgMod||0)+b.d, buffDmg: b.d, buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: c.rockAtk.bonus,
+    });
+    // Re-sort after adding rock row
+    rows.sort((a2, bb2) => bb2.total - a2.total);
+  }
+
+  // Vital Strike: enhance the primary attack row with extra dice (no modifier on extra rolls)
+  if (c.vitalStriking && c.hasVitalStrike && c.rawRoll.vitalStrikeExtraRaws.length > 0) {
+    const primaryRow = rows.find(r2 => !r2.isRake && !r2.isHaste && !r2.isRanged);
+    if (primaryRow) {
+      const extraTotal = c.rawRoll.vitalStrikeExtraRaws.reduce((sum, ex) => sum + ex.t - ex.m, 0); // extra dice only, no mod
+      primaryRow.dmgNoCrit += extraTotal;
+      primaryRow.dmg += extraTotal;
+      primaryRow.isVitalStrike = true;
+      primaryRow.vsExtra = extraTotal;
+      primaryRow.vsLevel = c.vitalStrikeLevel;
+    }
   }
 
   // Powerful Charge: replace gore row damage when charging
@@ -623,6 +753,85 @@ function mkCreature(bEntry, aug) {
   const hasEarthMastery = specials.includes('earth mastery');
   const hasWaterMastery = specials.includes('water mastery');
 
+  // Rock Throwing: detect from pre-parsed flag or Special_Attacks text
+  const hasRockThrowing = !!data.hasRockThrowing || specials.includes('rock throwing') || specials.includes('rock throw');
+  let rockAtk = null;
+  if (hasRockThrowing) {
+    // Use primary melee attack bonus as proxy for rock attack bonus (same BAB + Str base)
+    // Rock damage: 2d6 for Large, 2d8 for Huge (PF1e standard rock throwing)
+    const meleeAtks = parseMelee(card.Melee||base.Melee||'');
+    const primaryMelee = meleeAtks.length > 0 ? meleeAtks[0] : null;
+    const rockAtkBonus = primaryMelee ? primaryMelee.bonus : (full.BAB||0);
+    const size = (data.size||'').toLowerCase();
+    const rockDmgBase = size === 'huge' || size === 'gargantuan' ? '2d8' : '2d6';
+    const rockRange = data.rockThrowingRange || (specials.match(/rock\s+throw(?:ing)?\s*\((\d+\s*ft\.?)/i)?.[1] || '120 ft.');
+    // Str mod for damage (from augmented str if aug)
+    const strScore = aug ? (full.Str||10)+4 : (full.Str||10);
+    const strMod = Math.floor((strScore - 10) / 2);
+    rockAtk = { bonus: rockAtkBonus, dmgBase: rockDmgBase, dmgMod: strMod, range: rockRange };
+    // Full dmg string for rdice
+    rockAtk.dmg = `${rockDmgBase}${strMod >= 0 ? '+' : ''}${strMod}`;
+  }
+
+  // Trample: detect from pre-parsed flag or Special_Attacks text
+  const hasTrample = !!data.hasTrample || specials.includes('trample');
+  let trampleDmg = '', trampleDC = 0;
+  if (hasTrample) {
+    if (data.trampleDmg) {
+      trampleDmg = data.trampleDmg;
+      trampleDC = data.trampleDC || 0;
+    } else {
+      // Parse from Special_Attacks string: "trample (2d6+9, DC 17)" or "trample (2d8+15; DC 25)"
+      const tm = specials.match(/trample\s*\((\d+d\d+(?:[+-]\d+)?)[,;]\s*DC\s*(\d+)/);
+      if (tm) { trampleDmg = tm[1]; trampleDC = +tm[2]; }
+    }
+    // Adjust DC for augment summoning: +2 Con → +1 to DC (Con-based save DC)
+    if (aug && !data.trampleDC && trampleDC) {
+      // aug already accounted for in pre-parsed data.trampleDC; only adjust if parsing from text
+    }
+    if (aug && data.trampleDC) {
+      // Pre-parsed DC from non-aug stats — augment adds +2 Con, so fort/ref DC +1
+      trampleDC = data.trampleDC + 1;
+    }
+  }
+
+  // Vital Strike: detect from pre-parsed flag or feats string
+  const hasVitalStrike = !!data.hasVitalStrike || featsLow.includes('vital strike');
+  let vitalStrikeLevel = 1; // VS=1, IVS=2, GVS=3 (dice multiplier = level + 1)
+  if (hasVitalStrike) {
+    if (data.vitalStrikeLevel === 'greater' || featsLow.includes('greater vital strike')) vitalStrikeLevel = 3;
+    else if (data.vitalStrikeLevel === 'improved' || featsLow.includes('improved vital strike')) vitalStrikeLevel = 2;
+    else vitalStrikeLevel = 1;
+  }
+
+  // Whirlwind: detect from pre-parsed flag or Special_Attacks text (air elementals)
+  const hasWhirlwind = !!data.hasWhirlwind || specials.includes('whirlwind');
+  let whirlwindDC = 0, whirlwindDmg = '';
+  if (hasWhirlwind) {
+    whirlwindDC = data.whirlwindDC || 0;
+    if (!whirlwindDC) {
+      const wm = specials.match(/whirlwind\s*\(DC\s*(\d+)/);
+      if (wm) whirlwindDC = +wm[1];
+    }
+    // Whirlwind damage = same as slam attack (PF1e: whirlwind deals slam damage each round)
+    const slamAtk = parseMelee(card.Melee||base.Melee||'').find(a => a.name.toLowerCase().includes('slam'));
+    if (slamAtk) whirlwindDmg = slamAtk.dmg;
+  }
+
+  // Vortex: detect from pre-parsed flag or Special_Attacks text (water elementals)
+  const hasVortex = !!data.hasVortex || specials.includes('vortex');
+  let vortexDC = 0, vortexDmg = '';
+  if (hasVortex) {
+    vortexDC = data.vortexDC || 0;
+    if (!vortexDC) {
+      const vm = specials.match(/vortex\s*\(DC\s*(\d+)/);
+      if (vm) vortexDC = +vm[1];
+    }
+    // Vortex damage = same as slam attack (mirrors whirlwind)
+    const slamAtk2 = parseMelee(card.Melee||base.Melee||'').find(a => a.name.toLowerCase().includes('slam'));
+    if (slamAtk2) vortexDmg = slamAtk2.dmg;
+  }
+
   // Feat-based flags
   const featsLow = (full.Feats||'').toLowerCase();
   const hasDiehard = featsLow.includes('diehard');
@@ -642,6 +851,11 @@ function mkCreature(bEntry, aug) {
     hasRend, rendDmg, hasDeathRoll, deathRollDmg, hasGnaw, gnawDmg,
     hasPowerfulCharge, powerfulChargeDmg, charging:false,
     hasEarthMastery, hasWaterMastery, earthMastery:false, waterMastery:false,
+    hasRockThrowing, rockAtk,
+    hasTrample, trampleDmg, trampleDC, trampling:false,
+    hasVitalStrike, vitalStrikeLevel, vitalStriking:false,
+    hasWhirlwind, whirlwindDC, whirlwindDmg, whirlwinding:false,
+    hasVortex, vortexDC, vortexDmg, vortexing:false,
     hasDiehard, hasRage, triggers,
     hasGrab: parseMelee(card.Melee||base.Melee||'').some(a=>a.sp.includes('grab')),
     acBreak:card.AC_breakdown||base.AC_breakdown||'',
@@ -809,8 +1023,8 @@ function nextRound(){
   S.effects=S.effects.filter(e=>{e.rl--;return e.rl>0;});
   // Re-roll spell effect damage for new round
   for(const e of S.effects) if(e.rollResult) e.rollResult=rdice(e.dmg);
-  // One-shot auto-off: pounce, powerful charge
-  for(const g of S.groups) for(const c of g.creatures) { c.pouncing=false; c.charging=false; }
+  // One-shot auto-off: pounce, powerful charge, trample, vital strike
+  for(const g of S.groups) for(const c of g.creatures) { c.pouncing=false; c.charging=false; c.trampling=false; c.vitalStriking=false; }
   // Fast healing
   const fh=bTotal({}).fh;
   if(fh>0) for(const g of S.groups) for(const c of g.creatures) if(c.alive&&c.hp<c.maxHp) c.hp=Math.min(c.maxHp,c.hp+fh);
@@ -945,6 +1159,15 @@ function renderDecisions(c) {
     `<span class="toggle-btn situational ${c.waterMastery?'active':''}" onclick="event.stopPropagation();togMastery('${c.id}','water')" title="Water Mastery: +1 atk/+1 dmg in water">${c.waterMastery?'W. MASTERY':'W. Mastery'}</span>` : '';
   const chargeHTML = c.hasPowerfulCharge ?
     `<span class="toggle-btn decision ${c.charging?'active':''}" onclick="event.stopPropagation();togCharge('${c.id}')" title="Powerful Charge: gore → ${c.powerfulChargeDmg}">${c.charging?'CHARGING':'Charge'}</span>` : '';
+  const trampleHTML = c.hasTrample ?
+    `<span class="toggle-btn decision ${c.trampling?'active':''}" onclick="event.stopPropagation();togTrample('${c.id}')" title="Trample: ${c.trampleDmg}, Ref DC ${c.trampleDC} half. Full attack still possible.">${c.trampling?'TRAMPLE':'Trample'}</span>` : '';
+  const vitalStrikeLabel = c.vitalStrikeLevel===3?'Gr.VS':c.vitalStrikeLevel===2?'Imp.VS':'Vital Strike';
+  const vitalStrikeHTML = c.hasVitalStrike ?
+    `<span class="toggle-btn decision ${c.vitalStriking?'active':''}" onclick="event.stopPropagation();togVitalStrike('${c.id}')" title="${vitalStrikeLabel}: single attack with ${c.vitalStrikeLevel+1}x weapon dice. Standard action.">${c.vitalStriking?vitalStrikeLabel.toUpperCase():vitalStrikeLabel}</span>` : '';
+  const whirlwindHTML = c.hasWhirlwind ?
+    `<span class="toggle-btn state ${c.whirlwinding?'active':''}" onclick="event.stopPropagation();togWhirlwind('${c.id}')" title="Whirlwind: ${c.whirlwindDmg}/round, Ref DC ${c.whirlwindDC} to avoid. Suppresses normal attacks.">${c.whirlwinding?'WHIRLWIND':'Whirlwind'}</span>` : '';
+  const vortexHTML = c.hasVortex ?
+    `<span class="toggle-btn state ${c.vortexing?'active':''}" onclick="event.stopPropagation();togVortex('${c.id}')" title="Vortex: ${c.vortexDmg}/round, Ref DC ${c.vortexDC} to avoid. Suppresses normal attacks.">${c.vortexing?'VORTEX':'Vortex'}</span>` : '';
   // Notable feats computed at render time (survives localStorage without migration)
   const featsStr = (c.feats||'').toLowerCase();
   const notableFeats = [
@@ -973,7 +1196,7 @@ function renderDecisions(c) {
 
   const allBadges = featBadges + tacHTML;
   const badgeRow = allBadges ? `<div class="feat-badge-row">${allBadges}</div>` : '';
-  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${chargeHTML} ${masteryHTML} ${paHTML} <span class="decisions-right">${grapHTML}</span></div>${badgeRow}`;
+  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${chargeHTML} ${trampleHTML} ${vitalStrikeHTML} ${masteryHTML} ${paHTML} <span class="decisions-right">${grapHTML} ${whirlwindHTML} ${vortexHTML}</span></div>${badgeRow}`;
 }
 
 function renderRollTable(c, pr, refAC) {
@@ -994,7 +1217,9 @@ function renderRollTable(c, pr, refAC) {
     if (ar.isMaintainDmg && !maintainMode) continue;
     // Death roll and gnaw: active when grappling (same as constrict)
     const isGrappleAuto = ar.isConstrict || ar.isDeathRoll || ar.isGnaw || ar.isMaintainDmg;
-    const active = isGrappleAuto ? c.grappling : false;
+    // Whirlwind/vortex/trample: always active when their toggle is on (already in autoRows only when active)
+    const isStateAuto = ar.isWhirlwind || ar.isVortex || ar.isTrample;
+    const active = isGrappleAuto ? c.grappling : isStateAuto ? true : false;
     const cls = active ? 'auto-active' : 'auto-muted';
     if (active) {
       runningDmg += ar.dmg; runningDmgCrit += ar.dmg;
@@ -1007,7 +1232,10 @@ function renderRollTable(c, pr, refAC) {
     const dmgTip = `${ar.dmgDice}: ${rollStr}`;
     const tripPip = ar.hasTrip ? `<span class="atk-pips">${IC.trip}</span>` : '<span class="atk-pips"></span>';
     const nameExtra = ar.hasTrip ? ` <span class="auto-trip" title="Target prone (size or smaller)">+ trip</span>` : '';
-    tableHTML += `<tr class="${cls}"><td>${tripPip}<span class="atk-name">${ar.name.toLowerCase()}${nameExtra}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
+    // DC info for whirlwind, vortex, trample
+    const dcExtra = ar.dc ? ` <span class="auto-dc">Ref DC ${ar.dc}</span>` : '';
+    const stateLabel = ar.isWhirlwind ? ' /round' : ar.isVortex ? ' /round' : ar.isTrample ? ' (move through)' : '';
+    tableHTML += `<tr class="${cls}"><td>${tripPip}<span class="atk-name">${ar.name.toLowerCase()}${nameExtra}${dcExtra}${stateLabel}</span></td><td class="total">—</td><td class="dmg" title="${dmgTip}">${ar.dmg}</td><td class="running">${runCell}</td></tr>`;
   }
 
   for(const r of pr.rows){
@@ -1201,7 +1429,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
 }
 
 function renderAbilities(c) {
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water']);
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
     const kwFull = a.name.split('(')[0].trim().toLowerCase();
@@ -1380,6 +1608,10 @@ function togFlanking(id){const c=findC(id);if(c){c.flanking=!c.flanking;render()
 function togPA(id){const c=findC(id);if(c){c.powerAttacking=!c.powerAttacking;render();}}
 function togMastery(id,type){const c=findC(id);if(c){if(type==='earth')c.earthMastery=!c.earthMastery;else c.waterMastery=!c.waterMastery;render();}}
 function togCharge(id){const c=findC(id);if(c){c.charging=!c.charging;if(c.charging)c.pouncing=false;render();}}
+function togTrample(id){const c=findC(id);if(c){c.trampling=!c.trampling;render();}}
+function togVitalStrike(id){const c=findC(id);if(c){c.vitalStriking=!c.vitalStriking;render();}}
+function togWhirlwind(id){const c=findC(id);if(c){c.whirlwinding=!c.whirlwinding;if(c.whirlwinding)c.vortexing=false;render();}}
+function togVortex(id){const c=findC(id);if(c){c.vortexing=!c.vortexing;if(c.vortexing)c.whirlwinding=false;render();}}
 let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {

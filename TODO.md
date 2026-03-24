@@ -64,11 +64,11 @@
 - [x] Diehard HP logic fix (death at -Con not 0, Woolly Rhino + T-Rex)
 
 ### Tier 2 (mode toggles + state changes + ranged)
-- [ ] Trample mode toggle (one-shot: suppress attacks, show damage + Ref DC)
-- [ ] Vital Strike mode toggle (one-shot: single attack, doubled/tripled dice)
-- [ ] Whirlwind state change (persistent: suppress attacks, damage/round + Ref DC)
-- [ ] Vortex state change (same as whirlwind, water)
-- [ ] Rock Throwing ranged attack row (5 giants, SNA 6-8)
+- [x] Trample mode toggle (one-shot: suppress attacks, show damage + Ref DC)
+- [x] Vital Strike mode toggle (one-shot: single attack, doubled/tripled dice)
+- [x] Whirlwind state change (persistent: suppress attacks, damage/round + Ref DC)
+- [x] Vortex state change (same as whirlwind, water)
+- [x] Rock Throwing ranged attack row (5 giants, SNA 6-8)
 
 ### Tier 3 (new interaction patterns)
 - [ ] Cleave / Great Cleave inline row action — button on attack row, spawns new roll on click. Great Cleave chains.

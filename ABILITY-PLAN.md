@@ -137,11 +137,11 @@ No new UI interaction patterns needed.
 ### Tier 2 — Mode toggles + state changes + ranged
 New toggle types that alter or replace attack table.
 
-- [ ] Trample mode toggle (one-shot: suppress attacks, show damage + Ref DC)
-- [ ] Vital Strike mode toggle (one-shot: single attack, doubled/tripled dice)
-- [ ] Whirlwind state change (persistent: suppress attacks, damage/round + Ref DC)
-- [ ] Vortex state change (same as whirlwind, water)
-- [ ] Rock Throwing ranged attack row (5 giants, SNA 6-8)
+- [x] Trample mode toggle (one-shot: suppress attacks, show damage + Ref DC)
+- [x] Vital Strike mode toggle (one-shot: single attack, doubled/tripled dice)
+- [x] Whirlwind state change (persistent: suppress attacks, damage/round + Ref DC)
+- [x] Vortex state change (same as whirlwind, water)
+- [x] Rock Throwing ranged attack row (5 giants, SNA 6-8)
 
 ### Tier 3 — New interaction patterns
 

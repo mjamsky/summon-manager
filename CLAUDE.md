@@ -144,7 +144,7 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 - **Smart quote in vault path**: `Serpent's Skull` — use glob patterns (`Serpent*`) in Python, not hardcoded apostrophe strings
 - **Naz cannot cast spells** — Fighter class, no exceptions
 - **Lion figurines**: 1hr/day duration, not permanent. `rl:600` in code.
-- **Branch is `master`**, no remote configured
+- **Branch is `main`**, remote: `origin` → `github.com/mjamsky/summon-manager`. GitHub Pages live at `https://mjamsky.github.io/summon-manager/`.
 - **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses or toggle visibility, call `render()`. ALL toggles (`tBuff`, `tFeat`, `togPounce`, `togGrapple`, `togFlanking`, `togPA`, `togMastery`, `togCharge`) → `render()`. Only `reroll()` and `nextRound()` call `preRoll`.
 - **Creature card layout**: decisions row (Flank / Pounce / Charge / E. Mastery / Pwr Atk / Grapple) above attack table. Feat badges (Cleave, CE, Lunge) + tactical badges (Flyby, Sprint, Earth Glide, Diehard, N AoO) below toggles. Buff chips muted at card bottom with `[+]` for local-only buffs.
 - **Grapple round tracking**: `c.grappleRound` records when grapple toggled. Same round = initial grab (constrict active, all attacks visible). Next round = maintain mode (normal attacks suppressed, auto-dmg + rake only).

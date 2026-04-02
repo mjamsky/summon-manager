@@ -662,6 +662,7 @@ function mkCreature(bEntry, aug) {
   const base = data.combat_card;
   const full = data.full_statblock || {};
   const specials = (card.Special_Attacks||base.Special_Attacks||'').toLowerCase();
+  const featsLow = (full.Feats||'').toLowerCase();
   const hasPounce = specials.includes('pounce');
   const hasRake = specials.includes('rake');
 
@@ -833,7 +834,6 @@ function mkCreature(bEntry, aug) {
   }
 
   // Feat-based flags
-  const featsLow = (full.Feats||'').toLowerCase();
   const hasDiehard = featsLow.includes('diehard');
   const hasRage = specials.includes('rage') || specials.includes('blood rage');
 

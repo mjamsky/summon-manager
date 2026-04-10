@@ -1653,7 +1653,13 @@ function showAddBuff(cid,el){
 }
 function closeAddBuff(){if(addBuffPopup){addBuffPopup.remove();addBuffPopup=null;}}
 function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];document.getElementById('ref-ac').value='';updACDisplay();localStorage.removeItem(SAVE_KEY);render();}
-function resetApp(){if(confirm('Clear all state and reload?')){localStorage.clear();location.reload();}}
+let _resetPending = 0;
+function resetApp(){
+  if (Date.now() - _resetPending < 3000) { localStorage.clear(); location.reload(); return; }
+  _resetPending = Date.now();
+  const el = document.querySelector('.reset-toggle');
+  if (el) { el.textContent = '↻ Tap again'; setTimeout(() => { el.textContent = '↻ Reset'; _resetPending = 0; }, 3000); }
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  NUMPAD POPUP

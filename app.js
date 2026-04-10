@@ -46,9 +46,9 @@ function getDmgType(name) {
 // ═══════════════════════════════════════════════════════════════
 //  DICE (Crypto)
 // ═══════════════════════════════════════════════════════════════
-const rng = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; };
-const dd = s => (rng() % s) + 1;
-const d20 = () => dd(20);
+let rng = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; };
+let dd = s => { const limit = (0x100000000 - (0x100000000 % s)) >>> 0; let v; do { v = rng(); } while (v >= limit); return (v % s) + 1; };
+let d20 = () => dd(20);
 function rdice(n) {
   const m = n.match(/^(\d+)d(\d+)([+-]\d+)?$/);
   if (!m) return {t:0,r:[],m:0};
@@ -219,7 +219,7 @@ function toggleCreatureDrop(){
   }
 }
 function filterCreatures(v){ renderCreatureDropdown(v); }
-document.addEventListener('click',e=>{
+if (typeof globalThis.__TEST__ === 'undefined') document.addEventListener('click',e=>{
   const drop=document.getElementById('creature-drop');
   if(drop && !drop.contains(e.target)) drop.classList.remove('open');
   // Close numpad on outside click
@@ -1744,6 +1744,7 @@ function showAddBuff(cid,el){
 }
 function closeAddBuff(){if(addBuffPopup){addBuffPopup.remove();addBuffPopup=null;}}
 function clearAll(){S.groups=[];S.effects=[];S.round=0;nCid=1;nGid=1;dismissed=[];document.getElementById('ref-ac').value='';updACDisplay();localStorage.removeItem(SAVE_KEY);render();}
+function resetApp(){if(confirm('Clear all state and reload?')){localStorage.clear();location.reload();}}
 
 // ═══════════════════════════════════════════════════════════════
 //  NUMPAD POPUP
@@ -2011,7 +2012,7 @@ function closeStatPopover() {
 }
 
 // Close popover on Escape
-document.addEventListener('keydown', e => {
+if (typeof globalThis.__TEST__ === 'undefined') document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('stat-popover-scrim').classList.contains('open')) {
     closeStatPopover();
   }
@@ -2022,18 +2023,28 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════════════════════════════
 
 // ═══ INIT ═══
-function init(){
-  // Load bestiary from embedded data
+function loadBestiary(){
   for(const data of BESTIARY_DATA){
     for(const lv of data.levels||[])for(const cr of lv.creatures||[])B[cr.name.toLowerCase()]={data:cr,sna_level:lv.sna_level};
   }
-  // Load ratings from embedded data
   for(const[lv,creatures] of Object.entries(RATINGS_DATA.ratings||{})){
     R[+lv]={};
     for(const[name,info] of Object.entries(creatures)) R[+lv][name]=info;
   }
+}
+function init(){
+  loadBestiary();
   updTiers();
   loadState();
   render();
 }
-init();
+if (typeof globalThis.__TEST__ === 'undefined') init();
+
+// ═══════════════════════════════════════════════════════════════
+//  NODE.JS EXPORTS (for testing)
+// ═══════════════════════════════════════════════════════════════
+if (typeof module !== 'undefined') module.exports = {
+  parseMelee, rdice, bTotal, mkCreature, preRoll, computeRoll, loadBestiary,
+  B, R, S, BD, SE, d20, dd,
+  _setDice(fn) { dd = fn; d20 = () => fn(20); },
+};

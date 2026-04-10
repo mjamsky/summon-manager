@@ -1044,9 +1044,10 @@ function render(){
   const refACval = document.getElementById('ref-ac').value;
   const refAC = refACval === '' ? 0 : parseInt(refACval) || 0;
   const area=document.getElementById('creatures-out');
-  // Cards fill viewport — flat grid, pills for group identity
+  // Cards in flat grid — spacers between groups for visual separation
   let h='<div class="creatures-flow">';
   for(let gi=0; gi<S.groups.length; gi++){
+    if(gi > 0) h+='<div class="group-spacer"></div>';
     const g = S.groups[gi];
     for(const c of g.creatures) h+=renderCard(c, g, refAC, gi);
   }
@@ -1056,6 +1057,7 @@ function render(){
   for(const e of S.effects) {
     if(e.groupId && !(e.groupId in spGroupColors)) spGroupColors[e.groupId] = spColorIdx++;
   }
+  if(S.effects.length && S.groups.length) h+='<div class="group-spacer"></div>';
   for(const e of S.effects) h+=renderSpellCard(e, e.groupId ? spGroupColors[e.groupId] : -1);
   h+='</div>';
   area.innerHTML=h;

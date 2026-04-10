@@ -47,7 +47,7 @@ Split into 4 files. No build step — serve directory via `python3 -m http.serve
 | File | Lines (approx) | Contents |
 |------|-------|----------|
 | `index.html` | ~130 | HTML shell: title bar, numpad popup, trays, dock. Links `style.css`, `bestiary.js`, `app.js` |
-| `style.css` | ~480 | `:root` tokens, `@font-face` (base64 woff2), component styles, shimmer animations, breakpoints |
+| `style.css` | ~570 | `:root` tokens, `@font-face` (base64 woff2), component styles, shimmer animations, breakpoints (1024/820/480) |
 | `app.js` | ~1650 | State, dice, buffs, spell defs, melee parser, tier logic, pre-roll, render, spell cards, numpad, actions, buff popup, persistence, init |
 | `bestiary.js` | ~5 (minified data) | `BESTIARY_DATA` + `RATINGS_DATA` — auto-generated from `statblocks/*.json` via `build_bestiary.py` |
 
@@ -87,7 +87,7 @@ JS is the "backend" — it manages state and data. CSS handles all presentation.
 
 ### Layout
 
-CSS Grid (`repeat(auto-fill, 280px)`) — all cards (creatures + spells) flow in a single flat grid. No wrapper containers for groups. Group identity via colored pills (`.gpill`) on card top borders. 5-color palette for creature groups, 4 purple shades for spell groups.
+CSS Grid (`repeat(auto-fill, 280px)`) with `justify-content: space-evenly` — cards stay 280px fixed, leftover space distributed evenly around columns. Full-width `.group-spacer` divs (`grid-column: 1 / -1`) between groups for visual separation without blocking flow. Group identity via groove+glow top borders. 5-color palette for creature groups, 4 warm ember shades for spell groups.
 
 ### Adding a Spell Effect
 

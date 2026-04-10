@@ -680,6 +680,34 @@ function reroll() {
 // ═══════════════════════════════════════════════════════════════
 //  CREATURE CREATION
 // ═══════════════════════════════════════════════════════════════
+
+// Extract damage dice string from Special_Attacks text with fallbacks
+function parseAbilityDmg(specials, keyword, opts = {}) {
+  const kw = keyword.replace(/\s+/g, '\\s*');
+  // Try: keyword (dice) — e.g. "constrict (1d6+3)"
+  const m1 = specials.match(new RegExp(kw + '\\s*\\(([^,)]*\\d+d\\d+(?:[+-]\\d+)?)', 'i'));
+  if (m1) { const dm = m1[1].match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) return dm[1]; }
+  // Try: keyword (stuff, dice) — e.g. "rend (2 claws, 1d4+6)"
+  const m2 = specials.match(new RegExp(kw + '\\s*\\([^)]*,\\s*(\\d+d\\d+(?:[+-]\\d+)?)', 'i'));
+  if (m2) return m2[1];
+  // Fallback: data field (may contain non-dice text like "1d8+6 plus trip")
+  if (opts.dataField) {
+    const dm = String(opts.dataField).match(/(\d+d\d+(?:[+-]\d+)?)/);
+    if (dm) return dm[1];
+  }
+  // Fallback: special_abilities description
+  if (opts.abilities) {
+    const sa = opts.abilities.find(a => a.name.toLowerCase().includes(keyword));
+    if (sa) { const dm = sa.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) return dm[1]; }
+  }
+  // Fallback: melee attack name (gnaw→bite, whirlwind→slam)
+  if (opts.melee && opts.atkName) {
+    const atk = parseMelee(opts.melee).find(a => a.name.toLowerCase().includes(opts.atkName));
+    if (atk) return atk.dmg;
+  }
+  return '';
+}
+
 function mkCreature(bEntry, aug) {
   const data = bEntry.data;
   const card = aug && data.augmented ? data.augmented : data.combat_card;
@@ -721,58 +749,25 @@ function mkCreature(bEntry, aug) {
   }
 
   // Parse constrict damage
-  let constrictDmg = '';
-  if (specials.includes('constrict')) {
-    const cm2 = specials.match(/constrict\s*\((\d+d\d+(?:[+-]\d+)?)/);
-    if (cm2) constrictDmg = cm2[1];
-    if (!constrictDmg) {
-      const ca = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('constrict'));
-      if (ca) { const dm = ca.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) constrictDmg = dm[1]; }
-    }
-  }
+  const constrictDmg = specials.includes('constrict')
+    ? parseAbilityDmg(specials, 'constrict', { abilities: data.special_abilities })
+    : '';
 
   // Parse rend damage (e.g. "rend (2 claws, 1d4+6)")
-  let rendDmg = '';
   const hasRend = specials.includes('rend');
-  if (hasRend) {
-    const rm2 = specials.match(/rend\s*\([^,]*,\s*(\d+d\d+(?:[+-]\d+)?)/);
-    if (rm2) rendDmg = rm2[1];
-    if (!rendDmg && data.combat_card?.rendDmg) rendDmg = data.combat_card.rendDmg;
-  }
+  const rendDmg = hasRend ? parseAbilityDmg(specials, 'rend', { dataField: data.combat_card?.rendDmg }) : '';
 
   // Parse death roll damage (e.g. "death roll (1d8+6 plus trip)")
-  let deathRollDmg = '';
   const hasDeathRoll = specials.includes('death roll');
-  if (hasDeathRoll) {
-    const dr2 = specials.match(/death\s*roll\s*\((\d+d\d+(?:[+-]\d+)?)/);
-    if (dr2) deathRollDmg = dr2[1];
-    if (!deathRollDmg && data.combat_card?.deathRollDmg) {
-      const drm = data.combat_card.deathRollDmg.match(/(\d+d\d+(?:[+-]\d+)?)/);
-      if (drm) deathRollDmg = drm[1];
-    }
-  }
+  const deathRollDmg = hasDeathRoll ? parseAbilityDmg(specials, 'death roll', { dataField: data.combat_card?.deathRollDmg }) : '';
 
   // Parse gnaw (auto-bite damage in grapple)
   const hasGnaw = specials.includes('gnaw');
-  let gnawDmg = '';
-  if (hasGnaw) {
-    const ga = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('gnaw'));
-    if (ga) { const dm = ga.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) gnawDmg = dm[1]; }
-    if (!gnawDmg) {
-      // Fallback: use bite attack damage
-      const biteAtk = parseMelee(card.Melee||base.Melee||'').find(a=>a.name.toLowerCase().includes('bite'));
-      if (biteAtk) gnawDmg = biteAtk.dmg;
-    }
-  }
+  const gnawDmg = hasGnaw ? parseAbilityDmg(specials, 'gnaw', { abilities: data.special_abilities, melee: card.Melee||base.Melee||'', atkName: 'bite' }) : '';
 
   // Parse powerful charge (e.g. "powerful charge (gore, 4d6+12)")
   const hasPowerfulCharge = specials.includes('powerful charge');
-  let powerfulChargeDmg = '';
-  if (hasPowerfulCharge) {
-    const pc2 = specials.match(/powerful\s*charge\s*\([^,]*,\s*(\d+d\d+(?:[+-]\d+)?)/);
-    if (pc2) powerfulChargeDmg = pc2[1];
-    if (!powerfulChargeDmg && data.combat_card?.powerfulChargeDmg) powerfulChargeDmg = data.combat_card.powerfulChargeDmg;
-  }
+  const powerfulChargeDmg = hasPowerfulCharge ? parseAbilityDmg(specials, 'powerful charge', { dataField: data.combat_card?.powerfulChargeDmg }) : '';
 
   // Situational flags
   const hasEarthMastery = specials.includes('earth mastery');
@@ -847,31 +842,21 @@ function mkCreature(bEntry, aug) {
 
   // Whirlwind: detect from pre-parsed flag or Special_Attacks text (air elementals)
   const hasWhirlwind = !!data.hasWhirlwind || specials.includes('whirlwind');
-  let whirlwindDC = 0, whirlwindDmg = '';
+  let whirlwindDC = 0;
   if (hasWhirlwind) {
     whirlwindDC = data.whirlwindDC || 0;
-    if (!whirlwindDC) {
-      const wm = specials.match(/whirlwind\s*\(DC\s*(\d+)/);
-      if (wm) whirlwindDC = +wm[1];
-    }
-    // Whirlwind damage = same as slam attack (PF1e: whirlwind deals slam damage each round)
-    const slamAtk = parseMelee(card.Melee||base.Melee||'').find(a => a.name.toLowerCase().includes('slam'));
-    if (slamAtk) whirlwindDmg = slamAtk.dmg;
+    if (!whirlwindDC) { const wm = specials.match(/whirlwind\s*\(DC\s*(\d+)/); if (wm) whirlwindDC = +wm[1]; }
   }
+  const whirlwindDmg = hasWhirlwind ? parseAbilityDmg(specials, 'whirlwind', { melee: card.Melee||base.Melee||'', atkName: 'slam' }) : '';
 
   // Vortex: detect from pre-parsed flag or Special_Attacks text (water elementals)
   const hasVortex = !!data.hasVortex || specials.includes('vortex');
-  let vortexDC = 0, vortexDmg = '';
+  let vortexDC = 0;
   if (hasVortex) {
     vortexDC = data.vortexDC || 0;
-    if (!vortexDC) {
-      const vm = specials.match(/vortex\s*\(DC\s*(\d+)/);
-      if (vm) vortexDC = +vm[1];
-    }
-    // Vortex damage = same as slam attack (mirrors whirlwind)
-    const slamAtk2 = parseMelee(card.Melee||base.Melee||'').find(a => a.name.toLowerCase().includes('slam'));
-    if (slamAtk2) vortexDmg = slamAtk2.dmg;
+    if (!vortexDC) { const vm = specials.match(/vortex\s*\(DC\s*(\d+)/); if (vm) vortexDC = +vm[1]; }
   }
+  const vortexDmg = hasVortex ? parseAbilityDmg(specials, 'vortex', { melee: card.Melee||base.Melee||'', atkName: 'slam' }) : '';
 
   // Feat-based flags
   const hasDiehard = featsLow.includes('diehard');
@@ -2044,7 +2029,7 @@ if (typeof globalThis.__TEST__ === 'undefined') init();
 //  NODE.JS EXPORTS (for testing)
 // ═══════════════════════════════════════════════════════════════
 if (typeof module !== 'undefined') module.exports = {
-  parseMelee, rdice, bTotal, mkCreature, preRoll, computeRoll, loadBestiary,
+  parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll, loadBestiary,
   B, R, S, BD, SE, d20, dd,
   _setDice(fn) { dd = fn; d20 = () => fn(20); },
 };

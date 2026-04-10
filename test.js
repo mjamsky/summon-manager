@@ -116,6 +116,23 @@ suite('bTotal');
   app.S.buffs = origBuffs;
 }
 
+// ── parseAbilityDmg ──
+suite('parseAbilityDmg');
+{
+  eq(app.parseAbilityDmg('constrict (1d6+3)', 'constrict'), '1d6+3', 'direct: constrict (dice)');
+  eq(app.parseAbilityDmg('rend (2 claws, 1d4+6)', 'rend'), '1d4+6', 'comma: rend (stuff, dice)');
+  eq(app.parseAbilityDmg('death roll (1d8+6 plus trip)', 'death roll'), '1d8+6', 'plus-text: death roll');
+  eq(app.parseAbilityDmg('powerful charge (gore, 4d6+12)', 'powerful charge'), '4d6+12', 'comma: powerful charge');
+  eq(app.parseAbilityDmg('earth mastery', 'constrict'), '', 'no match → empty string');
+  eq(app.parseAbilityDmg('', 'gnaw', { dataField: '1d8+6 plus trip' }), '1d8+6', 'dataField fallback extracts dice');
+  eq(app.parseAbilityDmg('', 'gnaw', {
+    abilities: [{ name: 'Gnaw (Ex)', desc: 'inflicts automatic bite damage (1d8+3).' }]
+  }), '1d8+3', 'special_abilities fallback');
+  eq(app.parseAbilityDmg('', 'whirlwind', {
+    melee: 'slam +10 (2d8+5)', atkName: 'slam'
+  }), '2d8+5', 'melee attack fallback');
+}
+
 // ── mkCreature — ability flags ──
 suite('mkCreature flags');
 {

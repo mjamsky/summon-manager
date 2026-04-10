@@ -47,7 +47,7 @@ function getDmgType(name) {
 //  DICE (Crypto)
 // ═══════════════════════════════════════════════════════════════
 let rng = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; };
-let dd = s => { const limit = (0x100000000 - (0x100000000 % s)) >>> 0; let v; do { v = rng(); } while (v >= limit); return (v % s) + 1; };
+let dd = s => { if (s <= 0) return 1; if (s === 1) return 1; const limit = (0x100000000 - (0x100000000 % s)) >>> 0; if (limit === 0) return (rng() % s) + 1; let v; do { v = rng(); } while (v >= limit); return (v % s) + 1; };
 let d20 = () => dd(20);
 function rdice(n) {
   const m = n.match(/^(\d+)d(\d+)([+-]\d+)?$/);

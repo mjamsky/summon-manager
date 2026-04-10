@@ -42,11 +42,13 @@
 - [x] Statblock popup vs expand — implemented as modal/popup overlay. Scrim click, × button, Escape to dismiss. No grid reflow.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
 - [ ] Dock 820px breakpoint — shrink action buttons (RE-ROLL ALL, CLEAR, NEXT ROUND) instead of shrinking tray tab notches
+- [ ] Buffs tray container spacing fix (Bless row layout)
 
 ## Refactor (after features stabilize)
 - [x] renderCard() decomposition — extracted renderDeadCard(), renderBuffChips(), renderDecisions(), renderRollTable(), renderSpecialsLegend(), renderAbilities(), renderStatBlock(). renderCard() is now ~40 lines of assembly.
 - [x] CSS/JS separation — all inline styles migrated to CSS. HP bar uses raw custom properties (`--hp-cur`, `--hp-max`) with CSS `calc()`. Dropdown stats, buff popup text use CSS classes. Zero inline `style=` rules remain.
 - [x] Dead card wrapper — moved inline style to `.dead-wrap` CSS class
+- [x] DRY refactor — extracted parseAbilityDmg(), preRoll auto-damage loop, buildAutoRow(), buildRangedRow(), EXTRA_LEGENDS. Test harness (70 tests, `node test.js`).
 - [ ] Dead creatures: [x] dismiss to Dismissed tray (current sideways layout is fine)
 - [ ] updTiers() called inside render() rebuilds dropdown every render — only needed when slot/tier selection changes.
 - [ ] Global function namespace — consider namespacing (e.g., `App.doSummon()`) as function count grows.
@@ -72,9 +74,25 @@
 - [x] Vortex state change (same as whirlwind, water)
 - [x] Rock Throwing ranged attack row (5 giants, SNA 6-8)
 
+### Tier 2b (ranged + special attacks from bestiary audit)
+- [x] Web ranged touch attack (Giant Spider) — parsed from Special_Attacks, entangle on hit, DC/HP legend
+- [ ] Spikes ranged volley (Manticore) — 4-spike ranged attack, like rock throwing ×4
+- [ ] Electricity ranged touch (Electric Eel) — touch attack + Fort DC stun, web pattern
+- [ ] Musk ranged spray (Giant Skunk) — Fort DC nauseated, web pattern + DC
+- [ ] Breath Weapon (Mephit) — AoE damage + Ref DC, 4-round cooldown
+- [ ] Heated Rock (Fire Giant) — +fire damage modifier on rock throwing rows
+- [ ] Stampede (Aurochs, Mammoth) — trample variant, requires 3+ creatures with stampede
+
+### Tier 2c (legend/info lines from bestiary audit)
+- [ ] Drench legend (Water Elementals, 6x) — informational: extinguishes fire effects
+- [ ] Pull legend (Giant Frog, Giant Moray) — drag on hit, distance info
+- [ ] Quills legend (Giant Porcupine) — reactive damage when hit by melee, DC + damage
+- [ ] Attach + Blood Drain (Stirge) — persistent grapple + Con damage/round
+
 ### Tier 3 (new interaction patterns)
 - [ ] Cleave / Great Cleave inline row action — button on attack row, spawns new roll on click. Great Cleave chains.
-- [ ] Swallow Whole popover — grapple sub-state overlay with escape mechanics
+- [ ] Swallow Whole popover (8 creatures) — grapple sub-state overlay with escape mechanics
+- [ ] Engulf (Giant Flytrap) — grapple + acid/round, like swallow whole
 
 ## Refactor (future)
 - [ ] Triggered buff system migration — annotate existing hardcoded conditional logic (constrict, rake, pounce, death at 0 HP) as candidates for trigger system unification

@@ -111,14 +111,19 @@ CSS Grid (`repeat(auto-fill, 280px)`) with `justify-content: space-evenly` — c
 
 ### Adding a Creature Ability
 
-Consult `ABILITY-PLAN.md` for which UI layer the ability belongs to (badge, toggle, auto-row, pip, etc.).
+Consult `ABILITY-PLAN.md` for which UI layer the ability belongs to (badge, toggle, auto-row, pip, etc.). Use the extracted helpers — each new ability should be ~10 lines across all layers.
 
-1. **Parse** in `mkCreature()` — detect from `specials` (Special_Attacks), `feats`, or `specialAbilities` array. Store as flag + data on creature object (e.g. `hasRend`, `rendDmg`).
-2. **Pre-roll** in `preRoll()` — if the ability has damage dice, roll them here. Store in `c.rawRoll`. Never roll at render time.
-3. **Compute** in `computeRoll()` — add to `autoRows` (for auto-damage) or modify `rows` (for attack swaps). Apply buff bonuses. Gate visibility on creature state (grappling, charging, etc.).
-4. **Render** in `renderRollTable()` (auto-rows, attack rows), `renderDecisions()` (toggles, badges), `renderSpecialsLegend()` (pip legends), or `renderAbilities()` (ability section lines).
+1. **Parse** in `mkCreature()` — use `parseAbilityDmg(specials, keyword, opts)` to extract damage dice. Detect flags from `specials.includes()`. Store as flag + data on creature object (e.g. `hasRend`, `rendDmg`).
+2. **Pre-roll** in `preRoll()` — add entry to the auto-damage table `[key, flag, dmgField]` for simple `rdice()` rolls. For ranged attacks (d20 + damage), stay manual.
+3. **Compute** in `computeRoll()` — use `buildAutoRow(raw, dmgDice, buffDmg, name, extras)` for auto-damage rows, `buildRangedRow(raw, atkBonus, b, name, opts)` for ranged attack rows (set `opts.noDamage` for touch attacks).
+4. **Render** in `renderRollTable()` (auto-rows, attack rows), `renderDecisions()` (toggles, badges), `renderSpecialsLegend()` (add to `EXTRA_LEGENDS` array), or `renderAbilities()` (ability section lines).
 5. **Toggle function** — if interactive, add `togX(id)` that mutates creature state and calls `render()`. Never call `preRoll()` from a toggle.
 6. **Filter** in `renderAbilities()` — add the ability keyword to `meleeSpecials` set if it's handled elsewhere (auto-row, pip, toggle) to avoid double-display.
+7. **Test** — add test in `test.js` for the creature with the new ability. Run `node test.js`.
+
+### Testing
+
+Run `node test.js` — zero dependencies, 70+ tests. Uses `_setDice()` for deterministic rolls. Add tests for new abilities before committing.
 
 ## PF1e Correctness Constraints
 

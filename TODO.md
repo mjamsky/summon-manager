@@ -20,6 +20,7 @@
 - [x] Disease + Stun pip icons
 - [x] CMB feat lines in ability section — Bull Rush, Overrun, Sunder, Awesome Blow, Greater variants
 - [x] Bleeding/Staggering Critical — conditional legend text on crit confirm
+- [x] Web ranged touch attack — parsed from Special_Attacks, attack row + entangle, DC/HP legend
 - [ ] Grab -20 hold option — creature takes -20 CMB to avoid grappled condition, can full attack + maintain. Only constrict dmg (no auto grab-attack dmg). Surface for high-CMB creatures only?
 - [ ] Conditions system (sickened, blind, paralyzed)
 - [x] Effect damage rendering inline — superseded by spell cards (alert removed)
@@ -40,6 +41,7 @@
 - [x] Visual revamp Phase 7 — Stat Block Popover: centered popover on creature name tap, replaces inline show-stats expand
 - [x] Statblock popup vs expand — implemented as modal/popup overlay. Scrim click, × button, Escape to dismiss. No grid reflow.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
+- [ ] Dock 820px breakpoint — shrink action buttons (RE-ROLL ALL, CLEAR, NEXT ROUND) instead of shrinking tray tab notches
 
 ## Refactor (after features stabilize)
 - [x] renderCard() decomposition — extracted renderDeadCard(), renderBuffChips(), renderDecisions(), renderRollTable(), renderSpecialsLegend(), renderAbilities(), renderStatBlock(). renderCard() is now ~40 lines of assembly.

@@ -355,6 +355,13 @@ function preRoll(c) {
     chargeCritExtra = rdice(c.powerfulChargeDmg).t; // gore is ×2, so 1 extra roll
   }
 
+  // Web (pre-roll ranged touch attack, no damage)
+  let webRaw = null;
+  if (c.hasWeb && c.webAtk) {
+    const r = d20();
+    webRaw = { r, nat20: r===20, nat1: r===1 };
+  }
+
   // Rock Throwing (pre-roll attack + damage)
   let rockRaw = null;
   if (c.hasRockThrowing && c.rockAtk) {
@@ -398,7 +405,7 @@ function preRoll(c) {
 
   c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg,
     rendRaw, deathRollRaw, gnawRaw, chargeRaw, chargeCritExtra,
-    rockRaw, trampleRaw, vitalStrikeExtraRaws, whirlwindRaw, vortexRaw };
+    webRaw, rockRaw, trampleRaw, vitalStrikeExtraRaws, whirlwindRaw, vortexRaw };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)
@@ -574,6 +581,23 @@ function computeRoll(c) {
       name: 'Rend', isRend: true,
       dmg: Math.max(1, rn.t + b.d),
       dmgDice: c.rendDmg, dmgRolls: rn.r, dmgMod: (rn.m || 0) + b.d, buffDmg: b.d,
+    });
+  }
+
+  // Web: ranged touch attack row (no damage — entangle on hit)
+  if (c.hasWeb && c.rawRoll.webRaw && c.webAtk && !stateActive) {
+    const wb = c.rawRoll.webRaw;
+    const bonus = c.webAtk.bonus + b.a;
+    const total = wb.r + bonus;
+    const hit_ac = wb.nat20 ? 999 : wb.nat1 ? 0 : total;
+    rows.push({
+      name: 'web (touch)', r: wb.r, bonus, total, hit_ac,
+      dmg: 0, dmgNoCrit: 0,
+      nat20: wb.nat20, nat1: wb.nat1, threat: false, critOk: false,
+      critConf: 0, critConfTotal: 0,
+      fumbleConf: 0, fumbleConfTotal: 0,
+      specials: [], isRake: false, primary: false, isRanged: true, isWeb: true,
+      dmgDice: '', dmgRolls: [], dmgMod: 0, buffDmg: 0, buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: c.webAtk.bonus,
     });
   }
 
@@ -774,6 +798,22 @@ function mkCreature(bEntry, aug) {
     rockAtk.dmg = `${rockDmgBase}${strMod >= 0 ? '+' : ''}${strMod}`;
   }
 
+  // Web: parse from Special_Attacks "web (+5 ranged, DC 12, hp 2)"
+  const hasWeb = specials.includes('web');
+  let webAtk = null;
+  if (hasWeb) {
+    const wm = specials.match(/web\s*\(\+?(-?\d+)\s*ranged,\s*DC\s*(\d+),\s*hp\s*(\d+)\)/i);
+    if (wm) {
+      let webBonus = +wm[1];
+      let webDC = +wm[2];
+      const webHP = +wm[3];
+      // Augment Summoning: +4 Con → +2 to DC (Con-based)
+      if (aug) { webDC += 2; }
+      // Augment doesn't affect Dex-based ranged attack bonus
+      webAtk = { bonus: webBonus, dc: webDC, hp: webHP };
+    }
+  }
+
   // Trample: detect from pre-parsed flag or Special_Attacks text
   const hasTrample = !!data.hasTrample || specials.includes('trample');
   let trampleDmg = '', trampleDC = 0;
@@ -851,7 +891,7 @@ function mkCreature(bEntry, aug) {
     hasRend, rendDmg, hasDeathRoll, deathRollDmg, hasGnaw, gnawDmg,
     hasPowerfulCharge, powerfulChargeDmg, charging:false,
     hasEarthMastery, hasWaterMastery, earthMastery:false, waterMastery:false,
-    hasRockThrowing, rockAtk,
+    hasRockThrowing, rockAtk, hasWeb, webAtk,
     hasTrample, trampleDmg, trampleDC, trampling:false,
     hasVitalStrike, vitalStrikeLevel, vitalStriking:false,
     hasWhirlwind, whirlwindDC, whirlwindDmg, whirlwinding:false,
@@ -1096,6 +1136,7 @@ const PFSRD = {
   disease:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Disease',
   burn:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Burn',
   stun:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Stun',
+  web:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Web',
   'death roll':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Death_Roll',
   gnaw:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Gnaw',
   'bull rush':'https://www.d20pfsrd.com/gamemastering/combat/#Bull_Rush',
@@ -1267,7 +1308,9 @@ function renderRollTable(c, pr, refAC) {
     else if(isHit===false) cls = 'miss';
 
     let dmgCell;
-    if (hasAC) {
+    if (r.isWeb) {
+      dmgCell = isHit===false ? '-' : 'entangle';
+    } else if (hasAC) {
       if (!isHit) dmgCell = '-';
       else if (critConfirmed) dmgCell = `<span class="shimmer-red">${effectiveDmg}</span>`;
       else dmgCell = `${effectiveDmg}`;
@@ -1364,7 +1407,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
   c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
   allSpecials.delete('constrict');
   const hasDeathRollLegend = c.hasDeathRoll && c.grappling;
-  if (allSpecials.size === 0 && !hasDeathRollLegend) return '';
+  if (allSpecials.size === 0 && !hasDeathRollLegend && !c.hasWeb) return '';
 
   let html = `<div class="specials-section">`;
   for (const s of allSpecials) {
@@ -1411,6 +1454,15 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
     html += `<div class="special-legend legend-trip">${tripPip} <a class="sp-link" href="${tripUrl}" target="_blank" onclick="event.stopPropagation()">Trip</a> <span class="${tripCls}">auto (≤${sizeNote})</span></div>`;
   }
 
+  // Web — show DC, HP, escape info (activates when web attack hits)
+  if (c.hasWeb && c.webAtk) {
+    const webUrl = PFSRD['web'] || '#';
+    const webRow = pr.rows.find(r => r.isWeb);
+    const webHit = webRow && hasAC && webRow.hit_ac >= refAC;
+    const hitCls = webHit ? 'legend-active' : '';
+    html += `<div class="special-legend legend-grab"><a class="sp-link" href="${webUrl}" target="_blank" onclick="event.stopPropagation()">Web</a> <span class="${hitCls}">DC ${c.webAtk.dc} Escape Artist / break hp ${c.webAtk.hp}</span></div>`;
+  }
+
   // Crit rider feats — show conditionally when a crit confirms
   const featsLow = (c.feats||'').toLowerCase();
   const hasConfirmedCrit = pr.rows.some(r => r.critOk && (!hasAC || r.critConfTotal >= refAC));
@@ -1431,7 +1483,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
 }
 
 function renderAbilities(c) {
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede']);
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','web','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
     const kwFull = a.name.split('(')[0].trim().toLowerCase();

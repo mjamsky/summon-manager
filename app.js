@@ -384,6 +384,34 @@ function buildAutoRow(raw, dmgDice, buffDmg, name, extras = {}) {
     dmgDice, dmgRolls: raw.r, dmgMod: (raw.m || 0) + buffDmg, buffDmg, ...extras };
 }
 
+// Build a ranged attack row (web = noDamage touch, rock = full crit)
+function buildRangedRow(raw, atkBonus, b, name, opts = {}) {
+  const bonus = atkBonus + b.a;
+  const total = raw.r + bonus;
+  const hit_ac = raw.nat20 ? 999 : raw.nat1 ? 0 : total;
+  const fumbleConfTotal = raw.nat1 ? (raw.fumbleConf || 0) + atkBonus + b.a : 0;
+  const base = { name, r: raw.r, bonus, total, hit_ac,
+    nat20: raw.nat20, nat1: raw.nat1,
+    specials: [], isRake: false, primary: false, isRanged: true,
+    fumbleConf: raw.fumbleConf || 0, fumbleConfTotal,
+    buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: atkBonus, ...opts.extra };
+  if (opts.noDamage) {
+    return { ...base, dmg: 0, dmgNoCrit: 0, threat: false, critOk: false,
+      critConf: 0, critConfTotal: 0, dmgDice: '', dmgRolls: [], dmgMod: 0, buffDmg: 0 };
+  }
+  const dmgBase = (raw.baseDmg || 0) + b.d;
+  let dmgWithCrit = dmgBase, critOk = false, critConfTotal = 0;
+  if (raw.threat) {
+    critConfTotal = (raw.critConf || 0) + bonus;
+    critOk = true;
+    dmgWithCrit = dmgBase + (raw.critDmgRaw || 0) + b.d;
+  }
+  return { ...base, dmg: dmgWithCrit, dmgNoCrit: dmgBase,
+    threat: raw.threat || false, critOk, critConf: raw.critConf || 0, critConfTotal,
+    dmgDice: opts.dmgDice || '', dmgRolls: raw.dmgRolls || [],
+    dmgMod: (raw.dmgMod || 0) + b.d, buffDmg: b.d };
+}
+
 // Compute display rows from raw rolls + current buffs (called at render time)
 function computeRoll(c) {
   if (!c.rawRoll) return null;
@@ -517,46 +545,12 @@ function computeRoll(c) {
 
   // Web: ranged touch attack row (no damage — entangle on hit)
   if (c.hasWeb && c.rawRoll.webRaw && c.webAtk && !stateActive) {
-    const wb = c.rawRoll.webRaw;
-    const bonus = c.webAtk.bonus + b.a;
-    const total = wb.r + bonus;
-    const hit_ac = wb.nat20 ? 999 : wb.nat1 ? 0 : total;
-    rows.push({
-      name: 'web (touch)', r: wb.r, bonus, total, hit_ac,
-      dmg: 0, dmgNoCrit: 0,
-      nat20: wb.nat20, nat1: wb.nat1, threat: false, critOk: false,
-      critConf: 0, critConfTotal: 0,
-      fumbleConf: 0, fumbleConfTotal: 0,
-      specials: [], isRake: false, primary: false, isRanged: true, isWeb: true,
-      dmgDice: '', dmgRolls: [], dmgMod: 0, buffDmg: 0, buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: c.webAtk.bonus,
-    });
+    rows.push(buildRangedRow(c.rawRoll.webRaw, c.webAtk.bonus, b, 'web (touch)', { noDamage: true, extra: { isWeb: true } }));
   }
 
-  // Rock Throwing: add ranged attack row (visible when not in state mode)
+  // Rock Throwing: ranged attack row (visible when not in state mode)
   if (c.hasRockThrowing && c.rawRoll.rockRaw && c.rockAtk && !stateActive) {
-    const rk = c.rawRoll.rockRaw;
-    const bonus = c.rockAtk.bonus + b.a; // buff applies to ranged attack too
-    const total = rk.r + bonus;
-    const dmgBase = rk.baseDmg + b.d;
-    let dmgWithCrit = dmgBase;
-    let critOk = false, critConfTotal = 0;
-    if (rk.threat) {
-      critConfTotal = rk.critConf + bonus;
-      critOk = true;
-      dmgWithCrit = dmgBase + rk.critDmgRaw + b.d; // ×2 crit
-    }
-    const fumbleConfTotal = rk.nat1 ? rk.fumbleConf + c.rockAtk.bonus + b.a : 0;
-    const hit_ac = rk.nat20 ? 999 : rk.nat1 ? 0 : total;
-    rows.push({
-      name: `rock (${c.rockAtk.range})`, r: rk.r, bonus, total, hit_ac,
-      dmg: dmgWithCrit, dmgNoCrit: dmgBase,
-      nat20: rk.nat20, nat1: rk.nat1, threat: rk.threat, critOk,
-      critConf: rk.critConf, critConfTotal,
-      fumbleConf: rk.fumbleConf, fumbleConfTotal,
-      specials: [], isRake: false, primary: false, isRanged: true,
-      dmgDice: c.rockAtk.dmg, dmgRolls: rk.dmgRolls, dmgMod: (rk.dmgMod||0)+b.d, buffDmg: b.d, buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: c.rockAtk.bonus,
-    });
-    // Re-sort after adding rock row
+    rows.push(buildRangedRow(c.rawRoll.rockRaw, c.rockAtk.bonus, b, `rock (${c.rockAtk.range})`, { dmgDice: c.rockAtk.dmg }));
     rows.sort((a2, bb2) => bb2.total - a2.total);
   }
 
@@ -1960,7 +1954,8 @@ if (typeof globalThis.__TEST__ === 'undefined') init();
 //  NODE.JS EXPORTS (for testing)
 // ═══════════════════════════════════════════════════════════════
 if (typeof module !== 'undefined') module.exports = {
-  parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll, loadBestiary,
+  parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll,
+  buildAutoRow, buildRangedRow, loadBestiary,
   B, R, S, BD, SE, d20, dd,
   _setDice(fn) { dd = fn; d20 = () => fn(20); },
 };

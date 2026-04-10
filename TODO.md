@@ -76,18 +76,18 @@
 
 ### Tier 2b (ranged + special attacks from bestiary audit)
 - [x] Web ranged touch attack (Giant Spider) — parsed from Special_Attacks, entangle on hit, DC/HP legend
-- [ ] Spikes ranged volley (Manticore) — 4-spike ranged attack, like rock throwing ×4
+- [x] Spikes ranged volley (Manticore) — 4 ranged attack rows via buildRangedRow, computed from BAB+Dex/Str
 - [ ] Electricity ranged touch (Electric Eel) — touch attack + Fort DC stun, web pattern
 - [ ] Musk ranged spray (Giant Skunk) — Fort DC nauseated, web pattern + DC
-- [ ] Breath Weapon (Mephit) — AoE damage + Ref DC, 4-round cooldown
-- [ ] Heated Rock (Fire Giant) — +fire damage modifier on rock throwing rows
-- [ ] Stampede (Aurochs, Mammoth) — trample variant, requires 3+ creatures with stampede
+- [x] Breath Weapon (Mephit) — auto-damage row + Ref DC + shape, 4-round cooldown legend
+- [x] Heated Rock (Fire Giant) — +fire label on rock throwing rows, damage in legend
+- [x] Stampede (Aurochs) — conditional trample legend (requires 3+ creatures)
 
 ### Tier 2c (legend/info lines from bestiary audit)
-- [ ] Drench legend (Water Elementals, 6x) — informational: extinguishes fire effects
-- [ ] Pull legend (Giant Frog, Giant Moray) — drag on hit, distance info
-- [ ] Quills legend (Giant Porcupine) — reactive damage when hit by melee, DC + damage
-- [ ] Attach + Blood Drain (Stirge) — persistent grapple + Con damage/round
+- [x] Drench legend (Water Elementals, 6x) — informational: extinguishes fire effects
+- [x] Pull legend (Giant Frog) — drag distance on hit
+- [x] Quills legend (Giant Porcupine) — reactive damage when hit by melee
+- [x] Attach + Blood Drain (Stirge) — grapple mechanic + Con damage/round legend
 
 ### Tier 3 (new interaction patterns)
 - [ ] Cleave / Great Cleave inline row action — button on attack row, spawns new roll on click. Great Cleave chains.

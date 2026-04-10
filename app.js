@@ -364,6 +364,26 @@ function preRoll(c) {
     rockRaw = { r, baseDmg: dr.t, dmgRolls: dr.r, dmgMod: dr.m, critConf: rockCritConf, critDmgRaw: rockCritDmgRaw, fumbleConf, threat, nat20: r===20, nat1: r===1 };
   }
 
+  // Spikes (pre-roll 4 ranged attacks + damage)
+  let spikesRaw = [];
+  if (c.hasSpikes && c.spikesAtk) {
+    for (let i = 0; i < c.spikesAtk.count; i++) {
+      const r = d20();
+      const dr = rdice(c.spikesAtk.dmg);
+      const threat = r >= 20 && r !== 1;
+      let critConf = 0, critDmgRaw = 0;
+      if (threat) { critConf = d20(); critDmgRaw = rdice(c.spikesAtk.dmg).t; }
+      const fumbleConf = r === 1 ? d20() : 0;
+      spikesRaw.push({ r, baseDmg: dr.t, dmgRolls: dr.r, dmgMod: dr.m, critConf, critDmgRaw, fumbleConf, threat, nat20: r===20, nat1: r===1 });
+    }
+  }
+
+  // Breath Weapon (pre-roll damage)
+  let breathRaw = null;
+  if (c.hasBreathWeapon && c.breathDmg) {
+    breathRaw = rdice(c.breathDmg);
+  }
+
   // Vital Strike (pre-roll extra weapon dice)
   let vitalStrikeExtraRaws = [];
   if (c.hasVitalStrike && c.attacks.length > 0) {
@@ -375,7 +395,7 @@ function preRoll(c) {
 
   c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, grabAtkName, grabAtkDmg,
     ...auto, chargeRaw, chargeCritExtra,
-    webRaw, rockRaw, vitalStrikeExtraRaws };
+    webRaw, rockRaw, spikesRaw, breathRaw, vitalStrikeExtraRaws };
 }
 
 // Build an auto-damage row (no attack roll — fixed damage from ability)
@@ -550,8 +570,29 @@ function computeRoll(c) {
 
   // Rock Throwing: ranged attack row (visible when not in state mode)
   if (c.hasRockThrowing && c.rawRoll.rockRaw && c.rockAtk && !stateActive) {
-    rows.push(buildRangedRow(c.rawRoll.rockRaw, c.rockAtk.bonus, b, `rock (${c.rockAtk.range})`, { dmgDice: c.rockAtk.dmg }));
+    const rockRow = buildRangedRow(c.rawRoll.rockRaw, c.rockAtk.bonus, b, `rock (${c.rockAtk.range})`, { dmgDice: c.rockAtk.dmg });
+    // Heated Rock: add fire damage to rock throwing
+    if (c.hasHeatedRock && c.heatedRockDmg) {
+      rockRow.name += ' +fire';
+      rockRow.heatedRockDmg = c.heatedRockDmg;
+    }
+    rows.push(rockRow);
     rows.sort((a2, bb2) => bb2.total - a2.total);
+  }
+
+  // Spikes: 4 ranged attack rows (Manticore)
+  if (c.hasSpikes && c.rawRoll.spikesRaw.length && c.spikesAtk && !stateActive) {
+    for (let i = 0; i < c.rawRoll.spikesRaw.length; i++) {
+      rows.push(buildRangedRow(c.rawRoll.spikesRaw[i], c.spikesAtk.bonus, b,
+        `spike ${i+1} (${c.spikesAtk.range})`, { dmgDice: c.spikesAtk.dmg }));
+    }
+    rows.sort((a2, bb2) => bb2.total - a2.total);
+  }
+
+  // Breath Weapon: auto-damage row (Mephit)
+  if (c.hasBreathWeapon && c.rawRoll.breathRaw) {
+    autoRows.push(buildAutoRow(c.rawRoll.breathRaw, c.breathDmg, b.d, `Breath (${c.breathShape||'area'})`,
+      { isBreath: true, dc: c.breathDC }));
   }
 
   // Vital Strike: enhance the primary attack row with extra dice (no modifier on extra rolls)
@@ -787,6 +828,55 @@ function mkCreature(bEntry, aug) {
   const hasDiehard = featsLow.includes('diehard');
   const hasRage = specials.includes('rage') || specials.includes('blood rage');
 
+  // Tier 2b/2c ability flags
+  const hasDrench = specials.includes('drench');
+  const hasPull = specials.includes('pull');
+  let pullDist = '';
+  if (hasPull) { const pm = specials.match(/pull\s*\([^,]*,\s*(\d+\s*(?:feet|ft\.?))/i); if (pm) pullDist = pm[1]; }
+  const hasQuills = !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('quill'));
+  let quillsDmg = '';
+  if (hasQuills) {
+    const qa = data.special_abilities.find(a => a.name.toLowerCase().includes('quill'));
+    if (qa) { const dm = qa.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) quillsDmg = dm[1]; }
+  }
+  const hasSpikes = !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('spike'));
+  let spikesAtk = null;
+  if (hasSpikes) {
+    // Spikes: 4 ranged attacks. Stats from Ranged line or computed from BAB+Dex.
+    const ranged = card.Ranged || base.Ranged || '';
+    const rm = ranged.match(/(\d+)\s*spikes?\s*\+(\d+)\s*ranged\s*\((\d+d\d+(?:[+-]\d+)?)\)/i);
+    if (rm) {
+      spikesAtk = { count: +rm[1], bonus: +rm[2], dmg: rm[3], range: '180 ft.' };
+    } else {
+      // Fallback: compute from BAB + Dex mod (ranged), Str mod for damage
+      const dexMod = Math.floor(((full.Dex||10) - 10) / 2);
+      const strScore = aug ? (full.Str||10)+4 : (full.Str||10);
+      const strMod = Math.floor((strScore - 10) / 2);
+      const spikeBonus = (full.BAB||0) + dexMod;
+      spikesAtk = { count: 4, bonus: spikeBonus, dmg: `1d6+${strMod}`, range: '180 ft.' };
+    }
+  }
+  const hasBreathWeapon = specials.includes('breath weapon');
+  let breathDC = 0, breathDmg = '', breathShape = '';
+  if (hasBreathWeapon) {
+    const bm = specials.match(/breath\s*weapon\s*\(([^)]+)\)/i);
+    if (bm) {
+      const dcM = bm[1].match(/dc\s*(\d+)/i); if (dcM) breathDC = +dcM[1];
+      const dmM = bm[1].match(/(\d+d\d+(?:[+-]\d+)?)/); if (dmM) breathDmg = dmM[1];
+      const shM = bm[1].match(/((?:\d+-foot\s+)?(?:cone|line|burst))/i); if (shM) breathShape = shM[1];
+    }
+    if (aug && breathDC) breathDC += 2; // Con-based DC
+  }
+  const hasHeatedRock = specials.includes('heated rock');
+  let heatedRockDmg = '';
+  if (hasHeatedRock) {
+    const ha = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('heated rock'));
+    if (ha) { const dm = ha.desc.match(/(\d+d\d+(?:[+-]\d+)?)/); if (dm) heatedRockDmg = dm[1]; }
+  }
+  const hasStampede = specials.includes('stampede');
+  const hasAttach = specials.includes('attach') || !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('attach'));
+  const hasBloodDrain = specials.includes('blood drain') || !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('blood drain'));
+
   // Triggered buffs (generic system)
   const triggers = [];
   if (hasRage) triggers.push({ on:'damage', apply:'rage' });
@@ -807,6 +897,9 @@ function mkCreature(bEntry, aug) {
     hasWhirlwind, whirlwindDC, whirlwindDmg, whirlwinding:false,
     hasVortex, vortexDC, vortexDmg, vortexing:false,
     hasDiehard, hasRage, triggers,
+    hasDrench, hasPull, pullDist, hasQuills, quillsDmg,
+    hasSpikes, spikesAtk, hasBreathWeapon, breathDC, breathDmg, breathShape,
+    hasHeatedRock, heatedRockDmg, hasStampede, hasAttach, hasBloodDrain,
     hasGrab: parseMelee(card.Melee||base.Melee||'').some(a=>a.sp.includes('grab')),
     acBreak:card.AC_breakdown||base.AC_breakdown||'',
     specialAtks:card.Special_Attacks||base.Special_Attacks||'',
@@ -1049,6 +1142,12 @@ const PFSRD = {
   web:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Web',
   'death roll':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Death_Roll',
   gnaw:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Gnaw',
+  drench:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Drench',
+  pull:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Pull',
+  spikes:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Spikes',
+  'blood drain':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Blood_Drain',
+  attach:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Attach',
+  'breath weapon':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Breath_Weapon',
   'bull rush':'https://www.d20pfsrd.com/gamemastering/combat/#Bull_Rush',
   'overrun':'https://www.d20pfsrd.com/gamemastering/combat/#Overrun',
   'sunder':'https://www.d20pfsrd.com/gamemastering/combat/#Sunder',
@@ -1316,7 +1415,8 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
   const allSpecials = new Set();
   c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
   allSpecials.delete('constrict');
-  if (allSpecials.size === 0 && !(c.hasDeathRoll && c.grappling) && !c.hasWeb) return '';
+  const hasExtraLegend = c.hasWeb || c.hasDrench || c.hasPull || c.hasQuills || c.hasSpikes || c.hasBreathWeapon || c.hasHeatedRock || c.hasStampede || c.hasAttach || c.hasBloodDrain || (c.hasDeathRoll && c.grappling);
+  if (allSpecials.size === 0 && !hasExtraLegend) return '';
 
   let html = `<div class="specials-section">`;
   for (const s of allSpecials) {
@@ -1367,6 +1467,22 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
         const hit = webRow && hasAC && webRow.hit_ac >= refAC;
         return `<div class="special-legend legend-grab"><a class="sp-link" href="${PFSRD['web']||'#'}" target="_blank" onclick="event.stopPropagation()">Web</a> <span class="${hit?'legend-active':''}">DC ${c.webAtk.dc} Escape Artist / break hp ${c.webAtk.hp}</span></div>`;
       }},
+    { test: c => c.hasDrench,
+      render: () => `<div class="special-legend"><a class="sp-link" href="${PFSRD['drench']||'#'}" target="_blank" onclick="event.stopPropagation()">Drench</a> extinguishes non-magical fires</div>` },
+    { test: c => c.hasPull && c.pullDist,
+      render: (c) => `<div class="special-legend"><a class="sp-link" href="${PFSRD['pull']||'#'}" target="_blank" onclick="event.stopPropagation()">Pull</a> ${c.pullDist} on hit</div>` },
+    { test: c => c.hasQuills,
+      render: (c) => `<div class="special-legend"><a class="sp-link" href="#" target="_blank" onclick="event.stopPropagation()">Quills</a> melee attackers take ${c.quillsDmg||'damage'}</div>` },
+    { test: c => c.hasBreathWeapon && c.breathDC,
+      render: (c) => `<div class="special-legend"><a class="sp-link" href="${PFSRD['breath weapon']||'#'}" target="_blank" onclick="event.stopPropagation()">Breath</a> ${c.breathShape||'area'} Ref DC ${c.breathDC} / 4 rounds</div>` },
+    { test: c => c.hasHeatedRock && c.heatedRockDmg,
+      render: (c) => `<div class="special-legend">Heated Rock +${c.heatedRockDmg} fire on rock hits</div>` },
+    { test: c => c.hasStampede,
+      render: () => `<div class="special-legend">Stampede trample with 3+ creatures</div>` },
+    { test: c => c.hasAttach,
+      render: () => `<div class="special-legend"><a class="sp-link" href="${PFSRD['attach']||'#'}" target="_blank" onclick="event.stopPropagation()">Attach</a> grapples on touch hit (AC 12 while attached)</div>` },
+    { test: c => c.hasBloodDrain,
+      render: () => `<div class="special-legend"><a class="sp-link" href="${PFSRD['blood drain']||'#'}" target="_blank" onclick="event.stopPropagation()">Blood Drain</a> 1 Con/round while attached</div>` },
   ];
   for (const entry of EXTRA_LEGENDS) {
     if (entry.test(c)) html += entry.render(c, pr, hasAC, refAC);
@@ -1392,7 +1508,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
 }
 
 function renderAbilities(c) {
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','web','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede']);
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','web','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede','drench','breath weapon','heated rock','blood drain','musk','tongue']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
     const kwFull = a.name.split('(')[0].trim().toLowerCase();

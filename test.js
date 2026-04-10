@@ -277,6 +277,114 @@ suite('pipeline: Hill Giant rock');
   }
 }
 
+// ── Tier 2b/2c ability flags ──
+suite('mkCreature Tier 2b/2c');
+{
+  const e = app.B['manticore'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasSpikes, 'Manticore has spikes');
+    ok(c.spikesAtk, 'Manticore has spikes attack data');
+    eq(c.spikesAtk.count, 4, 'Manticore has 4 spikes');
+    ok(c.spikesAtk.dmg, 'spikes have damage string');
+  }
+}
+{
+  const e = app.B['giant skunk'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    // Musk is in Special_Attacks but has no roll — just legend
+    ok(c.specials.includes('musk'), 'Giant Skunk specials include musk');
+  }
+}
+{
+  const e = app.B['giant porcupine'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasQuills, 'Giant Porcupine has quills');
+    ok(c.quillsDmg, 'Giant Porcupine has quills damage');
+  }
+}
+{
+  const e = app.B['huge water elemental'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasDrench, 'Huge Water Elemental has drench');
+  }
+}
+{
+  const e = app.B['giant frog'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasPull, 'Giant Frog has pull');
+    ok(c.pullDist, 'Giant Frog has pull distance');
+  }
+}
+{
+  const e = app.B['fire giant'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasHeatedRock, 'Fire Giant has heated rock');
+    ok(c.heatedRockDmg, 'Fire Giant has heated rock damage');
+    ok(c.hasRockThrowing, 'Fire Giant has rock throwing');
+  }
+}
+{
+  const e = app.B['aurochs'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasStampede, 'Aurochs has stampede');
+    ok(c.hasTrample, 'Aurochs has trample');
+  }
+}
+{
+  const e = app.B['stirge'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasAttach, 'Stirge has attach');
+    ok(c.hasBloodDrain, 'Stirge has blood drain');
+  }
+}
+{
+  const e = app.B['mephit'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasBreathWeapon, 'Mephit has breath weapon');
+    ok(c.breathDC > 0, 'Mephit has breath DC');
+    ok(c.breathShape, 'Mephit has breath shape');
+  }
+}
+
+suite('pipeline: Manticore spikes');
+{
+  setDice([15, 4, 3, 12, 5, 2, 18, 6, 3, 10, 4, 2, 8, 3, 14, 5, 16, 4, 11, 3, 2, 17, 5, 3, 9, 2, 1]);
+  const e = app.B['manticore'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    app.preRoll(c);
+    const pr = app.computeRoll(c);
+    const spikeRows = pr.rows.filter(r => r.name.includes('spike'));
+    eq(spikeRows.length, 4, 'Manticore has 4 spike rows');
+    ok(spikeRows[0].isRanged, 'spike rows are ranged');
+    ok(spikeRows[0].dmg > 0, 'spike has damage');
+  }
+}
+
+suite('pipeline: Fire Giant heated rock');
+{
+  setDice([15, 4, 3, 5, 6, 12, 3, 4, 5, 6, 10, 4, 5, 8, 3, 2, 14, 6, 4]);
+  const e = app.B['fire giant'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    app.preRoll(c);
+    const pr = app.computeRoll(c);
+    const rockRow = pr.rows.find(r => r.name.includes('rock'));
+    ok(rockRow, 'Fire Giant has rock row');
+    ok(rockRow.name.includes('+fire'), 'rock row includes +fire label');
+    ok(rockRow.heatedRockDmg, 'rock row has heated rock damage');
+  }
+}
+
 // ── Buff toggle invariant: no reroll ──
 suite('buff toggle invariant');
 {

@@ -378,6 +378,12 @@ function preRoll(c) {
     webRaw, rockRaw, vitalStrikeExtraRaws };
 }
 
+// Build an auto-damage row (no attack roll — fixed damage from ability)
+function buildAutoRow(raw, dmgDice, buffDmg, name, extras = {}) {
+  return { name, dmg: Math.max(1, raw.t + buffDmg),
+    dmgDice, dmgRolls: raw.r, dmgMod: (raw.m || 0) + buffDmg, buffDmg, ...extras };
+}
+
 // Compute display rows from raw rolls + current buffs (called at render time)
 function computeRoll(c) {
   if (!c.rawRoll) return null;
@@ -408,46 +414,25 @@ function computeRoll(c) {
 
   // Auto-damage rows: constrict (always shown if creature has it)
   if (c.rawRoll.constrictRaw) {
-    const cr = c.rawRoll.constrictRaw;
-    autoRows.push({
-      name: 'Constrict', isConstrict: true,
-      dmg: Math.max(1, cr.t + b.d),
-      dmgDice: c.constrictDmg, dmgRolls: cr.r, dmgMod: (cr.m || 0) + b.d, buffDmg: b.d,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.constrictRaw, c.constrictDmg, b.d, 'Constrict', { isConstrict: true }));
   }
   // Maintain mode = grappling AND past the round grapple started
   const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
 
   // Death Roll auto-damage (grapple, same trigger as constrict)
   if (c.rawRoll.deathRollRaw) {
-    const dr = c.rawRoll.deathRollRaw;
-    autoRows.push({
-      name: 'Death Roll', isDeathRoll: true,
-      dmg: Math.max(1, dr.t + b.d),
-      dmgDice: c.deathRollDmg, dmgRolls: dr.r, dmgMod: (dr.m || 0) + b.d, buffDmg: b.d,
-      hasTrip: true,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.deathRollRaw, c.deathRollDmg, b.d, 'Death Roll', { isDeathRoll: true, hasTrip: true }));
   }
 
   // Gnaw auto-damage (grapple auto-bite)
   if (c.rawRoll.gnawRaw) {
-    const gn = c.rawRoll.gnawRaw;
-    autoRows.push({
-      name: 'Gnaw', isGnaw: true,
-      dmg: Math.max(1, gn.t + b.d),
-      dmgDice: c.gnawDmg, dmgRolls: gn.r, dmgMod: (gn.m || 0) + b.d, buffDmg: b.d,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.gnawRaw, c.gnawDmg, b.d, 'Gnaw', { isGnaw: true }));
   }
 
   // Maintain auto-damage: grab attack's damage (only in maintain mode)
   if (c.rawRoll.maintainDmgRaw) {
-    const md = c.rawRoll.maintainDmgRaw;
-    autoRows.push({
-      name: (c.rawRoll.grabAtkName || 'Attack') + ' (auto)',
-      isMaintainDmg: true,
-      dmg: Math.max(1, md.t + b.d),
-      dmgDice: c.rawRoll.grabAtkDmg || '?', dmgRolls: md.r, dmgMod: (md.m || 0) + b.d, buffDmg: b.d,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.maintainDmgRaw, c.rawRoll.grabAtkDmg || '?', b.d,
+      (c.rawRoll.grabAtkName || 'Attack') + ' (auto)', { isMaintainDmg: true }));
   }
 
   // Rend auto-damage (bottom of table, after normal attacks computed)
@@ -460,35 +445,17 @@ function computeRoll(c) {
 
   // Whirlwind autoRow
   if (whirlwindActive && c.rawRoll.whirlwindRaw) {
-    const wr = c.rawRoll.whirlwindRaw;
-    autoRows.push({
-      name: 'Whirlwind', isWhirlwind: true,
-      dmg: Math.max(1, wr.t + b.d),
-      dmgDice: c.whirlwindDmg, dmgRolls: wr.r, dmgMod: (wr.m||0)+b.d, buffDmg: b.d,
-      dc: c.whirlwindDC,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.whirlwindRaw, c.whirlwindDmg, b.d, 'Whirlwind', { isWhirlwind: true, dc: c.whirlwindDC }));
   }
 
   // Vortex autoRow
   if (vortexActive && c.rawRoll.vortexRaw) {
-    const vr = c.rawRoll.vortexRaw;
-    autoRows.push({
-      name: 'Vortex', isVortex: true,
-      dmg: Math.max(1, vr.t + b.d),
-      dmgDice: c.vortexDmg, dmgRolls: vr.r, dmgMod: (vr.m||0)+b.d, buffDmg: b.d,
-      dc: c.vortexDC,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.vortexRaw, c.vortexDmg, b.d, 'Vortex', { isVortex: true, dc: c.vortexDC }));
   }
 
   // Trample autoRow (when trampling toggle is active)
   if (c.trampling && c.hasTrample && c.rawRoll.trampleRaw) {
-    const tr = c.rawRoll.trampleRaw;
-    autoRows.push({
-      name: 'Trample', isTrample: true,
-      dmg: Math.max(1, tr.t + b.d),
-      dmgDice: c.trampleDmg, dmgRolls: tr.r, dmgMod: (tr.m||0)+b.d, buffDmg: b.d,
-      dc: c.trampleDC,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.trampleRaw, c.trampleDmg, b.d, 'Trample', { isTrample: true, dc: c.trampleDC }));
   }
 
   for (const raw of c.rawRoll.rows) {
@@ -544,14 +511,8 @@ function computeRoll(c) {
   rows.sort((a, b) => b.total - a.total);
 
   // Rend auto-row at BOTTOM (after rows built so we can reference claw hit count)
-  // Numbers always shown; activation state determined at render time based on claw hits vs AC
   if (c.rawRoll.rendRaw) {
-    const rn = c.rawRoll.rendRaw;
-    autoRows.push({
-      name: 'Rend', isRend: true,
-      dmg: Math.max(1, rn.t + b.d),
-      dmgDice: c.rendDmg, dmgRolls: rn.r, dmgMod: (rn.m || 0) + b.d, buffDmg: b.d,
-    });
+    autoRows.push(buildAutoRow(c.rawRoll.rendRaw, c.rendDmg, b.d, 'Rend', { isRend: true }));
   }
 
   // Web: ranged touch attack row (no damage — entangle on hit)

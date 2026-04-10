@@ -1316,8 +1316,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
   const allSpecials = new Set();
   c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
   allSpecials.delete('constrict');
-  const hasDeathRollLegend = c.hasDeathRoll && c.grappling;
-  if (allSpecials.size === 0 && !hasDeathRollLegend && !c.hasWeb) return '';
+  if (allSpecials.size === 0 && !(c.hasDeathRoll && c.grappling) && !c.hasWeb) return '';
 
   let html = `<div class="specials-section">`;
   for (const s of allSpecials) {
@@ -1355,22 +1354,22 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
     const infoCls = (isTriggered && hasAC) ? 'legend-active' : '';
     html += `<div class="special-legend legend-${s}">${pip} <a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${sName}</a>${mark} <span class="${infoCls}">${info}</span></div>`;
   }
-  // Death Roll trip — auto-prone on successful death roll (no CMB check, size-gated)
-  if (c.hasDeathRoll && c.grappling) {
-    const tripPip = IC.trip || '';
-    const tripCls = c.grappling ? 'legend-active' : '';
-    const sizeNote = c.size || '';
-    const tripUrl = PFSRD['death roll'] || PFSRD['trip'] || '#';
-    html += `<div class="special-legend legend-trip">${tripPip} <a class="sp-link" href="${tripUrl}" target="_blank" onclick="event.stopPropagation()">Trip</a> <span class="${tripCls}">auto (≤${sizeNote})</span></div>`;
-  }
-
-  // Web — show DC, HP, escape info (activates when web attack hits)
-  if (c.hasWeb && c.webAtk) {
-    const webUrl = PFSRD['web'] || '#';
-    const webRow = pr.rows.find(r => r.isWeb);
-    const webHit = webRow && hasAC && webRow.hit_ac >= refAC;
-    const hitCls = webHit ? 'legend-active' : '';
-    html += `<div class="special-legend legend-grab"><a class="sp-link" href="${webUrl}" target="_blank" onclick="event.stopPropagation()">Web</a> <span class="${hitCls}">DC ${c.webAtk.dc} Escape Artist / break hp ${c.webAtk.hp}</span></div>`;
+  // Extra legend entries — data-driven for extensibility
+  const EXTRA_LEGENDS = [
+    { test: c => c.hasDeathRoll && c.grappling,
+      render: (c) => {
+        const cls = c.grappling ? 'legend-active' : '';
+        return `<div class="special-legend legend-trip">${IC.trip||''} <a class="sp-link" href="${PFSRD['death roll']||PFSRD['trip']||'#'}" target="_blank" onclick="event.stopPropagation()">Trip</a> <span class="${cls}">auto (≤${c.size||''})</span></div>`;
+      }},
+    { test: c => c.hasWeb && c.webAtk,
+      render: (c, pr, hasAC, refAC) => {
+        const webRow = pr.rows.find(r => r.isWeb);
+        const hit = webRow && hasAC && webRow.hit_ac >= refAC;
+        return `<div class="special-legend legend-grab"><a class="sp-link" href="${PFSRD['web']||'#'}" target="_blank" onclick="event.stopPropagation()">Web</a> <span class="${hit?'legend-active':''}">DC ${c.webAtk.dc} Escape Artist / break hp ${c.webAtk.hp}</span></div>`;
+      }},
+  ];
+  for (const entry of EXTRA_LEGENDS) {
+    if (entry.test(c)) html += entry.render(c, pr, hasAC, refAC);
   }
 
   // Crit rider feats — show conditionally when a crit confirms

@@ -324,35 +324,25 @@ function preRoll(c) {
     });
   }
 
-  // Constrict damage (always pre-roll if creature has constrict)
-  let constrictRaw = null;
-  if (c.constrictDmg) {
-    constrictRaw = rdice(c.constrictDmg);
-  }
-
-  // Rend damage (auto-damage when 2+ claws hit)
-  let rendRaw = null;
-  if (c.hasRend && c.rendDmg) {
-    rendRaw = rdice(c.rendDmg);
-  }
-
-  // Death Roll damage (grapple auto-damage + trip)
-  let deathRollRaw = null;
-  if (c.hasDeathRoll && c.deathRollDmg) {
-    deathRollRaw = rdice(c.deathRollDmg);
-  }
-
-  // Gnaw damage (auto bite damage in grapple)
-  let gnawRaw = null;
-  if (c.hasGnaw && c.gnawDmg) {
-    gnawRaw = rdice(c.gnawDmg);
+  // Auto-damage pre-rolls (damage only, no attack roll)
+  const auto = {};
+  for (const [key, flag, dmgField] of [
+    ['constrictRaw', null,           'constrictDmg'],
+    ['rendRaw',      'hasRend',      'rendDmg'],
+    ['deathRollRaw', 'hasDeathRoll', 'deathRollDmg'],
+    ['gnawRaw',      'hasGnaw',     'gnawDmg'],
+    ['trampleRaw',   'hasTrample',  'trampleDmg'],
+    ['whirlwindRaw', 'hasWhirlwind','whirlwindDmg'],
+    ['vortexRaw',    'hasVortex',   'vortexDmg'],
+  ]) {
+    auto[key] = (flag ? c[flag] : c[dmgField]) && c[dmgField] ? rdice(c[dmgField]) : null;
   }
 
   // Powerful Charge (pre-roll alternate gore damage + crit extra)
   let chargeRaw = null, chargeCritExtra = 0;
   if (c.hasPowerfulCharge && c.powerfulChargeDmg) {
     chargeRaw = rdice(c.powerfulChargeDmg);
-    chargeCritExtra = rdice(c.powerfulChargeDmg).t; // gore is ×2, so 1 extra roll
+    chargeCritExtra = rdice(c.powerfulChargeDmg).t;
   }
 
   // Web (pre-roll ranged touch attack, no damage)
@@ -362,7 +352,7 @@ function preRoll(c) {
     webRaw = { r, nat20: r===20, nat1: r===1 };
   }
 
-  // Rock Throwing (pre-roll attack + damage)
+  // Rock Throwing (pre-roll attack + damage + crit/fumble)
   let rockRaw = null;
   if (c.hasRockThrowing && c.rockAtk) {
     const r = d20();
@@ -374,38 +364,18 @@ function preRoll(c) {
     rockRaw = { r, baseDmg: dr.t, dmgRolls: dr.r, dmgMod: dr.m, critConf: rockCritConf, critDmgRaw: rockCritDmgRaw, fumbleConf, threat, nat20: r===20, nat1: r===1 };
   }
 
-  // Trample (pre-roll damage)
-  let trampleRaw = null;
-  if (c.hasTrample && c.trampleDmg) {
-    trampleRaw = rdice(c.trampleDmg);
-  }
-
   // Vital Strike (pre-roll extra weapon dice)
-  // vitalStrikeLevel: 1=VS(2x), 2=IVS(3x), 3=GVS(4x) — roll (level) extra copies of primary attack dice
   let vitalStrikeExtraRaws = [];
   if (c.hasVitalStrike && c.attacks.length > 0) {
     const primaryAtk = c.attacks[0];
-    // Roll (vitalStrikeLevel) extra copies of the primary attack's dice (no modifier on extras)
     for (let i = 0; i < c.vitalStrikeLevel; i++) {
       vitalStrikeExtraRaws.push(rdice(primaryAtk.dmg));
     }
   }
 
-  // Whirlwind (pre-roll damage if it has damage)
-  let whirlwindRaw = null;
-  if (c.hasWhirlwind && c.whirlwindDmg) {
-    whirlwindRaw = rdice(c.whirlwindDmg);
-  }
-
-  // Vortex (pre-roll damage)
-  let vortexRaw = null;
-  if (c.hasVortex && c.vortexDmg) {
-    vortexRaw = rdice(c.vortexDmg);
-  }
-
-  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, constrictRaw, grabAtkName, grabAtkDmg,
-    rendRaw, deathRollRaw, gnawRaw, chargeRaw, chargeCritExtra,
-    webRaw, rockRaw, trampleRaw, vitalStrikeExtraRaws, whirlwindRaw, vortexRaw };
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, grabAtkName, grabAtkDmg,
+    ...auto, chargeRaw, chargeCritExtra,
+    webRaw, rockRaw, vitalStrikeExtraRaws };
 }
 
 // Compute display rows from raw rolls + current buffs (called at render time)

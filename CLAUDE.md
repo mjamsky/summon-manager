@@ -149,6 +149,7 @@ Wrong implementation = wrong combat results. Verify against `Assets/SRD/` when u
 - **Smart quote in vault path**: `Serpent's Skull` — use glob patterns (`Serpent*`) in Python, not hardcoded apostrophe strings
 - **Naz cannot cast spells** — Fighter class, no exceptions
 - **Lion figurines**: 1hr/day duration, not permanent. `rl:600` in code.
+- **Zerda's two bites (+8/+3) are RAW** — the animal-companion *Multiattack class feature* grants a 2nd attack with the primary natural weapon at −5 when the companion has fewer than 3 natural attacks. This is NOT BAB iteration (natural weapons never iterate) and NOT the Multiattack monster feat (which needs 3+ natural attacks and grants no extra attack). Do not "correct" `COMPANION_DATA.zerda` to a single bite.
 - **Branch is `main`**, remote: `origin` → `github.com/mjamsky/summon-manager`. GitHub Pages live at `https://mjamsky.github.io/summon-manager/`.
 - **`preRoll` vs `render()`**: calling `preRoll` changes dice. If you only need to update bonuses or toggle visibility, call `render()`. ALL toggles (`tBuff`, `tFeat`, `togPounce`, `togGrapple`, `togFlanking`, `togPA`, `togMastery`, `togCharge`) → `render()`. Only `reroll()` and `nextRound()` call `preRoll`.
 - **Creature card layout**: decisions row (Flank / Pounce / Charge / E. Mastery / Pwr Atk / Grapple) above attack table. Feat badges (Cleave, CE, Lunge) + tactical badges (Flyby, Sprint, Earth Glide, Diehard, N AoO) below toggles. Buff chips muted at card bottom with `[+]` for local-only buffs.

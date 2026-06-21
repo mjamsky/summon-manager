@@ -2148,7 +2148,10 @@ const COMPANION_DATA = {
     combat_card:{
       AC:23, AC_breakdown:'23, touch 14, flat-footed 18 (Dex +4, size +1, dodge +1, natural +7, custom -2)',
       HP:90, HD:'6d8+18', Fort:8, Ref:10, Will:4, Speed:'40 ft.',
-      Melee:'bite +8 (1d4+1), bite +3 (1d4+1)', // two attacks (+8/+3) per companion sheet (BAB 6)
+      // Two bites (+8/+3) is RAW: the animal-companion Multiattack class feature grants a 2nd attack
+      // with the primary natural weapon at -5 when the companion has <3 natural attacks. NOT BAB
+      // iteration (natural weapons never iterate), NOT the Multiattack monster feat. Do not "fix" to one bite.
+      Melee:'bite +8 (1d4+1), bite +3 (1d4+1)',
       CMB:6, CMB_full:'+6', CMD:21, CMD_full:'21',
       Special_Attacks:'', Special_Qualities:'low-light vision, scent, evasion, devotion, link, share spells',
     },

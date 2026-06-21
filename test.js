@@ -293,8 +293,34 @@ suite('mkCreature Tier 2b/2c');
   const e = app.B['giant skunk'];
   if (e) {
     const c = app.mkCreature(e, false);
-    // Musk is in Special_Attacks but has no roll — just legend
-    ok(c.specials.includes('musk'), 'Giant Skunk specials include musk');
+    ok(c.hasMusk, 'Giant Skunk has musk');
+    ok(c.muskAtk, 'Giant Skunk has musk attack data');
+    eq(c.muskAtk.dc, 17, 'musk DC 17');
+    eq(c.muskAtk.bonus, 5, 'musk ranged touch +5 (BAB 3 + Dex 3 - Large 1)');
+    eq(c.muskAtk.range, '30 ft.', 'musk range 30 ft.');
+  }
+}
+{
+  const e = app.B['giant skunk'];
+  if (e) {
+    const c = app.mkCreature(e, true);
+    eq(c.muskAtk.dc, 19, 'augmented musk DC 19 (+2 Con)');
+    eq(c.muskAtk.bonus, 5, 'augmented musk bonus unchanged (Dex-based)');
+  }
+}
+{
+  const e = app.B['electric eel'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    ok(c.hasElectricity, 'Electric Eel has electricity');
+    eq(c.electricityDC, 15, 'electricity DC 15');
+  }
+}
+{
+  const e = app.B['electric eel'];
+  if (e) {
+    const c = app.mkCreature(e, true);
+    eq(c.electricityDC, 17, 'augmented electricity DC 17 (+2 Con)');
   }
 }
 {
@@ -385,6 +411,37 @@ suite('pipeline: Fire Giant heated rock');
   }
 }
 
+suite('pipeline: Giant Skunk musk');
+{
+  setDice([10, 3, 4, 5, 6, 14]);
+  const e = app.B['giant skunk'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    app.preRoll(c);
+    const pr = app.computeRoll(c);
+    const muskRow = pr.rows.find(r => r.isMusk);
+    ok(muskRow, 'musk row exists');
+    eq(muskRow.dmg, 0, 'musk row has no damage');
+    ok(muskRow.isRanged, 'musk row is ranged');
+    ok(muskRow.name.includes('musk'), 'musk row name');
+  }
+}
+
+suite('pipeline: Electric Eel electricity');
+{
+  setDice([10, 3, 15, 4]);
+  const e = app.B['electric eel'];
+  if (e) {
+    const c = app.mkCreature(e, false);
+    app.preRoll(c);
+    const pr = app.computeRoll(c);
+    // Eel has bite + tail — both melee, no separate electricity row
+    ok(pr.rows.length >= 2, 'Electric Eel has 2+ attack rows');
+    const tailRow = pr.rows.find(r => r.name.includes('tail'));
+    ok(tailRow, 'tail row exists');
+  }
+}
+
 // ── Buff toggle invariant: no reroll ──
 suite('buff toggle invariant');
 {
@@ -408,6 +465,26 @@ suite('buff toggle invariant');
   // Cleanup
   delete app.BD._testBuff;
   app.S.buffs = origBuffs;
+}
+
+// ── Animal companions ──
+suite('companions');
+{
+  const bE = app.B['zerda'];
+  ok(bE, 'Zerda registered in B');
+  eq(bE.sna_level, 0, 'Zerda sna_level 0 (out of summon dropdown)');
+  const c = app.mkCreature(bE, false);
+  eq(c.name, 'Zerda', 'name');
+  eq(c.maxHp, 90, 'HP 90');
+  eq(c.ac, 23, 'AC 23');
+  eq(c.cmb, 6, 'CMB +6');
+  eq(c.cmd, 21, 'CMD 21');
+  eq(c.fort, 8, 'Fort +8');
+  eq(c.attacks.length, 2, 'two bite attacks (+8/+3)');
+  eq(c.attacks[0].bonus, 8, 'first bite +8');
+  eq(c.attacks[1].bonus, 3, 'second bite +3');
+  eq(c.attacks[0].dmg, '1d4+1', 'bite 1d4+1');
+  eq(c.str, 12, 'Str 12 (no augment — addCompanion always passes aug=false)');
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -123,7 +123,10 @@ function parseMelee(str) {
       const c1=pc.match(/\/(\d+)[–-]20/);if(c1)cr=+c1[1];const c2=pc.match(/[×x](\d+)/);if(c2)cm=+c2[1];
       for(const kw of['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','disease','stun'])if(pc.toLowerCase().includes(kw))sp.push(kw);
     }
-    const bef=pm?seg.slice(0,seg.indexOf('(')).trim():seg.trim();
+    let bef=pm?seg.slice(0,seg.indexOf('(')).trim():seg.trim();
+    // Handle melee touch attacks: "tail -2 touch" → strip "touch", flag attack
+    const isTouch = /\s+touch\s*$/i.test(bef);
+    if (isTouch) bef = bef.replace(/\s+touch\s*$/i, '').trim();
     const nm=bef.match(/^(?:(\d+)\s+)?([\w\s]+?)\s+([+-]?\d+)\s*$/);
     if(nm){const cnt=nm[1]?+nm[1]:1,name=nm[2].trim().replace(/s$/,''),bonus=+nm[3];
       for(let i=0;i<cnt;i++)atks.push({name:cnt>1?`${name} ${i+1}`:name,bonus,dmg,cr,cm,sp:[...sp]});
@@ -378,6 +381,13 @@ function preRoll(c) {
     }
   }
 
+  // Musk (pre-roll ranged touch attack, no damage)
+  let muskRaw = null;
+  if (c.hasMusk && c.muskAtk) {
+    const r = d20();
+    muskRaw = { r, nat20: r===20, nat1: r===1 };
+  }
+
   // Breath Weapon (pre-roll damage)
   let breathRaw = null;
   if (c.hasBreathWeapon && c.breathDmg) {
@@ -395,7 +405,7 @@ function preRoll(c) {
 
   c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, grabAtkName, grabAtkDmg,
     ...auto, chargeRaw, chargeCritExtra,
-    webRaw, rockRaw, spikesRaw, breathRaw, vitalStrikeExtraRaws };
+    webRaw, rockRaw, spikesRaw, muskRaw, breathRaw, vitalStrikeExtraRaws };
 }
 
 // Build an auto-damage row (no attack roll — fixed damage from ability)
@@ -587,6 +597,11 @@ function computeRoll(c) {
         `spike ${i+1} (${c.spikesAtk.range})`, { dmgDice: c.spikesAtk.dmg }));
     }
     rows.sort((a2, bb2) => bb2.total - a2.total);
+  }
+
+  // Musk: ranged touch attack row (no damage — nauseated on hit)
+  if (c.hasMusk && c.rawRoll.muskRaw && c.muskAtk && !stateActive) {
+    rows.push(buildRangedRow(c.rawRoll.muskRaw, c.muskAtk.bonus, b, `musk (${c.muskAtk.range}, touch)`, { noDamage: true, extra: { isMusk: true } }));
   }
 
   // Breath Weapon: auto-damage row (Mephit)
@@ -877,6 +892,29 @@ function mkCreature(bEntry, aug) {
   const hasAttach = specials.includes('attach') || !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('attach'));
   const hasBloodDrain = specials.includes('blood drain') || !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('blood drain'));
 
+  // Electricity: melee touch attack already parsed; extract Fort DC for crit stun legend
+  const hasElectricity = !!(data.special_abilities || []).find(a => a.name.toLowerCase().includes('electricity'));
+  let electricityDC = 0;
+  if (hasElectricity) {
+    const ea = data.special_abilities.find(a => a.name.toLowerCase().includes('electricity'));
+    if (ea) { const dm = ea.desc.match(/DC\s*(\d+)/); if (dm) electricityDC = +dm[1]; }
+    if (aug && electricityDC) electricityDC += 2; // Con-based DC
+  }
+
+  // Musk: ranged touch attack (no damage) + Fort DC nauseated
+  const hasMusk = specials.includes('musk');
+  let muskAtk = null;
+  if (hasMusk) {
+    const ma = (data.special_abilities || []).find(a => a.name.toLowerCase().includes('musk'));
+    let muskDC = 0;
+    if (ma) { const dm = ma.desc.match(/DC\s*(\d+)/); if (dm) muskDC = +dm[1]; }
+    if (aug && muskDC) muskDC += 2; // Con-based DC
+    const sizeMod = {tiny:2,small:1,medium:0,large:-1,huge:-2,gargantuan:-4,colossal:-8};
+    const dexMod = Math.floor(((full.Dex||10) - 10) / 2);
+    const muskBonus = (full.BAB||0) + dexMod + (sizeMod[(data.size||'medium').toLowerCase()] || 0);
+    muskAtk = { bonus: muskBonus, dc: muskDC, range: '30 ft.' };
+  }
+
   // Triggered buffs (generic system)
   const triggers = [];
   if (hasRage) triggers.push({ on:'damage', apply:'rage' });
@@ -900,6 +938,7 @@ function mkCreature(bEntry, aug) {
     hasDrench, hasPull, pullDist, hasQuills, quillsDmg,
     hasSpikes, spikesAtk, hasBreathWeapon, breathDC, breathDmg, breathShape,
     hasHeatedRock, heatedRockDmg, hasStampede, hasAttach, hasBloodDrain,
+    hasElectricity, electricityDC, hasMusk, muskAtk,
     hasGrab: parseMelee(card.Melee||base.Melee||'').some(a=>a.sp.includes('grab')),
     acBreak:card.AC_breakdown||base.AC_breakdown||'',
     specialAtks:card.Special_Attacks||base.Special_Attacks||'',
@@ -955,6 +994,18 @@ function doSummon() {
 function closeAllTrays() {
   document.querySelectorAll('.tray-panel').forEach(p=>p.classList.remove('open'));
   document.querySelectorAll('.tray-tab').forEach(t=>t.classList.remove('active'));
+}
+
+function addCompanion(key){
+  const bE=B[key]; if(!bE){alert('Companion not found: '+key);return;}
+  const g={id:`G${nGid++}`,name:bE.data.name,src:'companion',creatures:[],casting:false};
+  const c=mkCreature(bE,false); // companions never take Augment Summoning
+  g.creatures.push(c);
+  S.groups.push(g);
+  if(S.round===0) S.round=1;
+  preRoll(c);
+  closeAllTrays();
+  render();
 }
 
 function summonLions(){
@@ -1061,7 +1112,7 @@ function renderSpellCard(e, spColorIdx) {
 // ═══════════════════════════════════════════════════════════════
 function nextRound(){
   S.round++;
-  for(const g of S.groups){if(g.casting){g.casting=false;}else{g.rl--;}}
+  for(const g of S.groups){if(g.casting){g.casting=false;}else if(g.src!=='companion'){g.rl--;}}
   S.groups=S.groups.filter(g=>{if(g.rl<=0&&g.src==='sna'){g.creatures.forEach(c=>{c.alive=false;});return false;}return true;});
   S.effects=S.effects.filter(e=>{e.rl--;return e.rl>0;});
   // Re-roll spell effect damage for new round
@@ -1148,6 +1199,7 @@ const PFSRD = {
   'blood drain':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Blood_Drain',
   attach:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Attach',
   'breath weapon':'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Breath_Weapon',
+  electricity:'https://www.d20pfsrd.com/bestiary/rules-for-monsters/universal-monster-rules/#Electricity',
   'bull rush':'https://www.d20pfsrd.com/gamemastering/combat/#Bull_Rush',
   'overrun':'https://www.d20pfsrd.com/gamemastering/combat/#Overrun',
   'sunder':'https://www.d20pfsrd.com/gamemastering/combat/#Sunder',
@@ -1415,7 +1467,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
   const allSpecials = new Set();
   c.attacks.forEach(a => a.sp.forEach(s => { if(s!=='rake') allSpecials.add(s); }));
   allSpecials.delete('constrict');
-  const hasExtraLegend = c.hasWeb || c.hasDrench || c.hasPull || c.hasQuills || c.hasSpikes || c.hasBreathWeapon || c.hasHeatedRock || c.hasStampede || c.hasAttach || c.hasBloodDrain || (c.hasDeathRoll && c.grappling);
+  const hasExtraLegend = c.hasWeb || c.hasDrench || c.hasPull || c.hasQuills || c.hasSpikes || c.hasBreathWeapon || c.hasHeatedRock || c.hasStampede || c.hasAttach || c.hasBloodDrain || c.hasElectricity || c.hasMusk || (c.hasDeathRoll && c.grappling);
   if (allSpecials.size === 0 && !hasExtraLegend) return '';
 
   let html = `<div class="specials-section">`;
@@ -1483,6 +1535,19 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
       render: () => `<div class="special-legend"><a class="sp-link" href="${PFSRD['attach']||'#'}" target="_blank" onclick="event.stopPropagation()">Attach</a> grapples on touch hit (AC 12 while attached)</div>` },
     { test: c => c.hasBloodDrain,
       render: () => `<div class="special-legend"><a class="sp-link" href="${PFSRD['blood drain']||'#'}" target="_blank" onclick="event.stopPropagation()">Blood Drain</a> 1 Con/round while attached</div>` },
+    { test: c => c.hasElectricity && c.electricityDC,
+      render: (c, pr, hasAC, refAC) => {
+        const tailRow = pr.rows.find(r => r.name.includes('tail'));
+        const crit = tailRow && tailRow.critOk && (!hasAC || tailRow.critConfTotal >= refAC);
+        const cls = crit ? 'legend-active' : '';
+        return `<div class="special-legend"><a class="sp-link" href="${PFSRD['electricity']||'#'}" target="_blank" onclick="event.stopPropagation()">Electricity</a> <span class="${cls}">on crit: Fort DC ${c.electricityDC} or stunned 1d4 rds</span></div>`;
+      }},
+    { test: c => c.hasMusk && c.muskAtk,
+      render: (c, pr, hasAC, refAC) => {
+        const muskRow = pr.rows.find(r => r.isMusk);
+        const hit = muskRow && hasAC && muskRow.hit_ac >= refAC;
+        return `<div class="special-legend"><span class="${hit?'legend-active':''}">Musk Fort DC ${c.muskAtk.dc} or nauseated 1d6 rds, then sickened 1d6 min (2/day)</span></div>`;
+      }},
   ];
   for (const entry of EXTRA_LEGENDS) {
     if (entry.test(c)) html += entry.render(c, pr, hasAC, refAC);
@@ -1508,7 +1573,7 @@ function renderSpecialsLegend(c, pr, refAC, triggeredSpecials, maintainMode) {
 }
 
 function renderAbilities(c) {
-  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','web','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede','drench','breath weapon','heated rock','blood drain','musk','tongue']);
+  const meleeSpecials = new Set(['grab','trip','poison','constrict','rake','rend','attach','burn','pull','push','pounce','death roll','gnaw','death','rage','blood rage','powerful charge','earth mastery','water mastery','powerful','earth','water','web','rock throwing','rock throw','trample','whirlwind','vortex','vital strike','improved vital strike','greater vital strike','stampede','drench','breath weapon','heated rock','blood drain','musk','tongue','electricity']);
   const keyAbilities = (c.specialAbilities || []).filter(a => {
     const kw = a.name.split(/[\s(]/)[0].toLowerCase();
     const kwFull = a.name.split('(')[0].trim().toLowerCase();
@@ -1626,7 +1691,7 @@ function renderCard(c, group, refAC, groupIdx) {
   const hpPct=c.maxHp>0?(c.hp/c.maxHp*100):0;
   const hpCls=hpPct>50?'':hpPct>25?'low':'crit';
   const cardCls=group.casting?'casting':'';
-  const durBadge=group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
+  const durBadge=group.src==='companion'?'∞':group.src==='figurine'?'1hr':`${group.rl}${IC.countdown('icon-sm')}`;
 
   // Group identity via data-group attribute on card element
 
@@ -2053,11 +2118,42 @@ if (typeof globalThis.__TEST__ === 'undefined') document.addEventListener('keydo
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 
+// ═══ COMPANIONS (hand-authored statblocks, not from SRD bestiary) ═══
+// Shaped like a bestiary entry so mkCreature() handles them unchanged.
+// sna_level:0 keeps them out of the summon dropdown (tiers are >=1).
+// Source of truth: ~/Downloads/Zerda_Companion_Sheet.pdf (corrected numbers).
+const COMPANION_DATA = {
+  zerda: { sna_level:0, data:{
+    name:'Zerda', type:'animal', size:'Small', cr:'—', source:'companion',
+    is_alternate:false, pfsrd_url:'',
+    special_abilities:[
+      {name:'Evasion (Ex)', desc:'No damage on a successful Reflex save vs effects that deal half damage on a save.'},
+      {name:'Devotion (Ex)', desc:'+4 morale bonus on Will saves vs enchantment spells and effects.'},
+      {name:'Link (Ex)', desc:'Bond with Fennik: handle as a free action, push as a move action; +4 on wild empathy/Handle Animal.'},
+      {name:'Share Spells (Ex)', desc:'Fennik may cast a spell with a target of "you" on Zerda when adjacent or riding.'},
+    ],
+    combat_card:{
+      AC:23, AC_breakdown:'23, touch 14, flat-footed 18 (Dex +4, size +1, dodge +1, natural +7, custom -2)',
+      HP:90, HD:'6d8+18', Fort:8, Ref:10, Will:4, Speed:'40 ft.',
+      Melee:'bite +8 (1d4+1), bite +3 (1d4+1)', // two attacks (+8/+3) per companion sheet (BAB 6)
+      CMB:6, CMB_full:'+6', CMD:21, CMD_full:'21',
+      Special_Attacks:'', Special_Qualities:'low-light vision, scent, evasion, devotion, link, share spells',
+    },
+    full_statblock:{
+      Str:12, Dex:18, Con:15, Int:4, Wis:12, Cha:6, BAB:6,
+      Feats:'Dodge, Mobility, Acrobatic, Improved Steal, Multiattack',
+      Skills:'Acrobatics +13, Perception +20, Stealth +13, Survival +5, Sense Motive +2',
+      Space:'5 ft.', Reach:'5 ft.',
+    },
+  }},
+};
+
 // ═══ INIT ═══
 function loadBestiary(){
   for(const data of BESTIARY_DATA){
     for(const lv of data.levels||[])for(const cr of lv.creatures||[])B[cr.name.toLowerCase()]={data:cr,sna_level:lv.sna_level};
   }
+  for(const[key,entry] of Object.entries(COMPANION_DATA)) B[key]={data:entry.data,sna_level:entry.sna_level};
   for(const[lv,creatures] of Object.entries(RATINGS_DATA.ratings||{})){
     R[+lv]={};
     for(const[name,info] of Object.entries(creatures)) R[+lv][name]=info;

@@ -11,6 +11,7 @@
 - [x] Dismissed persistence — dismissed creatures survive page refresh via localStorage
 
 ## Features
+- [x] Animal companion card — hand-authored statblocks in `COMPANION_DATA` (Zerda), registered into `B` at `sna_level:0` so they stay out of the summon dropdown. `addCompanion(key)` adds a non-expiring `src:'companion'` group (∞ duration badge, never decremented in `nextRound`). "Allies: Zerda" button in Summon tray. Reuses full mkCreature/render/buff/persist pipeline. Source numbers: `~/Downloads/Zerda_Companion_Sheet.pdf`.
 - [x] Constrict auto-damage — no-roll row in attack table (muted until grapple toggled). Maintain auto-dmg row (grab attack damage) shown when grappling. Maintain CMB includes +4 grab +5 circumstance.
 - [x] Buff/toggle rework — decisions row (flank/pounce/grapple/PA) above attack table, buff chips muted below. Flanking per-creature. Per-creature local buff [+] button. No toggles reroll dice.
 - [x] Power Attack toggle — detected from creature feats, -X atk/+2X dmg (3x for single natural attack). 38 creatures have it. Notable feats (CE, Lunge, Cleave) surfaced as badges.
@@ -41,8 +42,8 @@
 - [x] Visual revamp Phase 7 — Stat Block Popover: centered popover on creature name tap, replaces inline show-stats expand
 - [x] Statblock popup vs expand — implemented as modal/popup overlay. Scrim click, × button, Escape to dismiss. No grid reflow.
 - [ ] iPad Mini 5th gen pass — verify all layouts, touch targets, and trays in 1024×768 landscape + portrait
-- [ ] Dock 820px breakpoint — shrink action buttons (RE-ROLL ALL, CLEAR, NEXT ROUND) instead of shrinking tray tab notches
-- [ ] Buffs tray container spacing fix (Bless row layout)
+- [x] Dock 820px breakpoint — shrink action buttons instead of tray tab notches
+- [x] Buffs tray container spacing fix — row-gap on chip-row, ::before pulled out of flex flow
 
 ## Refactor (after features stabilize)
 - [x] renderCard() decomposition — extracted renderDeadCard(), renderBuffChips(), renderDecisions(), renderRollTable(), renderSpecialsLegend(), renderAbilities(), renderStatBlock(). renderCard() is now ~40 lines of assembly.
@@ -77,8 +78,8 @@
 ### Tier 2b (ranged + special attacks from bestiary audit)
 - [x] Web ranged touch attack (Giant Spider) — parsed from Special_Attacks, entangle on hit, DC/HP legend
 - [x] Spikes ranged volley (Manticore) — 4 ranged attack rows via buildRangedRow, computed from BAB+Dex/Str
-- [ ] Electricity ranged touch (Electric Eel) — touch attack + Fort DC stun, web pattern
-- [ ] Musk ranged spray (Giant Skunk) — Fort DC nauseated, web pattern + DC
+- [x] Electricity ranged touch (Electric Eel) — melee touch parsed, Fort DC stun on crit legend
+- [x] Musk ranged spray (Giant Skunk) — ranged touch row + Fort DC nauseated legend (2/day)
 - [x] Breath Weapon (Mephit) — auto-damage row + Ref DC + shape, 4-round cooldown legend
 - [x] Heated Rock (Fire Giant) — +fire label on rock throwing rows, damage in legend
 - [x] Stampede (Aurochs) — conditional trample legend (requires 3+ creatures)

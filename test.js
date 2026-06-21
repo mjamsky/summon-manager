@@ -554,6 +554,55 @@ suite('Greater Magic Fang');
   globalThis.document.getElementById = origGetById;
 }
 
+// ── Buff stacking by bonus type ──
+// PF1e: same-typed bonuses (morale, sacred, luck, enhancement) DON'T stack — take highest.
+// Different types stack additively. Untyped (rage) and haste stack with everything.
+suite('buff stacking types');
+{
+  const orig = { ...app.S.buffs };
+  const A = buffs => { app.S.buffs = buffs; return app.bTotal({}); };
+
+  // Single buffs — correct values & stats.
+  let t = A({ prayer: true });   eq(t.a, 1, 'prayer +1 atk'); eq(t.d, 1, 'prayer +1 dmg'); eq(t.s, 1, 'prayer +1 save');
+  t = A({ heroism: true });      eq(t.a, 2, 'heroism +2 atk'); eq(t.d, 0, 'heroism no dmg'); eq(t.s, 2, 'heroism +2 save');
+  t = A({ bless: true });        eq(t.a, 1, 'bless +1 atk'); eq(t.d, 0, 'bless no dmg');
+
+  // Prayer is LUCK, Heroism is MORALE → they STACK (the bug this guards against).
+  t = A({ prayer: true, heroism: true });
+  eq(t.a, 3, 'prayer(luck)+heroism(morale) atk = 3'); eq(t.s, 3, 'luck+morale saves = 3'); eq(t.d, 1, 'only prayer adds dmg');
+
+  // Bless + Heroism are BOTH morale → highest wins, no stack.
+  t = A({ bless: true, heroism: true });
+  eq(t.a, 2, 'bless+heroism both morale → max(1,2)=2');
+
+  // Prayer (luck) + Bless (morale) → stack.
+  t = A({ prayer: true, bless: true });
+  eq(t.a, 2, 'prayer(luck)+bless(morale) atk = 2');
+
+  // Justice + Destruction are both sacred but hit different stats → both apply.
+  t = A({ justice: true, destruction: true });
+  eq(t.a, 3, 'justice +3 sacred atk'); eq(t.d, 4, 'destruction +4 sacred dmg');
+
+  // Sacred + morale stack.
+  t = A({ justice: true, heroism: true });
+  eq(t.a, 5, 'justice(sacred 3)+heroism(morale 2) atk = 5');
+
+  // Untyped (rage) and haste stack with morale and add their extra effects.
+  t = A({ rage: true, heroism: true });
+  eq(t.a, 3, 'rage(u 1)+heroism(morale 2) atk = 3'); eq(t.d, 1, 'rage +1 dmg'); eq(t.ac, -2, 'rage -2 AC');
+  t = A({ haste: true, heroism: true });
+  eq(t.a, 3, 'haste(1)+heroism(2) atk = 3'); eq(t.extra, 1, 'haste grants extra attack');
+
+  // Kitchen sink: luck + sacred + morale + untyped + haste all stack.
+  t = A({ prayer: true, justice: true, heroism: true, rage: true, haste: true });
+  eq(t.a, 8, 'luck1+sacred3+morale2+rage1+haste1 = 8 atk');
+  eq(t.d, 2, 'prayer(luck)1 + rage(u)1 = 2 dmg');
+  eq(t.s, 3, 'prayer(luck)1 + heroism(morale)2 = 3 save');
+  eq(t.extra, 1, 'haste extra attack present');
+
+  app.S.buffs = orig;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  SUMMARY
 // ═══════════════════════════════════════════════════════════════

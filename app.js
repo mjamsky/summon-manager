@@ -61,7 +61,7 @@ function rdice(n) {
 //  BUFFS
 // ═══════════════════════════════════════════════════════════════
 const BD = {
-  prayer:{a:1,d:1,s:1,ty:'morale'},bless:{a:1,d:0,s:0,ty:'morale'},
+  prayer:{a:1,d:1,s:1,ty:'luck'},bless:{a:1,d:0,s:0,ty:'morale'}, // prayer = LUCK (stacks w/ morale); bless = morale (+1 atk, +1 vs fear)
   destruction:{a:0,d:4,s:0,ty:'sacred'},justice:{a:3,d:0,s:0,ty:'sacred'},
   smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ty:'haste',extra:1},
   heroism:{a:2,d:0,s:2,ty:'morale'},

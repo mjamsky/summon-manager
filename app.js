@@ -77,21 +77,39 @@ function gmfBonus(){
   const cl=el?(+el.value||0):10;
   return Math.max(1,Math.min(5,Math.floor(cl/4)));
 }
+// GMF "one natural weapon" auto-targets the best weapon: the one whose attacks gain the most
+// from a flat per-hit enhancement. Heuristic: most attacks of that weapon name (more applications
+// of +X atk/dmg), tiebreak highest attack bonus. Rows are grouped by name so "claw 1"/"claw 2"
+// (and Zerda's two "bite" attacks) count as one weapon. Returns lowercase base name or null.
+function gmfBestWeapon(c){
+  if(!c.attacks||!c.attacks.length) return null;
+  const groups={};
+  for(const a of c.attacks){
+    const base=a.name.replace(/\s+\d+$/,'').toLowerCase();
+    groups[base]=groups[base]||{count:0,maxBonus:-99};
+    groups[base].count++; groups[base].maxBonus=Math.max(groups[base].maxBonus,a.bonus);
+  }
+  let best=null,bg=null;
+  for(const[name,g] of Object.entries(groups)){
+    if(!bg || g.count>bg.count || (g.count===bg.count && g.maxBonus>bg.maxBonus)){best=name;bg=g;}
+  }
+  return best;
+}
 function bTotal(overrides) {
   const by = {};
   for (const [id,on] of Object.entries(S.buffs)) {
     if (!on) continue;
     if (overrides && overrides[id] === false) continue;
     const def = BD[id]; if (!def) continue;
+    if (id==='gmf') continue; // Greater Magic Fang (one weapon) is applied per-weapon in computeRoll, not uniformly
     const t = def.ty;
-    const da = def.gmf ? gmfBonus() : def.a, dd = def.gmf ? gmfBonus() : def.d;
     if (t==='u'||t==='sp'||t==='haste') {
       by[id] = by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-      by[id].a+=da; by[id].d+=dd; by[id].s+=def.s; by[id].ac+=(def.ac||0);
+      by[id].a+=def.a; by[id].d+=def.d; by[id].s+=def.s; by[id].ac+=(def.ac||0);
       if(def.extra) by[id].extra=1; if(def.fh) by[id].fh=def.fh;
     } else {
       by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-      by[t].a=Math.max(by[t].a,da); by[t].d=Math.max(by[t].d,dd);
+      by[t].a=Math.max(by[t].a,def.a); by[t].d=Math.max(by[t].d,def.d);
       by[t].s=Math.max(by[t].s,def.s); by[t].ac+=(def.ac||0);
       if(def.extra) by[t].extra=1; if(def.fh) by[t].fh=Math.max(by[t].fh,def.fh);
     }
@@ -101,15 +119,15 @@ function bTotal(overrides) {
     for (const [id, val] of Object.entries(overrides)) {
       if (val !== true || S.buffs[id]) continue;
       const def = BD[id]; if (!def) continue;
+      if (id==='gmf') continue; // applied per-weapon in computeRoll
       const t = def.ty;
-      const da = def.gmf ? gmfBonus() : def.a, dd = def.gmf ? gmfBonus() : def.d;
       if (t==='u'||t==='sp'||t==='haste') {
         by[id]=by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-        by[id].a+=da;by[id].d+=dd;by[id].s+=def.s;by[id].ac+=(def.ac||0);
+        by[id].a+=def.a;by[id].d+=def.d;by[id].s+=def.s;by[id].ac+=(def.ac||0);
         if(def.extra)by[id].extra=1;if(def.fh)by[id].fh=def.fh;
       } else {
         by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-        by[t].a=Math.max(by[t].a,da);by[t].d=Math.max(by[t].d,dd);
+        by[t].a=Math.max(by[t].a,def.a);by[t].d=Math.max(by[t].d,def.d);
         by[t].s=Math.max(by[t].s,def.s);by[t].ac+=(def.ac||0);
         if(def.extra)by[t].extra=1;if(def.fh)by[t].fh=Math.max(by[t].fh,def.fh);
       }
@@ -462,6 +480,13 @@ function computeRoll(c) {
   // Situational toggles: Earth/Water Mastery
   if (c.earthMastery) { b.a += 1; b.d += 1; }
   if (c.waterMastery) { b.a += 1; b.d += 1; }
+  // Greater Magic Fang (one natural weapon): enhancement applies to ONE weapon's rows only.
+  // gmfAll (all weapons, flat +1) is already in b; enhancement doesn't stack, so the chosen weapon
+  // gets max(gmfBonus, gmfAll) — i.e. an extra (gmfBonus - 1) on top of the uniform +1, else gmfBonus.
+  const gmfOn = c.buffOvr.gmf===true || (!!S.buffs.gmf && c.buffOvr.gmf!==false);
+  const gmfAllOn = c.buffOvr.gmfAll===true || (!!S.buffs.gmfAll && c.buffOvr.gmfAll!==false);
+  const gmfExtra = gmfOn ? Math.max(0, gmfBonus() - (gmfAllOn?1:0)) : 0;
+  const gmfWeapon = gmfExtra>0 ? gmfBestWeapon(c) : null;
   const rows = [];
   const autoRows = [];
   const grabs = [];
@@ -543,9 +568,13 @@ function computeRoll(c) {
       if (raw !== firstNormal) continue;
     }
 
-    const bonus = raw.baseBonus + b.a + paAtk;
+    // Greater Magic Fang: add its enhancement only to the chosen weapon's rows
+    const gmfHit = !!gmfWeapon && raw.name.replace(/\s+\d+$/,'').toLowerCase()===gmfWeapon;
+    const rowExtra = gmfHit ? gmfExtra : 0;
+
+    const bonus = raw.baseBonus + b.a + paAtk + rowExtra;
     const total = raw.r + bonus;
-    const dmgBase = raw.baseDmg + b.d + paDmg;
+    const dmgBase = raw.baseDmg + b.d + paDmg + rowExtra;
     let dmgWithCrit = dmgBase;
     let critOk = false, critConfTotal = 0;
     let fumbleConfTotal = 0;
@@ -554,10 +583,10 @@ function computeRoll(c) {
       critConfTotal = raw.critConf + bonus;
       critOk = true;
       const extraMults = (raw.cm || 2) - 1;
-      dmgWithCrit = dmgBase + raw.critDmgRaw + (b.d * extraMults);
+      dmgWithCrit = dmgBase + raw.critDmgRaw + ((b.d + rowExtra) * extraMults);
     }
     if (raw.nat1) {
-      fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a;
+      fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a + rowExtra;
     }
 
     const hit_ac = raw.nat20 ? 999 : raw.nat1 ? 0 : total;
@@ -569,7 +598,7 @@ function computeRoll(c) {
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
       specials: raw.specials, isRake: raw.isRake, primary: raw.primary || false,
-      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d+paDmg, buffDmg: b.d, buffAtk: b.a, paAtk, paDmg, baseBonus: raw.baseBonus,
+      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d+paDmg+rowExtra, buffDmg: b.d+rowExtra, buffAtk: b.a+rowExtra, paAtk, paDmg, baseBonus: raw.baseBonus, gmfHit,
     });
   }
 
@@ -1399,7 +1428,8 @@ function renderRollTable(c, pr, refAC) {
     const spPips = r.specials.filter(s=>s!=='rake').map(s => IC[s] || '').join('');
     const pipCell = spPips ? `<span class="atk-pips">${spPips}</span>` : `<span class="atk-pips"></span>`;
     const nameCls = r.isRake ? 'atk-name atk-rake' : r.primary ? 'atk-name atk-primary' : 'atk-name';
-    const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>`;
+    const gmfMark = r.gmfHit ? '<span class="gmf-mark" title="Greater Magic Fang">✦</span>' : '';
+    const nameCell = `${pipCell}<span class="${nameCls}">${r.name.toLowerCase()}</span>${gmfMark}`;
 
     if ((isHit || !hasAC) && r.specials.length) {
       for (const s of r.specials.filter(x=>x!=='rake')) {

@@ -494,35 +494,62 @@ suite('Greater Magic Fang');
   // Pin caster level to 10 so gmfBonus() = floor(10/4) = +2 (stub elements default to value '').
   const origGetById = globalThis.document.getElementById;
   globalThis.document.getElementById = (id) => id === 'inp-cl' ? { value: '10' } : origGetById(id);
-  // Primary mode (one natural weapon): +1 per 4 caster levels → +2 at CL 10.
-  app.S.buffs = { gmf: true };
-  let t = app.bTotal({});
-  eq(t.a, 2, 'GMF +2 attack at CL10 (floor(10/4))');
-  eq(t.d, 2, 'GMF +2 damage at CL10');
-  // Alternative mode (all natural weapons): flat +1 regardless of CL.
+
+  // gmfAll (all natural weapons, flat +1) is a uniform enhancement — stays in bTotal.
   app.S.buffs = { gmfAll: true };
-  t = app.bTotal({});
-  eq(t.a, 1, 'GMF-all flat +1 attack');
-  eq(t.d, 1, 'GMF-all flat +1 damage');
-  // Enhancement bonuses do not stack with themselves — highest wins.
-  app.S.buffs = { gmf: true, gmfAll: true };
-  eq(app.bTotal({}).a, 2, 'GMF modes do not stack (highest enhancement wins)');
-  // Enhancement DOES stack with a different bonus type (morale).
-  app.S.buffs = { gmf: true, prayer: true };
-  eq(app.bTotal({}).a, 3, 'GMF (enh +2) + Prayer (morale +1) = +3 attack');
-  // Applies to BOTH of Zerda's bite rows (multi-attack handled).
-  setDice([10, 3, 4, 8, 2, 5]);
+  let t = app.bTotal({});
+  eq(t.a, 1, 'GMF-all flat +1 attack (uniform)');
+  eq(t.d, 1, 'GMF-all flat +1 damage (uniform)');
+  // gmf (one weapon) is pulled OUT of the uniform total — applied per-weapon in computeRoll.
+  app.S.buffs = { gmf: true };
+  eq(app.bTotal({}).a, 0, 'GMF primary mode is not in the uniform bTotal (handled per-weapon)');
+
+  const claws = pr => pr.rows.filter(r => /claw/i.test(r.name));
+  const bite = pr => pr.rows.find(r => /^bite/i.test(r.name));
+
+  // Zerda: one natural weapon (bite) → BOTH bites get +2 and are flagged gmfHit.
+  setDice([10]);
   const z = app.mkCreature(app.B['zerda'], false);
   app.preRoll(z);
   app.S.buffs = {};
-  const baseBites = app.computeRoll(z).rows.filter(r => /bite/i.test(r.name)).sort((a, b) => b.baseBonus - a.baseBonus);
+  const zBase = app.computeRoll(z).rows.filter(r => /bite/i.test(r.name)).sort((a, b) => b.baseBonus - a.baseBonus);
   app.S.buffs = { gmf: true };
-  const buffBites = app.computeRoll(z).rows.filter(r => /bite/i.test(r.name)).sort((a, b) => b.baseBonus - a.baseBonus);
-  eq(buffBites.length, 2, 'Zerda still has two bite rows under GMF');
-  for (let i = 0; i < baseBites.length; i++) {
-    eq(buffBites[i].bonus - baseBites[i].bonus, 2, `bite row ${i + 1} attack +2 from GMF`);
-    eq(buffBites[i].buffDmg, 2, `bite row ${i + 1} damage +2 from GMF`);
+  const zBuff = app.computeRoll(z).rows.filter(r => /bite/i.test(r.name)).sort((a, b) => b.baseBonus - a.baseBonus);
+  eq(zBuff.length, 2, 'Zerda two bite rows under GMF');
+  for (let i = 0; i < 2; i++) {
+    eq(zBuff[i].bonus - zBase[i].bonus, 2, `Zerda bite ${i + 1} attack +2`);
+    ok(zBuff[i].gmfHit, `Zerda bite ${i + 1} flagged gmfHit`);
   }
+
+  // Lion: bite + 2 claws → GMF auto-picks claws (2 attacks beats 1); bite untouched.
+  setDice([10]);
+  const lion = app.mkCreature(app.B['lion'], false);
+  app.preRoll(lion);
+  app.S.buffs = {};
+  const lBase = app.computeRoll(lion);
+  app.S.buffs = { gmf: true };
+  const lBuff = app.computeRoll(lion);
+  const c0 = claws(lBase), c1 = claws(lBuff);
+  eq(c1.length, 2, 'lion two claw rows');
+  for (let i = 0; i < 2; i++) {
+    eq(c1[i].bonus - c0[i].bonus, 2, `lion claw ${i + 1} +2 from GMF`);
+    ok(c1[i].gmfHit, `lion claw ${i + 1} flagged gmfHit`);
+  }
+  eq(bite(lBuff).bonus - bite(lBase).bonus, 0, 'lion bite NOT buffed (GMF auto-picked claws)');
+  notOk(bite(lBuff).gmfHit, 'lion bite not flagged gmfHit');
+
+  // Enhancement non-stack: gmf + gmfAll → claws max(2,1)=+2, bite gets the uniform +1.
+  app.S.buffs = { gmf: true, gmfAll: true };
+  const lBoth = app.computeRoll(lion);
+  eq(claws(lBoth)[0].bonus - c0[0].bonus, 2, 'claws +2 (max of gmf +2 / all +1, no stack)');
+  eq(bite(lBoth).bonus - bite(lBase).bonus, 1, 'bite +1 from gmfAll only');
+
+  // Cross-type stack: gmf (enhancement) + prayer (morale) → claws +3, bite +1.
+  app.S.buffs = { gmf: true, prayer: true };
+  const lPray = app.computeRoll(lion);
+  eq(claws(lPray)[0].bonus - c0[0].bonus, 3, 'claws +3 (enh +2 + morale +1)');
+  eq(bite(lPray).bonus - bite(lBase).bonus, 1, 'bite +1 (morale only, no GMF)');
+
   app.S.buffs = origBuffs;
   globalThis.document.getElementById = origGetById;
 }

@@ -148,6 +148,7 @@ label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 1px
 .atk-name { text-transform: lowercase; }
 .atk-primary { font-weight: bold; }
 .atk-rake { color: var(--crit); }
+.gmf-mark { color: var(--accent); font-size: 9px; margin-left: 3px; vertical-align: super; }
 /* Legend colors match pips */
 .legend-grab { color: #a89060; }
 .legend-grab .sp-link { color: var(--roll-threat); font-size: 11px; }

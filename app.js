@@ -67,7 +67,16 @@ const BD = {
   heroism:{a:2,d:0,s:2,ty:'morale'},
   fh4:{a:0,d:0,s:0,ty:'sp',fh:4},
   rage:{a:1,d:1,s:0,ac:-2,ty:'u'}, // Rage: +2 Str → +1 atk/dmg, +2 Con → +1 HP/HD, -2 AC
+  // Greater Magic Fang (enhancement to attack+damage on natural weapons). Dual nature:
+  gmf:{a:0,d:0,s:0,ty:'enh',gmf:true}, // one natural weapon: +1 per 4 CL (max +5), value computed via gmfBonus()
+  gmfAll:{a:1,d:1,s:0,ty:'enh'},       // alternative: ALL natural weapons, flat +1 regardless of CL
 };
+// Greater Magic Fang primary-mode bonus: +1 per four caster levels, min +1, max +5.
+function gmfBonus(){
+  const el=(typeof document!=='undefined')&&document.getElementById('inp-cl');
+  const cl=el?(+el.value||0):10;
+  return Math.max(1,Math.min(5,Math.floor(cl/4)));
+}
 function bTotal(overrides) {
   const by = {};
   for (const [id,on] of Object.entries(S.buffs)) {
@@ -75,13 +84,14 @@ function bTotal(overrides) {
     if (overrides && overrides[id] === false) continue;
     const def = BD[id]; if (!def) continue;
     const t = def.ty;
+    const da = def.gmf ? gmfBonus() : def.a, dd = def.gmf ? gmfBonus() : def.d;
     if (t==='u'||t==='sp'||t==='haste') {
       by[id] = by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-      by[id].a+=def.a; by[id].d+=def.d; by[id].s+=def.s; by[id].ac+=(def.ac||0);
+      by[id].a+=da; by[id].d+=dd; by[id].s+=def.s; by[id].ac+=(def.ac||0);
       if(def.extra) by[id].extra=1; if(def.fh) by[id].fh=def.fh;
     } else {
       by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-      by[t].a=Math.max(by[t].a,def.a); by[t].d=Math.max(by[t].d,def.d);
+      by[t].a=Math.max(by[t].a,da); by[t].d=Math.max(by[t].d,dd);
       by[t].s=Math.max(by[t].s,def.s); by[t].ac+=(def.ac||0);
       if(def.extra) by[t].extra=1; if(def.fh) by[t].fh=Math.max(by[t].fh,def.fh);
     }
@@ -92,13 +102,14 @@ function bTotal(overrides) {
       if (val !== true || S.buffs[id]) continue;
       const def = BD[id]; if (!def) continue;
       const t = def.ty;
+      const da = def.gmf ? gmfBonus() : def.a, dd = def.gmf ? gmfBonus() : def.d;
       if (t==='u'||t==='sp'||t==='haste') {
         by[id]=by[id]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-        by[id].a+=def.a;by[id].d+=def.d;by[id].s+=def.s;by[id].ac+=(def.ac||0);
+        by[id].a+=da;by[id].d+=dd;by[id].s+=def.s;by[id].ac+=(def.ac||0);
         if(def.extra)by[id].extra=1;if(def.fh)by[id].fh=def.fh;
       } else {
         by[t]=by[t]||{a:0,d:0,s:0,ac:0,extra:0,fh:0};
-        by[t].a=Math.max(by[t].a,def.a);by[t].d=Math.max(by[t].d,def.d);
+        by[t].a=Math.max(by[t].a,da);by[t].d=Math.max(by[t].d,dd);
         by[t].s=Math.max(by[t].s,def.s);by[t].ac+=(def.ac||0);
         if(def.extra)by[t].extra=1;if(def.fh)by[t].fh=Math.max(by[t].fh,def.fh);
       }
@@ -1133,6 +1144,7 @@ function render(){
   saveState();
   document.querySelectorAll('.chip[data-feat]').forEach(el=>el.classList.toggle('on',!!S.feats[el.dataset.feat]));
   document.querySelectorAll('.chip[data-buff]').forEach(el=>el.classList.toggle('on',!!S.buffs[el.dataset.buff]));
+  const gmfChip=document.querySelector('.chip[data-buff="gmf"]'); if(gmfChip) gmfChip.textContent=`Gtr Magic Fang +${gmfBonus()}`;
   updTiers();
 
   const refACval = document.getElementById('ref-ac').value;
@@ -1822,7 +1834,8 @@ function showAddBuff(cid,el){
   const items=Object.entries(BD).filter(([id])=>!S.buffs[id]&&c.buffOvr[id]!==true);
   if(!items.length){pop.innerHTML='<div class="buff-add-item">No buffs available</div>';}
   else{pop.innerHTML=items.map(([id,def])=>{
-    const info=[def.a?`+${def.a}a`:'',def.d?`+${def.d}d`:'',def.s?`+${def.s}s`:'',def.extra?'haste':'',def.fh?`fh${def.fh}`:''].filter(Boolean).join('/');
+    const ia=def.gmf?gmfBonus():def.a, idmg=def.gmf?gmfBonus():def.d;
+    const info=[ia?`+${ia}a`:'',idmg?`+${idmg}d`:'',def.s?`+${def.s}s`:'',def.extra?'haste':'',def.fh?`fh${def.fh}`:''].filter(Boolean).join('/');
     return `<div class="buff-add-item" onclick="event.stopPropagation();addLocalBuff('${cid}','${id}')">${id} <span class="buff-add-detail">${info}</span></div>`;
   }).join('');}
   let left=rect.left,top=rect.top-items.length*28-8;

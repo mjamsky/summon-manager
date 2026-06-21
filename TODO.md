@@ -11,6 +11,7 @@
 - [x] Dismissed persistence — dismissed creatures survive page refresh via localStorage
 
 ## Features
+- [x] Greater Magic Fang buff (dual nature) — `gmf` chip = one natural weapon, +1 per 4 CL (max +5, scales off Caster Level input, label shows live value); `gmfAll` chip = all natural weapons flat +1. New `enh` (enhancement) buff type: highest wins, doesn't stack with itself, stacks with morale/sacred/etc. Applies to attack+damage on every attack row of the creature (exact for same-weapon multi-attacks like Zerda's two bites; for mixed bite+claw creatures Mode A over-applies since buffs aren't per-attack-row — acceptable, noted). Verified vs Archives of Nethys.
 - [x] Animal companion card — hand-authored statblocks in `COMPANION_DATA` (Zerda), registered into `B` at `sna_level:0` so they stay out of the summon dropdown. `addCompanion(key)` adds a non-expiring `src:'companion'` group (∞ duration badge, never decremented in `nextRound`). "Allies: Zerda" button in Summon tray. Reuses full mkCreature/render/buff/persist pipeline. Source numbers: `~/Downloads/Zerda_Companion_Sheet.pdf`.
 - [x] Constrict auto-damage — no-roll row in attack table (muted until grapple toggled). Maintain auto-dmg row (grab attack damage) shown when grappling. Maintain CMB includes +4 grab +5 circumstance.
 - [x] Buff/toggle rework — decisions row (flank/pounce/grapple/PA) above attack table, buff chips muted below. Flanking per-creature. Per-creature local buff [+] button. No toggles reroll dice.

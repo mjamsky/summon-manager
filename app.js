@@ -77,21 +77,28 @@ function gmfBonus(){
   const cl=el?(+el.value||0):10;
   return Math.max(1,Math.min(5,Math.floor(cl/4)));
 }
-// GMF "one natural weapon" auto-targets the best weapon: the one whose attacks gain the most
-// from a flat per-hit enhancement. Heuristic: most attacks of that weapon name (more applications
-// of +X atk/dmg), tiebreak highest attack bonus. Rows are grouped by name so "claw 1"/"claw 2"
-// (and Zerda's two "bite" attacks) count as one weapon. Returns lowercase base name or null.
+function avgDmg(s){ const m=(s||'').match(/^(\d+)d(\d+)([+-]\d+)?$/); return m ? (+m[1])*((+m[2])+1)/2 + (+(m[3]||0)) : 0; }
+// GMF "one natural weapon" = ONE attack source. Multiple appendages — a "2 claws" line parses to
+// "claw 1"/"claw 2" — are SEPARATE natural weapons, so only ONE is enhanced. Multiple attacks with the
+// SAME single weapon (Zerda's two "bite" attacks via animal-companion Multiattack — identical name) all
+// benefit, since the enhancement is on that one weapon. Grouped by EXACT name: parseMelee numbers paired
+// appendages but leaves single-weapon repeats unnumbered. "Best" = weapon making the most attacks (more
+// applications of +X), tiebreak highest attack bonus, then highest average damage. Returns name or null.
 function gmfBestWeapon(c){
   if(!c.attacks||!c.attacks.length) return null;
   const groups={};
   for(const a of c.attacks){
-    const base=a.name.replace(/\s+\d+$/,'').toLowerCase();
-    groups[base]=groups[base]||{count:0,maxBonus:-99};
-    groups[base].count++; groups[base].maxBonus=Math.max(groups[base].maxBonus,a.bonus);
+    const name=a.name.toLowerCase();
+    groups[name]=groups[name]||{count:0,maxBonus:-99,maxDmg:0};
+    groups[name].count++;
+    groups[name].maxBonus=Math.max(groups[name].maxBonus,a.bonus);
+    groups[name].maxDmg=Math.max(groups[name].maxDmg,avgDmg(a.dmg));
   }
   let best=null,bg=null;
   for(const[name,g] of Object.entries(groups)){
-    if(!bg || g.count>bg.count || (g.count===bg.count && g.maxBonus>bg.maxBonus)){best=name;bg=g;}
+    if(!bg || g.count>bg.count
+       || (g.count===bg.count && g.maxBonus>bg.maxBonus)
+       || (g.count===bg.count && g.maxBonus===bg.maxBonus && g.maxDmg>bg.maxDmg)){best=name;bg=g;}
   }
   return best;
 }
@@ -568,8 +575,9 @@ function computeRoll(c) {
       if (raw !== firstNormal) continue;
     }
 
-    // Greater Magic Fang: add its enhancement only to the chosen weapon's rows
-    const gmfHit = !!gmfWeapon && raw.name.replace(/\s+\d+$/,'').toLowerCase()===gmfWeapon;
+    // Greater Magic Fang: add its enhancement only to the chosen weapon's row(s).
+    // Exact-name match → one appendage (claw 1), but all attacks of a single weapon (Zerda's two "bite").
+    const gmfHit = !!gmfWeapon && raw.name.toLowerCase()===gmfWeapon;
     const rowExtra = gmfHit ? gmfExtra : 0;
 
     const bonus = raw.baseBonus + b.a + paAtk + rowExtra;
@@ -2218,7 +2226,7 @@ if (typeof globalThis.__TEST__ === 'undefined') init();
 // ═══════════════════════════════════════════════════════════════
 if (typeof module !== 'undefined') module.exports = {
   parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll,
-  buildAutoRow, buildRangedRow, loadBestiary,
+  buildAutoRow, buildRangedRow, loadBestiary, gmfBestWeapon,
   B, R, S, BD, SE, d20, dd,
   _setDice(fn) { dd = fn; d20 = () => fn(20); },
 };

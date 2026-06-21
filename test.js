@@ -521,7 +521,8 @@ suite('Greater Magic Fang');
     ok(zBuff[i].gmfHit, `Zerda bite ${i + 1} flagged gmfHit`);
   }
 
-  // Lion: bite + 2 claws → GMF auto-picks claws (2 attacks beats 1); bite untouched.
+  // Lion: bite + 2 claws. Each claw is a SEPARATE natural weapon, so GMF enhances exactly ONE
+  // attack — the single best (bite: same +7 bonus, bigger die). Neither claw gets it.
   setDice([10]);
   const lion = app.mkCreature(app.B['lion'], false);
   app.preRoll(lion);
@@ -532,23 +533,30 @@ suite('Greater Magic Fang');
   const c0 = claws(lBase), c1 = claws(lBuff);
   eq(c1.length, 2, 'lion two claw rows');
   for (let i = 0; i < 2; i++) {
-    eq(c1[i].bonus - c0[i].bonus, 2, `lion claw ${i + 1} +2 from GMF`);
-    ok(c1[i].gmfHit, `lion claw ${i + 1} flagged gmfHit`);
+    eq(c1[i].bonus - c0[i].bonus, 0, `lion claw ${i + 1} NOT buffed (separate appendage)`);
+    notOk(c1[i].gmfHit, `lion claw ${i + 1} not flagged gmfHit`);
   }
-  eq(bite(lBuff).bonus - bite(lBase).bonus, 0, 'lion bite NOT buffed (GMF auto-picked claws)');
-  notOk(bite(lBuff).gmfHit, 'lion bite not flagged gmfHit');
+  eq(bite(lBuff).bonus - bite(lBase).bonus, 2, 'lion bite +2 from GMF (best single weapon)');
+  ok(bite(lBuff).gmfHit, 'lion bite flagged gmfHit');
+  eq(lBuff.rows.filter(r => r.gmfHit).length, 1, 'exactly ONE appendage benefits');
 
-  // Enhancement non-stack: gmf + gmfAll → claws max(2,1)=+2, bite gets the uniform +1.
+  // Enhancement non-stack: gmf + gmfAll → bite max(2,1)=+2, claws get the uniform +1.
   app.S.buffs = { gmf: true, gmfAll: true };
   const lBoth = app.computeRoll(lion);
-  eq(claws(lBoth)[0].bonus - c0[0].bonus, 2, 'claws +2 (max of gmf +2 / all +1, no stack)');
-  eq(bite(lBoth).bonus - bite(lBase).bonus, 1, 'bite +1 from gmfAll only');
+  eq(bite(lBoth).bonus - bite(lBase).bonus, 2, 'bite +2 (max of gmf +2 / all +1, no stack)');
+  eq(claws(lBoth)[0].bonus - c0[0].bonus, 1, 'claws +1 from gmfAll only');
 
-  // Cross-type stack: gmf (enhancement) + prayer (morale) → claws +3, bite +1.
+  // Cross-type stack: gmf (enhancement) + prayer (luck) → bite +3, claws +1.
   app.S.buffs = { gmf: true, prayer: true };
   const lPray = app.computeRoll(lion);
-  eq(claws(lPray)[0].bonus - c0[0].bonus, 3, 'claws +3 (enh +2 + morale +1)');
-  eq(bite(lPray).bonus - bite(lBase).bonus, 1, 'bite +1 (morale only, no GMF)');
+  eq(bite(lPray).bonus - bite(lBase).bonus, 3, 'bite +3 (enh +2 + luck +1)');
+  eq(claws(lPray)[0].bonus - c0[0].bonus, 1, 'claws +1 (luck only, no GMF)');
+
+  // gmfBestWeapon picks: one weapon name. Lion → bite; two-claw creature → ONE claw; Zerda → bite.
+  eq(app.gmfBestWeapon(lion), 'bite', 'best weapon for lion is the bite');
+  eq(app.gmfBestWeapon(z), 'bite', 'best weapon for Zerda is the bite (both attacks, one weapon)');
+  const twoClaws = { attacks: [ {name:'claw 1',bonus:9,dmg:'1d6+5'}, {name:'claw 2',bonus:9,dmg:'1d6+5'} ] };
+  eq(app.gmfBestWeapon(twoClaws), 'claw 1', 'claws-only creature → exactly one claw');
 
   app.S.buffs = origBuffs;
   globalThis.document.getElementById = origGetById;

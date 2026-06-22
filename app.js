@@ -591,7 +591,8 @@ function computeRoll(c) {
       critConfTotal = raw.critConf + bonus;
       critOk = true;
       const extraMults = (raw.cm || 2) - 1;
-      dmgWithCrit = dmgBase + raw.critDmgRaw + ((b.d + rowExtra) * extraMults);
+      // Flat damage bonuses (buff, GMF enhancement, Power Attack) all multiply on a crit.
+      dmgWithCrit = dmgBase + raw.critDmgRaw + ((b.d + rowExtra + paDmg) * extraMults);
     }
     if (raw.nat1) {
       fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a + rowExtra;
@@ -602,7 +603,7 @@ function computeRoll(c) {
     rows.push({
       name: raw.name, r: raw.r, bonus, total, hit_ac,
       dmg: dmgWithCrit, dmgNoCrit: dmgBase,
-      nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk,
+      nat20: raw.nat20, nat1: raw.nat1, threat: raw.threat, critOk, cm: raw.cm,
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
       specials: raw.specials, isRake: raw.isRake, primary: raw.primary || false,

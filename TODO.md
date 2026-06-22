@@ -25,6 +25,8 @@
 - [x] Bleeding/Staggering Critical — conditional legend text on crit confirm
 - [x] Web ranged touch attack — parsed from Special_Attacks, attack row + entangle, DC/HP legend
 - [ ] Grab -20 hold option — creature takes -20 CMB to avoid grappled condition, can full attack + maintain. Only constrict dmg (no auto grab-attack dmg). Surface for high-CMB creatures only?
+- [x] Power Attack damage multiplies on crit — was added to `dmgBase` once but omitted from the `*extraMults` term, so a ×2 crit applied PA ×1. Fixed in the standard attack path (`computeRoll`); regression test added. NOTE: the **powerful-charge gore** crit path (`computeRoll` ~line 685) has the same PA-not-multiplied gap — niche, fix with its own test.
+- [ ] Flanking +2 leaks onto ranged attack rows — `c.flanking` adds +2 to `b.a` before `buildRangedRow` runs (web/rock/spikes), but flanking only applies to melee. Exclude the flank bonus from ranged rows (keep earth/water mastery, which can apply to a thrown rock vs a grounded foe). Niche (ranged + flanking is rare).
 - [ ] Apply buff AC mods to displayed card AC — `bTotal()` already computes `b.ac` (rage −2; haste should add +1 dodge), but the card renders the static `c.ac` (app.js ~1759) so AC-affecting buffs don't change the shown AC. Wire `c.ac + b.ac` into the card AC (and the dropdown/statblock AC). While here: add `ac:1` to the `haste` BD entry (currently missing its +1 dodge AC / +1 Reflex). Untyped/dodge AC mods stack; confirm rage (−2) + haste (+1 dodge) nets correctly.
 - [ ] Conditions system (sickened, blind, paralyzed)
 - [x] Effect damage rendering inline — superseded by spell cards (alert removed)

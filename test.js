@@ -611,6 +611,34 @@ suite('buff stacking types');
   app.S.buffs = orig;
 }
 
+// ── Power Attack damage multiplies on a crit ──
+suite('Power Attack crit');
+{
+  const origBuffs = { ...app.S.buffs };
+  app.S.buffs = {};
+  // Find a Power Attack creature with at least one melee attack.
+  let key = null;
+  for (const k of Object.keys(app.B)) {
+    const cc = app.mkCreature(app.B[k], false);
+    if (cc.hasPowerAttack && cc.attacks.length >= 1) { key = k; break; }
+  }
+  ok(key, 'found a Power Attack creature: ' + key);
+  // Force the first attack to threaten (d20 = 20) so the crit path runs.
+  setDice([20]);
+  const c = app.mkCreature(app.B[key], false);
+  app.preRoll(c);
+  // Same pre-rolled dice for both — only the PA toggle differs.
+  c.powerAttacking = false;
+  const off = app.computeRoll(c).rows.find(r => r.threat && !r.isRake && !r.isHaste);
+  ok(off, 'a threatening melee row exists');
+  c.powerAttacking = true;
+  const on = app.computeRoll(c).rows.find(r => r.name === off.name && r.threat);
+  ok(on.paDmg > 0, 'Power Attack adds damage when toggled on');
+  // On a crit, the PA bonus must scale by the crit multiplier (×2 etc.), not stay flat.
+  eq(on.dmg - off.dmg, on.paDmg * on.cm, `PA damage ×${on.cm} on crit (whole bonus multiplies)`);
+  app.S.buffs = origBuffs;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  SUMMARY
 // ═══════════════════════════════════════════════════════════════

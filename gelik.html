@@ -135,6 +135,23 @@
   dl.acts dd { margin: 0; }
   dl.acts dd small { color: var(--muted); }
 
+  /* Bardic performance tiers (RPGBOT-style color scale) */
+  .tier-legend { display: flex; flex-wrap: wrap; gap: 5px 16px; margin: 0 0 14px; padding-bottom: 12px; border-bottom: 1px dotted var(--rule); font-size: 11.5px; color: var(--muted); align-items: center; }
+  .tier-legend .leg { display: inline-flex; align-items: center; gap: 6px; }
+  .tier-legend .swatch { width: 12px; height: 12px; border-radius: 3px; background: var(--tier); flex: none; }
+  .tier-legend .cite { margin-left: auto; font-style: italic; }
+  .perf-list { display: flex; flex-direction: column; gap: 8px; }
+  .perf-item { background: #fff; border: 1px solid var(--paper-edge); border-left: 5px solid var(--tier); padding: 10px 14px; }
+  .perf-name { font-family: var(--serif); font-weight: 700; font-size: 15px; color: var(--plum); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tier-pill { font-family: var(--sans); font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: #fff; background: var(--tier); padding: 2px 8px; border-radius: 10px; }
+  .perf-mech { font-size: 13px; margin: 5px 0 3px; }
+  .perf-use { font-size: 12.5px; color: var(--muted); }
+  .perf-use b { color: var(--plum-soft); font-weight: 600; }
+  .tier-blue { --tier: #2f6db0; }
+  .tier-green { --tier: #3f8f52; }
+  .tier-orange { --tier: #c8791f; }
+  .tier-red { --tier: #b23b34; }
+
   /* Spellbook */
   .spellbook { border: 1px solid var(--paper-edge); background: var(--paper-2); padding: 16px 18px; }
   .how { font-size: 12.5px; color: var(--muted); margin: 0 0 16px; }
@@ -247,6 +264,71 @@
       <div class="pips" id="bpPips"></div>
       <p class="note"><b>Tap a dot</b> (or −1) each round you keep a performance going. Starting Inspire Courage and every round it runs costs 1. Set your real total in the box (it's <b>4 + your Charisma modifier + 18</b>).</p>
     </div>
+
+    <details class="ref" style="margin-top:14px; margin-bottom:0;">
+      <summary>Show all bardic performances &amp; ratings</summary>
+      <div class="ref-body">
+        <div class="tier-legend">
+          <span class="leg tier-blue"><span class="swatch"></span> Great</span>
+          <span class="leg tier-green"><span class="swatch"></span> Good</span>
+          <span class="leg tier-orange"><span class="swatch"></span> OK</span>
+          <span class="leg tier-red"><span class="swatch"></span> Skip</span>
+          <span class="cite">ratings from RPGBOT's PF1 bard guide</span>
+        </div>
+        <div class="perf-list">
+
+          <div class="perf-item tier-blue">
+            <div class="perf-name">Inspire Courage <span class="tier-pill">Great</span></div>
+            <div class="perf-mech">Every ally who can hear you gets <b>+2 to attack rolls, +2 weapon damage, and +2 on saves vs fear &amp; charm</b>.</div>
+            <div class="perf-use">The bard's bread &amp; butter — it'll eat most of your performance rounds. <b>Start it turn 1</b> and keep it running all fight.</div>
+          </div>
+
+          <div class="perf-item tier-blue">
+            <div class="perf-name">Inspire Competence <span class="tier-pill">Great</span></div>
+            <div class="perf-mech">+3 to one ally's skill check (they must see &amp; hear you).</div>
+            <div class="perf-use">Use it for almost <em>any</em> skill check (except Stealth) — help the party's lockpicker, climber, or face nail it.</div>
+          </div>
+
+          <div class="perf-item tier-blue">
+            <div class="perf-name">Inspire Greatness <span class="tier-pill">Great</span></div>
+            <div class="perf-mech">One ally gains <b>2 bonus Hit Dice</b> (2d10 temp HP + their Con), <b>+2 to attack</b>, and <b>+1 Fortitude</b>.</div>
+            <div class="perf-use">Fantastic on the front-line fighter (Naz). When the temp HP runs out, just stop and restart it — no extra cost.</div>
+          </div>
+
+          <div class="perf-item tier-blue">
+            <div class="perf-name">Dirge of Doom <span class="tier-pill">Great</span></div>
+            <div class="perf-mech">All enemies within 30 ft become <b>shaken</b> (−2 to attacks, saves, skills). <b>No saving throw.</b></div>
+            <div class="perf-use">Soften a cluster of enemies right before an ally drops a save-or-suck spell. (Doesn't stack with other fear effects.)</div>
+          </div>
+
+          <div class="perf-item tier-blue">
+            <div class="perf-name">Suggestion <span class="tier-pill">Great</span></div>
+            <div class="perf-mech">Whisper a reasonable command to one <em>already-fascinated</em> enemy; they obey for hours unless they beat a Will save.</div>
+            <div class="perf-use">Fascinate to calm foes, then Suggest they go wander off somewhere — a great way to skip a fight entirely.</div>
+          </div>
+
+          <div class="perf-item tier-green">
+            <div class="perf-name">Fascinate <span class="tier-pill">Good</span></div>
+            <div class="perf-mech">Up to <b>4</b> enemies who can see &amp; hear you must save (Will) or stand transfixed. <b>Breaks the instant they're threatened or take damage.</b></div>
+            <div class="perf-use">Surprisingly handy to defuse an ambush or set up a Suggestion. Fragile — any attack ends it.</div>
+          </div>
+
+          <div class="perf-item tier-red">
+            <div class="perf-name">Countersong <span class="tier-pill">Skip</span></div>
+            <div class="perf-mech">For a few rounds, allies may use your Perform check instead of their save vs <b>sonic or language-based</b> effects.</div>
+            <div class="perf-use">Very situational — only when an enemy attacks with sound or voice (a harpy's song, a banshee's wail).</div>
+          </div>
+
+          <div class="perf-item tier-red">
+            <div class="perf-name">Distraction <span class="tier-pill">Skip</span></div>
+            <div class="perf-mech">Like Countersong, but covers your allies' saves against <b>visual illusions</b> (patterns, figments).</div>
+            <div class="perf-use">Very situational — only against illusion magic. A touch more useful than Countersong.</div>
+          </div>
+
+        </div>
+        <p class="note" style="margin-top:12px;"><b>Remember:</b> only <b>one</b> performance at a time. When in doubt, Inspire Courage.</p>
+      </div>
+    </details>
   </section>
 
   <!-- Reference -->

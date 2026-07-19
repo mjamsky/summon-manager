@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive character sheet for playing Gelik Aberwhinge, a level 10 gnome bard, in Serpent's Skull (Pathfinder 1e).">
+<title>Gelik Aberwhinge — Interactive Bard Sheet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%AD</text></svg>">
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f5f2ee;
+    --paper-2: #efe9df;
+    --paper-edge: #e4ddd1;
+    --ink: #2a2430;
+    --muted: #6c6472;
+    --plum: #6d2a4c;
+    --plum-soft: #8a3d63;
+    --brass: #9c7526;
+    --brass-soft: #c7a961;
+    --rule: #d3c8b2;
+    --good: #3f7d4f;
+    --warn: #b5852a;
+    --bad: #b23b34;
+    --frame-bg: #e6e1d8;
+    --serif: "Hoefler Text", "Baskerville", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root { --frame-bg: #201c23; } }
+  :root[data-theme="dark"] { --frame-bg: #201c23; }
+  :root[data-theme="light"] { --frame-bg: #e6e1d8; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--frame-bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.45;
+    padding: clamp(10px, 2.5vw, 34px);
+  }
+  .sheet {
+    max-width: 900px; margin: 0 auto; background: var(--paper);
+    border: 1px solid var(--paper-edge);
+    box-shadow: 0 18px 44px rgba(40,30,45,.20);
+    padding: clamp(16px, 3.4vw, 40px);
+  }
+
+  /* Toolbar */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-bottom: 6px; }
+  button { font-family: var(--sans); cursor: pointer; border: none; }
+  .btn {
+    font-size: 12px; font-weight: 600; letter-spacing: .02em;
+    padding: 7px 13px; border-radius: 6px; background: #fff;
+    border: 1px solid var(--paper-edge); color: var(--ink);
+    transition: background .12s, transform .06s;
+  }
+  .btn:hover { background: var(--paper-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .btn.primary:hover { background: var(--plum-soft); }
+  .btn.ghost { background: transparent; color: var(--muted); }
+
+  /* Header */
+  header { text-align: center; border-bottom: 3px double var(--plum); padding-bottom: 14px; margin-bottom: 20px; }
+  .eyebrow { font-family: var(--serif); font-size: 11.5px; letter-spacing: .42em; text-transform: uppercase; color: var(--brass); margin: 0 0 6px; padding-left: .42em; }
+  h1 { font-family: var(--serif); font-weight: 700; font-size: clamp(30px, 6.4vw, 50px); line-height: 1.02; color: var(--plum); margin: 2px 0 8px; text-wrap: balance; }
+  .billing { font-family: var(--serif); font-style: italic; font-size: clamp(14px, 2.3vw, 17px); margin: 0; }
+  .billing b { font-style: normal; color: var(--plum-soft); }
+
+  h2 { font-family: var(--serif); font-size: 18px; color: var(--plum); margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  h2::before { content: ""; width: 11px; height: 11px; flex: none; background: var(--brass-soft); transform: rotate(45deg); border: 1.5px solid var(--brass); }
+  section { margin-bottom: 22px; }
+  .grid2 { display: grid; grid-template-columns: 1.05fr .95fr; gap: 22px 26px; }
+  .card { background: var(--paper-2); border: 1px solid var(--paper-edge); padding: 16px 18px; }
+
+  /* HP tracker */
+  .hp-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .hp-cur { font-family: var(--serif); font-weight: 700; font-size: 52px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .hp-cur small { font-size: 20px; color: var(--muted); font-weight: 400; }
+  .hp-maxwrap { text-align: right; font-size: 12px; color: var(--muted); }
+  .hp-bar { height: 16px; background: #e0d8c9; border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+  .hp-fill { height: 100%; width: 100%; background: var(--good); transition: width .2s ease, background .2s; }
+  .hp-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .step { width: 40px; height: 34px; border-radius: 6px; border: 1px solid var(--paper-edge); background: #fff; font-size: 15px; font-weight: 700; color: var(--plum); }
+  .step:hover { background: var(--paper); }
+  .amt { width: 58px; height: 34px; text-align: center; }
+  .dmg { background: #f6e7e5; color: var(--bad); border: 1px solid #e6c9c5; }
+  .heal { background: #e6f0e6; color: var(--good); border: 1px solid #cbe0cb; }
+  .dmg, .heal { height: 34px; padding: 0 12px; border-radius: 6px; font-weight: 700; font-size: 12.5px; }
+  .temp-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+  /* Editable stat inputs */
+  input, .in {
+    font-family: var(--sans); font-size: 14px; color: var(--ink);
+    background: #fff; border: 1px solid var(--paper-edge); border-radius: 5px;
+    padding: 6px 8px; width: 100%;
+  }
+  input:focus, .in:focus { outline: 2px solid var(--brass-soft); outline-offset: 0; border-color: var(--brass); }
+  input::placeholder { color: #b8afba; }
+  .statgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-family: var(--serif); text-transform: uppercase; letter-spacing: .1em; font-size: 10.5px; color: var(--brass); }
+  .field input { font-variant-numeric: tabular-nums; }
+
+  /* Bardic Performance */
+  .bp-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .bp-cur { font-family: var(--serif); font-weight: 700; font-size: 44px; line-height: 1; color: var(--plum); font-variant-numeric: tabular-nums; }
+  .bp-cur small { font-size: 17px; color: var(--muted); font-weight: 400; }
+  .pips { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 14px; }
+  .pip { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--brass); background: var(--brass-soft); cursor: pointer; padding: 0; transition: background .1s, transform .06s; }
+  .pip.spent { background: transparent; }
+  .pip:active { transform: scale(.85); }
+  .bp-controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .maxfield { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  .maxfield input { width: 52px; text-align: center; }
+
+  .note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+  .note b { color: var(--plum-soft); }
+
+  /* Reference (turn loop + actions) */
+  details.ref { border: 1px solid var(--paper-edge); background: var(--paper-2); padding: 4px 16px; margin-bottom: 22px; }
+  details.ref summary { font-family: var(--serif); font-size: 16px; color: var(--plum); cursor: pointer; padding: 10px 0; list-style: none; display: flex; align-items: center; gap: 8px; }
+  details.ref summary::-webkit-details-marker { display: none; }
+  details.ref summary::before { content: "▸"; color: var(--brass); font-size: 13px; transition: transform .15s; }
+  details.ref[open] summary::before { transform: rotate(90deg); }
+  .ref-body { padding: 4px 0 14px; }
+  ol.loop { margin: 0 0 14px; padding: 0; list-style: none; counter-reset: step; }
+  ol.loop li { position: relative; padding: 7px 0 7px 40px; border-top: 1px solid var(--paper-edge); font-size: 13.5px; }
+  ol.loop li:first-child { border-top: none; }
+  ol.loop li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 6px; width: 26px; height: 26px; display: grid; place-items: center; font-family: var(--serif); font-weight: 700; font-size: 14px; color: #fff; background: var(--plum); border-radius: 50%; }
+  .act { font-family: var(--serif); font-weight: 700; font-variant: small-caps; letter-spacing: .03em; color: var(--brass); }
+  dl.acts div { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; padding: 6px 0; border-top: 1px dotted var(--rule); font-size: 13px; }
+  dl.acts div:first-child { border-top: none; }
+  dl.acts dt { font-family: var(--serif); color: var(--brass); font-variant: small-caps; letter-spacing: .03em; font-size: 14.5px; white-space: nowrap; }
+  dl.acts dd { margin: 0; }
+  dl.acts dd small { color: var(--muted); }
+
+  /* Spellbook */
+  .spellbook { border: 1px solid var(--paper-edge); background: var(--paper-2); padding: 16px 18px; }
+  .how { font-size: 12.5px; color: var(--muted); margin: 0 0 16px; }
+  .how b { color: var(--plum-soft); }
+  .grp { padding: 12px 0; border-top: 1px solid var(--paper-edge); }
+  .grp:first-of-type { border-top: none; padding-top: 0; }
+  .grp-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .grp-name { font-family: var(--serif); font-weight: 700; font-size: 14px; color: var(--plum); font-variant: small-caps; letter-spacing: .04em; }
+  .slot-ctrl { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .slot-ctrl .lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--brass); }
+  .sbox { width: 16px; height: 16px; border: 1.5px solid var(--brass); background: var(--brass-soft); cursor: pointer; padding: 0; border-radius: 3px; transition: background .1s, transform .06s; }
+  .sbox.used { background: transparent; }
+  .sbox:active { transform: scale(.85); }
+  .stepmini { width: 24px; height: 22px; font-size: 13px; font-weight: 700; color: var(--plum); background: #fff; border: 1px solid var(--paper-edge); border-radius: 4px; line-height: 1; }
+  .slotpips { display: flex; gap: 4px; }
+  .spell-inputs { display: flex; flex-direction: column; gap: 5px; }
+  .spell-inputs input { background: transparent; border: none; border-bottom: 1.5px solid var(--rule); border-radius: 0; padding: 4px 2px; }
+  .spell-inputs input:focus { outline: none; border-bottom-color: var(--brass); background: #fff9; }
+  .hint { font-size: 11px; color: var(--muted); font-style: italic; margin: 6px 0 0; }
+
+  /* Flavor */
+  .flavor ul { margin: 0; padding-left: 18px; }
+  .flavor li { margin: 6px 0; font-size: 13.5px; }
+  .flavor li b { color: var(--plum); }
+
+  footer { margin-top: 24px; padding-top: 12px; border-top: 3px double var(--plum); text-align: center; font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--muted); }
+  .saved { font-size: 11px; color: var(--good); opacity: 0; transition: opacity .3s; }
+  .saved.show { opacity: 1; }
+
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+
+<div class="sheet">
+  <div class="toolbar">
+    <span class="saved" id="saved">saved ✓</span>
+    <button class="btn primary" id="newday">🌅 New Day (rest)</button>
+    <button class="btn ghost" id="reset">Reset sheet</button>
+  </div>
+
+  <header>
+    <p class="eyebrow">A Guest Performance</p>
+    <h1>Gelik Aberwhinge</h1>
+    <p class="billing"><b>Gnome Bard</b> &nbsp;·&nbsp; Level 10 &nbsp;·&nbsp; Serpent's Skull</p>
+  </header>
+
+  <div class="grid2">
+    <!-- HP -->
+    <section>
+      <h2>Hit Points</h2>
+      <div class="card">
+        <div class="hp-top">
+          <div class="hp-cur"><span id="hpCur">66</span><small> / <span id="hpMaxLabel">66</span></small></div>
+          <div class="hp-maxwrap">
+            <div class="field" style="gap:3px;">
+              <label>Max HP</label>
+              <input id="hpMax" type="text" inputmode="numeric" value="66" style="width:64px;text-align:center;">
+            </div>
+          </div>
+        </div>
+        <div class="hp-bar"><div class="hp-fill" id="hpFill"></div></div>
+        <div class="hp-controls">
+          <button class="step" data-hp="-5">−5</button>
+          <button class="step" data-hp="-1">−1</button>
+          <button class="step" data-hp="1">+1</button>
+          <button class="step" data-hp="5">+5</button>
+          <input class="amt" id="hpAmt" type="text" inputmode="numeric" placeholder="#">
+          <button class="dmg" id="hpDmg">Damage</button>
+          <button class="heal" id="hpHeal">Heal</button>
+        </div>
+        <div class="temp-row">
+          <span>Temp HP</span>
+          <input id="tempHp" type="text" inputmode="numeric" value="0" style="width:56px;text-align:center;">
+          <span style="margin-left:auto;font-style:italic;">Damage eats temp HP first.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Defenses / Saves -->
+    <section>
+      <h2>Defenses &amp; Saves</h2>
+      <div class="card">
+        <div class="statgrid">
+          <div class="field"><label>AC</label><input data-stat="ac" type="text" placeholder="—"></div>
+          <div class="field"><label>Touch AC</label><input data-stat="touch" type="text" placeholder="—"></div>
+          <div class="field"><label>Flat-Footed</label><input data-stat="flat" type="text" placeholder="—"></div>
+          <div class="field"><label>Initiative</label><input data-stat="init" type="text" placeholder="+"></div>
+          <div class="field"><label>Fortitude</label><input data-stat="fort" type="text" placeholder="+"></div>
+          <div class="field"><label>Reflex</label><input data-stat="ref" type="text" placeholder="+"></div>
+          <div class="field"><label>Will</label><input data-stat="will" type="text" placeholder="+"></div>
+          <div class="field"><label>Perform</label><input data-stat="perform" type="text" placeholder="+"></div>
+          <div class="field"><label>Shortbow atk</label><input data-stat="shortbow" type="text" placeholder="+"></div>
+          <div class="field"><label>Speed</label><input data-stat="speed" type="text" placeholder="20 ft"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Bardic Performance -->
+  <section>
+    <h2>Bardic Performance — rounds left today</h2>
+    <div class="card">
+      <div class="bp-head">
+        <div class="bp-cur"><span id="bpCur">25</span><small> rounds</small></div>
+        <div class="bp-controls">
+          <button class="step" id="bpMinus">−1</button>
+          <button class="step" id="bpPlus">+1</button>
+          <span class="maxfield">of&nbsp;<input id="bpMax" type="text" inputmode="numeric" value="25">&nbsp;/ day</span>
+        </div>
+      </div>
+      <div class="pips" id="bpPips"></div>
+      <p class="note"><b>Tap a dot</b> (or −1) each round you keep a performance going. Starting Inspire Courage and every round it runs costs 1. Set your real total in the box (it's <b>4 + your Charisma modifier + 18</b>).</p>
+    </div>
+  </section>
+
+  <!-- Reference -->
+  <details class="ref" open>
+    <summary>How to play — the turn loop &amp; what actions mean</summary>
+    <div class="ref-body">
+      <ol class="loop">
+        <li><b>Round 1:</b> <span class="act">Move action</span> &rarr; start <b>Inspire Courage</b> (+2 attack, +2 damage, +2 vs fear/charm to all allies who hear you). Then <span class="act">Standard action</span> &rarr; cast a spell like Haste. You can still take a 5-ft step.</li>
+        <li><b>Every round after:</b> Inspire Courage keeps going for <span class="act">Free</span> (tap a Bardic Performance dot). Spend your turn to cast, shoot the shortbow, or move.</li>
+        <li><b>When in doubt:</b> keep the song up and plink with the shortbow. Only <b>one</b> performance at a time.</li>
+      </ol>
+      <dl class="acts">
+        <div><dt>Standard</dt><dd>Your main thing: cast a spell, make one attack, or normally start a performance.</dd></div>
+        <div><dt>Move</dt><dd>Move your speed, draw a weapon — or (at level 10) start a performance.</dd></div>
+        <div><dt>Full-Round</dt><dd>Your whole turn: a <b>Full Attack</b> (all your attacks) or a long spell. <small>You still get a 5-ft step.</small></dd></div>
+        <div><dt>Swift</dt><dd>A tiny bonus action, one per round (some spells &amp; items).</dd></div>
+        <div><dt>Free</dt><dd>Talk, drop something — and <b>maintain</b> a performance.</dd></div>
+        <div><dt>5-ft step</dt><dd>Shuffle 5 ft, no risk. Allowed even after a full-round action if you didn't otherwise move.</dd></div>
+      </dl>
+    </div>
+  </details>
+
+  <!-- Spellbook -->
+  <section>
+    <h2>Spellbook — type your spells, tap slots to cast</h2>
+    <div class="spellbook">
+      <p class="how">Ask your DM which spells you know, then type them in. You're a <b>spontaneous caster</b>: cast <b>any spell you know</b> as long as a slot of that level is open. <b>Tap a slot</b> to spend it; use <b>+ / −</b> to match your real slot count.</p>
+      <div id="spellbook"></div>
+    </div>
+  </section>
+
+  <!-- Flavor -->
+  <section class="flavor">
+    <h2>Playing Gelik</h2>
+    <ul>
+      <li><b>He's a writer, not a singer.</b> Perform by <em>talking</em> — snarky pep talks, heckling villains, dramatic storytelling.</li>
+      <li><b>Say the line out loud</b> in character when you start a performance. That turns a dice bonus into Gelik.</li>
+      <li><b>Lean into the snark.</b> Sharply dressed, ink-stained, mean-witted little showoff.</li>
+      <li><b>Out of combat you're the face &amp; the brains.</b> With <b>Bardic Knowledge</b> you can attempt <em>any</em> Knowledge check.</li>
+      <li><b>Stay safe.</b> Keep within ~30 ft of allies so they hear you, but behind the front line.</li>
+    </ul>
+  </section>
+
+  <footer>Serpent's Skull &nbsp;·&nbsp; The party is Level 10 &nbsp;·&nbsp; Break a leg</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "gelik-bard-sheet-v1";
+
+  var SPELL_LEVELS = [
+    { id: "l0", name: "Cantrips (0) — unlimited", slots: 0, hint: "" },
+    { id: "l1", name: "1st Level", slots: 6, hint: "" },
+    { id: "l2", name: "2nd Level", slots: 5, hint: "Handy: Glitterdust, Heroism, Invisibility." },
+    { id: "l3", name: "3rd Level", slots: 4, hint: "Handy: Haste (best), Good Hope, Dispel Magic." },
+    { id: "l4", name: "4th Level — your highest", slots: 3, hint: "Handy: Freedom of Movement, Dimension Door, Shout." }
+  ];
+
+  function defaults() {
+    var spells = {};
+    SPELL_LEVELS.forEach(function (lv) {
+      spells[lv.id] = { slots: lv.slots, used: [], names: ["", ""] };
+    });
+    return {
+      stats: {},
+      hpMax: 66, hpCur: 66, tempHp: 0,
+      bpMax: 25, bpCur: 25,
+      spells: spells
+    };
+  }
+
+  var S;
+  try { S = JSON.parse(localStorage.getItem(KEY)) || defaults(); }
+  catch (e) { S = defaults(); }
+  // migrate/guard
+  if (!S.spells) S.spells = defaults().spells;
+  SPELL_LEVELS.forEach(function (lv) {
+    if (!S.spells[lv.id]) S.spells[lv.id] = { slots: lv.slots, used: [], names: ["", ""] };
+    if (!S.spells[lv.id].names) S.spells[lv.id].names = ["", ""];
+    if (!S.spells[lv.id].used) S.spells[lv.id].used = [];
+  });
+  if (!S.stats) S.stats = {};
+
+  var savedEl = document.getElementById("saved");
+  var savedTimer;
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    savedEl.classList.add("show");
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(function () { savedEl.classList.remove("show"); }, 900);
+  }
+
+  function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? d : n; }
+  function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+
+  /* ---------- HP ---------- */
+  var hpCurEl = document.getElementById("hpCur");
+  var hpMaxLabel = document.getElementById("hpMaxLabel");
+  var hpFill = document.getElementById("hpFill");
+  var hpMaxInput = document.getElementById("hpMax");
+  var tempInput = document.getElementById("tempHp");
+
+  function renderHP() {
+    hpMaxInput.value = S.hpMax;
+    tempInput.value = S.tempHp;
+    hpCurEl.textContent = S.hpCur + (S.tempHp > 0 ? "+" + S.tempHp : "");
+    hpMaxLabel.textContent = S.hpMax;
+    var ratio = S.hpMax > 0 ? clamp(S.hpCur / S.hpMax, 0, 1) : 0;
+    hpFill.style.width = (ratio * 100) + "%";
+    hpFill.style.background = ratio > 0.5 ? "var(--good)" : (ratio > 0.25 ? "var(--warn)" : "var(--bad)");
+  }
+  function changeHP(delta) {
+    if (delta < 0) {
+      var dmg = -delta;
+      if (S.tempHp > 0) {
+        var absorbed = Math.min(S.tempHp, dmg);
+        S.tempHp -= absorbed; dmg -= absorbed;
+      }
+      S.hpCur = clamp(S.hpCur - dmg, 0, S.hpMax);
+    } else {
+      S.hpCur = clamp(S.hpCur + delta, 0, S.hpMax);
+    }
+    renderHP(); save();
+  }
+  document.querySelectorAll(".step[data-hp]").forEach(function (b) {
+    b.addEventListener("click", function () { changeHP(num(b.getAttribute("data-hp"), 0)); });
+  });
+  document.getElementById("hpDmg").addEventListener("click", function () {
+    var v = num(document.getElementById("hpAmt").value, 0); if (v) changeHP(-Math.abs(v));
+  });
+  document.getElementById("hpHeal").addEventListener("click", function () {
+    var v = num(document.getElementById("hpAmt").value, 0); if (v) changeHP(Math.abs(v));
+  });
+  hpMaxInput.addEventListener("input", function () {
+    S.hpMax = num(hpMaxInput.value, 0);
+    S.hpCur = clamp(S.hpCur, 0, S.hpMax);
+    renderHP(); save();
+  });
+  tempInput.addEventListener("input", function () { S.tempHp = num(tempInput.value, 0); renderHP(); save(); });
+
+  /* ---------- Stats ---------- */
+  document.querySelectorAll("input[data-stat]").forEach(function (inp) {
+    var k = inp.getAttribute("data-stat");
+    if (S.stats[k] != null) inp.value = S.stats[k];
+    inp.addEventListener("input", function () { S.stats[k] = inp.value; save(); });
+  });
+
+  /* ---------- Bardic Performance ---------- */
+  var bpCurEl = document.getElementById("bpCur");
+  var bpMaxInput = document.getElementById("bpMax");
+  var bpPips = document.getElementById("bpPips");
+
+  function renderBP() {
+    bpCurEl.textContent = S.bpCur;
+    bpMaxInput.value = S.bpMax;
+    bpPips.innerHTML = "";
+    var cap = Math.min(S.bpMax, 40); // cap dots drawn for sanity
+    for (var i = 0; i < cap; i++) {
+      var p = document.createElement("button");
+      p.className = "pip" + (i >= S.bpCur ? " spent" : "");
+      p.setAttribute("aria-label", "performance round " + (i + 1));
+      (function (idx) {
+        p.addEventListener("click", function () {
+          // clicking sets remaining to idx (if filled) or idx+1 (if spent)
+          S.bpCur = (idx < S.bpCur) ? idx : idx + 1;
+          S.bpCur = clamp(S.bpCur, 0, S.bpMax);
+          renderBP(); save();
+        });
+      })(i);
+      bpPips.appendChild(p);
+    }
+  }
+  document.getElementById("bpMinus").addEventListener("click", function () { S.bpCur = clamp(S.bpCur - 1, 0, S.bpMax); renderBP(); save(); });
+  document.getElementById("bpPlus").addEventListener("click", function () { S.bpCur = clamp(S.bpCur + 1, 0, S.bpMax); renderBP(); save(); });
+  bpMaxInput.addEventListener("input", function () {
+    S.bpMax = num(bpMaxInput.value, 0);
+    S.bpCur = clamp(S.bpCur, 0, S.bpMax);
+    renderBP(); save();
+  });
+
+  /* ---------- Spellbook ---------- */
+  var sbEl = document.getElementById("spellbook");
+  function renderSpellbook() {
+    sbEl.innerHTML = "";
+    SPELL_LEVELS.forEach(function (lv) {
+      var st = S.spells[lv.id];
+      var grp = document.createElement("div");
+      grp.className = "grp";
+
+      var head = document.createElement("div");
+      head.className = "grp-head";
+      var nm = document.createElement("span");
+      nm.className = "grp-name";
+      nm.textContent = lv.name;
+      head.appendChild(nm);
+
+      if (lv.slots !== 0 || st.slots > 0) {
+        var ctrl = document.createElement("div");
+        ctrl.className = "slot-ctrl";
+        var lbl = document.createElement("span");
+        lbl.className = "lbl"; lbl.textContent = "Slots";
+        ctrl.appendChild(lbl);
+
+        var minus = document.createElement("button");
+        minus.className = "stepmini"; minus.textContent = "−";
+        minus.addEventListener("click", function () {
+          st.slots = Math.max(0, st.slots - 1);
+          if (st.used.length > st.slots) st.used.length = st.slots;
+          renderSpellbook(); save();
+        });
+        ctrl.appendChild(minus);
+
+        var pipwrap = document.createElement("div");
+        pipwrap.className = "slotpips";
+        for (var i = 0; i < st.slots; i++) {
+          var sb = document.createElement("button");
+          sb.className = "sbox" + (st.used[i] ? " used" : "");
+          sb.setAttribute("aria-label", lv.name + " slot " + (i + 1));
+          (function (idx) {
+            sb.addEventListener("click", function () {
+              st.used[idx] = !st.used[idx];
+              renderSpellbook(); save();
+            });
+          })(i);
+          pipwrap.appendChild(sb);
+        }
+        ctrl.appendChild(pipwrap);
+
+        var plus = document.createElement("button");
+        plus.className = "stepmini"; plus.textContent = "+";
+        plus.addEventListener("click", function () {
+          st.slots = st.slots + 1;
+          renderSpellbook(); save();
+        });
+        ctrl.appendChild(plus);
+
+        head.appendChild(ctrl);
+      }
+      grp.appendChild(head);
+
+      var inputs = document.createElement("div");
+      inputs.className = "spell-inputs";
+      function makeSpellInput(idx) {
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = st.names[idx] || "";
+        inp.placeholder = "spell name…";
+        inp.addEventListener("input", function () {
+          st.names[idx] = inp.value;
+          // grow: append one fresh line (no full re-render, keeps focus)
+          if (idx === st.names.length - 1 && inp.value.trim() !== "") {
+            st.names.push("");
+            inputs.appendChild(makeSpellInput(st.names.length - 1));
+          }
+          save();
+        });
+        return inp;
+      }
+      for (var ni = 0; ni < st.names.length; ni++) inputs.appendChild(makeSpellInput(ni));
+      grp.appendChild(inputs);
+
+      if (lv.hint) {
+        var h = document.createElement("p");
+        h.className = "hint"; h.innerHTML = lv.hint;
+        grp.appendChild(h);
+      }
+      sbEl.appendChild(grp);
+    });
+  }
+  /* ---------- Toolbar ---------- */
+  document.getElementById("newday").addEventListener("click", function () {
+    S.hpCur = S.hpMax; S.tempHp = 0; S.bpCur = S.bpMax;
+    SPELL_LEVELS.forEach(function (lv) { S.spells[lv.id].used = []; });
+    renderAll(); save();
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    if (!confirm("Reset the whole sheet? This clears your saved numbers and spells.")) return;
+    S = defaults();
+    document.querySelectorAll("input[data-stat]").forEach(function (inp) { inp.value = ""; });
+    renderAll(); save();
+  });
+
+  function renderAll() { renderHP(); renderBP(); renderSpellbook(); }
+  renderAll();
+})();
+</script>
+</body>
+</html>

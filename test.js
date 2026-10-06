@@ -639,6 +639,114 @@ suite('Power Attack crit');
   app.S.buffs = origBuffs;
 }
 
+// ── Animal Growth ──
+suite('Animal Growth: dice/label helpers');
+{
+  eq(app.growDice('1d6'), '1d8', '1d6 → 1d8');
+  eq(app.growDice('1d4+3'), '1d6+3', '1d4+3 → 1d6+3 (flat mod preserved)');
+  eq(app.growDice('1d8+7'), '2d6+7', '1d8+7 → 2d6+7');
+  eq(app.growDice('2d6'), '3d6', '2d6 → 3d6');
+  eq(app.growDice('1d10'), '2d8', '1d10 → 2d8');
+  eq(app.growDice(''), '', 'empty passes through');
+  eq(app.growDice('5'), '5', 'non-dice passes through');
+  eq(app.growSizeLabel('Large'), 'Huge', 'Large → Huge');
+  eq(app.growSizeLabel('Medium'), 'Large', 'Medium → Large');
+  eq(app.growSizeLabel('Colossal'), 'Colossal', 'Colossal is capped');
+  eq(app.growFeet('5 ft.', 5), '10 ft.', 'reach 5 → 10 ft.');
+  eq(app.hdCount('10d10+30'), 10, 'HD count from "10d10+30"');
+  eq(app.hdCount('7'), 7, 'HD count from bare number');
+}
+
+suite('Animal Growth: pipeline (+3 atk net, dice step-up)');
+{
+  setDice([12, 5, 3, 4, 8, 6, 2, 7, 3, 5, 9, 4]);
+  const c = app.mkCreature(app.B['constrictor snake'], false);
+  app.preRoll(c);
+  const base = app.computeRoll(c);
+  const baseRow = base.rows.find(r => !r.isWeb && !r.isRanged);
+  ok(baseRow, 'baseline melee row exists');
+  // Same raw rolls — do NOT re-preRoll; growth only changes the render-time compute.
+  c.growth = true;
+  const grown = app.computeRoll(c);
+  const grownRow = grown.rows.find(r => r.name === baseRow.name);
+  ok(grownRow, 'grown melee row exists');
+  eq(grownRow.total, baseRow.total + 3, 'attack roll +3 net (+4 Str, -1 size)');
+  eq(grownRow.dmgDice, app.growDice(baseRow.dmgDice), 'damage dice stepped up one size');
+  ok(grownRow.dmg > baseRow.dmg, 'grown damage exceeds base (bigger dice + Str)');
+  // Grown constrict auto-row also steps up its dice.
+  const baseCon = base.autoRows.find(r => r.isConstrict);
+  const grownCon = grown.autoRows.find(r => r.isConstrict);
+  if (baseCon && grownCon) eq(grownCon.dmgDice, app.growDice(baseCon.dmgDice), 'constrict dice stepped up');
+}
+
+// ── Flanking is melee-only ──
+suite('Flanking +2 excluded from ranged rows');
+{
+  setDice([10, 5, 3, 4, 8, 12]);
+  const c = app.mkCreature(app.B['giant spider'], false);
+  c.flanking = true;
+  app.preRoll(c);
+  const pr = app.computeRoll(c);
+  const bite = pr.rows.find(r => !r.isWeb && !r.isRanged);
+  const web = pr.rows.find(r => r.isWeb);
+  ok(bite && web, 'bite (melee) and web (ranged) rows exist');
+  eq(bite.buffAtk, 2, 'melee bite gets the +2 flanking bonus');
+  eq(web.buffAtk, 0, 'ranged web does NOT get the +2 flanking bonus');
+}
+
+// ── Buff AC mods ──
+suite('Buff AC: haste dodge + rage stacking');
+{
+  const orig = app.S.buffs;
+  app.S.buffs = { haste: true };
+  eq(app.bTotal({}).ac, 1, 'haste grants +1 dodge AC');
+  app.S.buffs = { rage: true };
+  eq(app.bTotal({}).ac, -2, 'rage imposes -2 AC');
+  app.S.buffs = { rage: true, haste: true };
+  eq(app.bTotal({}).ac, -1, 'rage -2 + haste +1 dodge nets -1 (dodge stacks)');
+  app.S.buffs = orig;
+}
+
+// ── Str-to-damage multiplier (RAW) ──
+suite('Str multiplier: helpers');
+{
+  eq(app.strContrib(5, 1), 5, 'primary = full Str');
+  eq(app.strContrib(5, 0.5), 2, 'secondary = floor(5/2) = 2');
+  eq(app.strContrib(5, 1.5), 7, 'lone natural = floor(5*1.5) = 7');
+  // Increment diffs handle rounding against the base Str mod:
+  eq(app.strInc(3, 1, 0.5), 1, 'base +3, +1 mod, secondary → +1 (floor 4/2 − floor 3/2)');
+  eq(app.strInc(4, 1, 0.5), 0, 'base +4, +1 mod, secondary → +0 (rounding)');
+  eq(app.strInc(5, 4, 1), 4, 'primary → full delta');
+  eq(app.strInc(5, 4, 1.5), 6, 'base +5, +4 mod, lone natural → +6');
+  // Classification:
+  const claws = app.strMultipliers({ attacks: [{name:'claw 1'},{name:'claw 2'},{name:'bite'},{name:'tail slap'}] });
+  eq(claws['claw'], 1, 'claw primary'); eq(claws['bite'], 1, 'bite primary'); eq(claws['tail slap'], 0.5, 'tail slap secondary');
+  eq(app.strMultipliers({ attacks: [{name:'bite'}] })['bite'], 1.5, 'lone natural attack → 1.5x');
+  eq(app.strMultipliers({ attacks: [{name:'wing 1'},{name:'wing 2'}] })['wing'], 1, 'only one type (2 wings) → primary');
+  eq(app.strMultipliers({ attacks: [{name:'dagger'}] })['dagger'], 1, 'lone manufactured 1-hander → x1 (not 1.5)');
+}
+
+suite('Str multiplier: pipeline (Crocodile bite vs tail slap under Animal Growth)');
+{
+  setDice([12, 6, 4, 8, 5, 3, 10, 7, 2, 9]);
+  const c = app.mkCreature(app.B['crocodile'], false);
+  app.preRoll(c);
+  const base = app.computeRoll(c);
+  const bite0 = base.rows.find(r => r.name === 'bite');
+  const tail0 = base.rows.find(r => r.name === 'tail slap');
+  ok(bite0 && tail0, 'crocodile has bite (primary) + tail slap (secondary)');
+  eq(bite0.buffDmg, 0, 'no buff → bite gets +0');
+  eq(tail0.buffDmg, 0, 'no buff → tail slap gets +0');
+  // Same raw rolls; growth only changes the compute.
+  c.growth = true;
+  const g = app.computeRoll(c);
+  const bite1 = g.rows.find(r => r.name === 'bite');
+  const tail1 = g.rows.find(r => r.name === 'tail slap');
+  eq(bite1.buffDmg, 4, 'grown bite (primary) gets full +4 Str');
+  ok(tail1.buffDmg < bite1.buffDmg, 'grown tail slap (secondary) gets LESS Str than the primary bite');
+  eq(tail1.buffDmg, 2, 'grown tail slap gets half Str (+2)');
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  SUMMARY
 // ═══════════════════════════════════════════════════════════════

@@ -63,7 +63,7 @@ function rdice(n) {
 const BD = {
   prayer:{a:1,d:1,s:1,ty:'luck'},bless:{a:1,d:0,s:0,ty:'morale'}, // prayer = LUCK (stacks w/ morale); bless = morale (+1 atk, +1 vs fear)
   destruction:{a:0,d:4,s:0,ty:'sacred'},justice:{a:3,d:0,s:0,ty:'sacred'},
-  smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ty:'haste',extra:1},
+  smiting:{a:0,d:0,s:0,ty:'sp'},haste:{a:1,d:0,s:0,ac:1,ty:'haste',extra:1}, // +1 dodge AC (dodge stacks); +1 Reflex is saves-layer (deferred)
   heroism:{a:2,d:0,s:2,ty:'morale'},
   fh4:{a:0,d:0,s:0,ty:'sp',fh:4},
   rage:{a:1,d:1,s:0,ac:-2,ty:'u'}, // Rage: +2 Str → +1 atk/dmg, +2 Con → +1 HP/HD, -2 AC
@@ -78,6 +78,64 @@ function gmfBonus(){
   return Math.max(1,Math.min(5,Math.floor(cl/4)));
 }
 function avgDmg(s){ const m=(s||'').match(/^(\d+)d(\d+)([+-]\d+)?$/); return m ? (+m[1])*((+m[2])+1)/2 + (+(m[3]||0)) : 0; }
+
+// ═══ Animal Growth (druid 5): grows an animal one size category ═══
+// One-step natural-attack / weapon damage progression (PF1e size-increase table).
+const SIZE_STEP = {
+  '1d2':'1d3','1d3':'1d4','1d4':'1d6','1d6':'1d8','1d8':'2d6','1d10':'2d8','1d12':'3d6',
+  '2d4':'2d6','2d6':'3d6','2d8':'3d8','2d10':'4d8','3d6':'4d6','4d6':'6d6',
+};
+// Step a damage dice string up one size, preserving its flat modifier ("1d6+4" → "1d8+4").
+function growDice(str){
+  if(!str) return str;
+  const m = String(str).match(/^(\d+d\d+)([+-]\d+)?$/);
+  if(!m) return str;
+  const up = SIZE_STEP[m[1]];
+  return up ? up + (m[2]||'') : str;
+}
+const SIZE_ORDER = ['fine','diminutive','tiny','small','medium','large','huge','gargantuan','colossal'];
+// One-step size label increase (for the card's size readout).
+function growSizeLabel(sz){
+  const i = SIZE_ORDER.indexOf(String(sz||'').toLowerCase());
+  if(i<0 || i>=SIZE_ORDER.length-1) return sz;
+  const up = SIZE_ORDER[i+1];
+  return up.charAt(0).toUpperCase()+up.slice(1);
+}
+// Add feet to a reach/space string ("5 ft." → "10 ft.").
+function growFeet(str, add){
+  const m = String(str||'').match(/(\d+)/);
+  return m ? String(str).replace(/\d+/, String(+m[1]+add)) : str;
+}
+// Hit-dice count from an HD string ("10d10+30" → 10).
+function hdCount(hd){ const m=String(hd||'').match(/^(\d+)/); return m?+m[1]:0; }
+
+// ═══ Natural-attack Str-to-damage multiplier (RAW-CORRECTNESS-SPEC.md §1) ═══
+// Primary natural attack = full Str; secondary = ½ Str; a creature's SOLE natural attack = 1½ Str.
+// These sets use parseMelee's normalized names (trailing count + trailing "s" already stripped).
+const PRIMARY_NAT = new Set(['bite','claw','gore','slam','sting','talon']);
+const SECONDARY_NAT = new Set(['hoof','hoove','tentacle','wing','pincer','tail slap','tail','tongue','tusk']);
+function natType(name){ return String(name||'').toLowerCase().replace(/\s+\d+$/,'').replace(/s$/,'').trim(); }
+// Map each of a creature's melee attack types → Str-damage multiplier (1, 0.5, or 1.5).
+// Rules: sole attack (natural) = 1.5×; only one attack TYPE (multiple attacks) = all primary;
+// otherwise the default primary/secondary table. Statblock overrides aren't tracked (default-table only).
+function strMultipliers(c){
+  const atks = c.attacks || [];
+  const types = atks.map(a => natType(a.name));
+  const uniq = [...new Set(types)];
+  const out = {};
+  if (atks.length === 1) {
+    out[types[0]] = (PRIMARY_NAT.has(types[0]) || SECONDARY_NAT.has(types[0])) ? 1.5 : 1; // lone natural → 1½; lone manufactured 1-hander → ×1
+  } else if (uniq.length === 1) {
+    out[uniq[0]] = 1; // one type, multiple attacks → treated as primary regardless of type
+  } else {
+    for (const t of uniq) out[t] = SECONDARY_NAT.has(t) ? 0.5 : 1; // default table; unknown → primary
+  }
+  return out;
+}
+// Str contribution to damage at a given multiplier (PF1e floors fractional Str).
+function strContrib(s, m){ return m===0.5 ? Math.floor(s/2) : m===1.5 ? Math.floor(s*1.5) : s; }
+// Damage increment a Str-mod delta adds at multiplier m, diffed against the base Str mod (handles ½/1½ rounding).
+function strInc(baseMod, modDelta, m){ return strContrib(baseMod+modDelta, m) - strContrib(baseMod, m); }
 // GMF "one natural weapon" = ONE attack source. Multiple appendages — a "2 claws" line parses to
 // "claw 1"/"claw 2" — are SEPARATE natural weapons, so only ONE is enhanced. Multiple attacks with the
 // SAME single weapon (Zerda's two "bite" attacks via animal-companion Multiattack — identical name) all
@@ -289,15 +347,15 @@ function preRoll(c) {
   for (const atk of c.attacks) {
     const r = d20();
     const dr = rdice(atk.dmg);
-    let critConf = 0, critDmgRaw = 0, fumbleConf = 0;
+    const gDice = growDice(atk.dmg); const drG = rdice(gDice); // Animal Growth: size-stepped dice
+    let critConf = 0, critDmgRaw = 0, critDmgRawG = 0, fumbleConf = 0;
     const threat = r >= atk.cr && r !== 1;
 
     if (threat) {
       critConf = d20();
       // Crit multiplier: x2 = 1 extra roll, x3 = 2 extra rolls, x4 = 3 extra
       const extraRolls = (atk.cm || 2) - 1;
-      critDmgRaw = 0;
-      for (let cr = 0; cr < extraRolls; cr++) critDmgRaw += rdice(atk.dmg).t;
+      for (let cr = 0; cr < extraRolls; cr++) { critDmgRaw += rdice(atk.dmg).t; critDmgRawG += rdice(gDice).t; }
     }
     if (r === 1) {
       fumbleConf = d20();
@@ -305,6 +363,7 @@ function preRoll(c) {
 
     rawRows.push({
       name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg, dmgRolls: dr.r, dmgMod: dr.m,
+      baseDmgG: drG.t, dmgDiceG: gDice, dmgRollsG: drG.r, dmgModG: drG.m, critDmgRawG,
       critConf, critDmgRaw, fumbleConf, fumbleBonus: atk.bonus,
       cr: atk.cr, cm: atk.cm, specials: atk.sp,
       nat20: r===20, nat1: r===1, threat, isRake: false, primary: atk.primary || false,
@@ -317,14 +376,15 @@ function preRoll(c) {
 
   // Maintain grapple roll (always pre-roll if creature has grab)
   let maintainRoll = null;
-  let maintainDmgRaw = null;
-  let grabAtkName = '', grabAtkDmg = '';
+  let maintainDmgRaw = null, maintainDmgRawG = null;
+  let grabAtkName = '', grabAtkDmg = '', grabAtkDmgG = '';
   const grabAtk = c.attacks.find(a => a.sp.includes('grab'));
   if (grabAtk && c.cmb) {
     maintainRoll = { d20: d20(), baseCmb: c.cmb + 9 }; // +4 grab, +5 circumstance
     maintainDmgRaw = rdice(grabAtk.dmg);
     grabAtkName = grabAtk.name;
     grabAtkDmg = grabAtk.dmg;
+    grabAtkDmgG = growDice(grabAtk.dmg); maintainDmgRawG = rdice(grabAtkDmgG); // Animal Growth
   }
 
   // Rake attacks (always pre-roll; computeRoll filters by pounce/grapple state)
@@ -332,16 +392,18 @@ function preRoll(c) {
     for (const atk of c.rakeAtks) {
       const r = d20();
       const dr = rdice(atk.dmg);
+      const gDice = growDice(atk.dmg); const drG = rdice(gDice); // Animal Growth
       const rThreat = r >= (atk.cr||20) && r !== 1;
-      let rCritConf = 0, rCritDmgRaw = 0, rFumbleConf = 0;
+      let rCritConf = 0, rCritDmgRaw = 0, rCritDmgRawG = 0, rFumbleConf = 0;
       if (rThreat) {
         rCritConf = d20();
         const extraRolls = (atk.cm || 2) - 1;
-        for (let cr2 = 0; cr2 < extraRolls; cr2++) rCritDmgRaw += rdice(atk.dmg).t;
+        for (let cr2 = 0; cr2 < extraRolls; cr2++) { rCritDmgRaw += rdice(atk.dmg).t; rCritDmgRawG += rdice(gDice).t; }
       }
       if (r === 1) rFumbleConf = d20();
       rawRows.push({
         name: atk.name, r, baseBonus: atk.bonus, baseDmg: dr.t, dmgDice: atk.dmg, dmgRolls: dr.r, dmgMod: dr.m,
+        baseDmgG: drG.t, dmgDiceG: gDice, dmgRollsG: drG.r, dmgModG: drG.m, critDmgRawG:rCritDmgRawG,
         critConf:rCritConf, critDmgRaw:rCritDmgRaw, fumbleConf:rFumbleConf, fumbleBonus:atk.bonus,
         cr:atk.cr||20, cm:atk.cm||2, specials:atk.sp||[],
         nat20:r===20, nat1:r===1, threat:rThreat, isRake:true,
@@ -355,8 +417,10 @@ function preRoll(c) {
     const best = c.attacks.reduce((a,x)=>a.bonus>x.bonus?a:x);
     const r = d20();
     const dr = rdice(best.dmg);
+    const gDice = growDice(best.dmg); const drG = rdice(gDice); // Animal Growth
     rawRows.push({
       name:'Haste', r, baseBonus: best.bonus, baseDmg: dr.t, dmgDice: best.dmg, dmgRolls: dr.r, dmgMod: dr.m,
+      baseDmgG: drG.t, dmgDiceG: gDice, dmgRollsG: drG.r, dmgModG: drG.m, critDmgRawG:0,
       critConf:0, critDmgRaw:0, fumbleConf:0, fumbleBonus:best.bonus,
       cr:20, cm:2, specials:[],
       nat20:r===20, nat1:r===1, threat:false, isRake:false, isHaste:true,
@@ -374,14 +438,19 @@ function preRoll(c) {
     ['whirlwindRaw', 'hasWhirlwind','whirlwindDmg'],
     ['vortexRaw',    'hasVortex',   'vortexDmg'],
   ]) {
-    auto[key] = (flag ? c[flag] : c[dmgField]) && c[dmgField] ? rdice(c[dmgField]) : null;
+    const on = (flag ? c[flag] : c[dmgField]) && c[dmgField];
+    auto[key] = on ? rdice(c[dmgField]) : null;
+    auto[key+'G'] = on ? rdice(growDice(c[dmgField])) : null; // Animal Growth: size-stepped dice
   }
 
   // Powerful Charge (pre-roll alternate gore damage + crit extra)
-  let chargeRaw = null, chargeCritExtra = 0;
+  let chargeRaw = null, chargeCritExtra = 0, chargeRawG = null, chargeCritExtraG = 0, chargeDmgG = '';
   if (c.hasPowerfulCharge && c.powerfulChargeDmg) {
     chargeRaw = rdice(c.powerfulChargeDmg);
     chargeCritExtra = rdice(c.powerfulChargeDmg).t;
+    chargeDmgG = growDice(c.powerfulChargeDmg); // Animal Growth
+    chargeRawG = rdice(chargeDmgG);
+    chargeCritExtraG = rdice(chargeDmgG).t;
   }
 
   // Web (pre-roll ranged touch attack, no damage)
@@ -439,8 +508,8 @@ function preRoll(c) {
     }
   }
 
-  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, grabAtkName, grabAtkDmg,
-    ...auto, chargeRaw, chargeCritExtra,
+  c.rawRoll = { rows: rawRows, grabs: rawGrabs, maintainRoll, maintainDmgRaw, maintainDmgRawG, grabAtkName, grabAtkDmg, grabAtkDmgG,
+    ...auto, chargeRaw, chargeCritExtra, chargeRawG, chargeCritExtraG, chargeDmgG,
     webRaw, rockRaw, spikesRaw, muskRaw, breathRaw, vitalStrikeExtraRaws };
 }
 
@@ -452,15 +521,17 @@ function buildAutoRow(raw, dmgDice, buffDmg, name, extras = {}) {
 
 // Build a ranged attack row (web = noDamage touch, rock = full crit)
 function buildRangedRow(raw, atkBonus, b, name, opts = {}) {
-  const bonus = atkBonus + b.a;
+  // Melee-only attack bonuses (flanking, Animal Growth's Str-driven +3) do NOT apply to ranged rows.
+  const rangedA = b.a - (b.meleeOnlyAtk || 0);
+  const bonus = atkBonus + rangedA;
   const total = raw.r + bonus;
   const hit_ac = raw.nat20 ? 999 : raw.nat1 ? 0 : total;
-  const fumbleConfTotal = raw.nat1 ? (raw.fumbleConf || 0) + atkBonus + b.a : 0;
+  const fumbleConfTotal = raw.nat1 ? (raw.fumbleConf || 0) + atkBonus + rangedA : 0;
   const base = { name, r: raw.r, bonus, total, hit_ac,
     nat20: raw.nat20, nat1: raw.nat1,
     specials: [], isRake: false, primary: false, isRanged: true,
     fumbleConf: raw.fumbleConf || 0, fumbleConfTotal,
-    buffAtk: b.a, paAtk: 0, paDmg: 0, baseBonus: atkBonus, ...opts.extra };
+    buffAtk: rangedA, paAtk: 0, paDmg: 0, baseBonus: atkBonus, ...opts.extra };
   if (opts.noDamage) {
     return { ...base, dmg: 0, dmgNoCrit: 0, threat: false, critOk: false,
       critConf: 0, critConfTotal: 0, dmgDice: '', dmgRolls: [], dmgMod: 0, buffDmg: 0 };
@@ -482,11 +553,31 @@ function buildRangedRow(raw, atkBonus, b, name, opts = {}) {
 function computeRoll(c) {
   if (!c.rawRoll) return null;
   const b = bTotal(c.buffOvr);
-  // Per-creature flanking
-  if (c.flanking) b.a += 2;
+  // Attack bonuses that apply to MELEE only — tracked so ranged rows can exclude them.
+  // (Earth/Water Mastery is intentionally NOT here: it can apply to a thrown rock vs a grounded foe.)
+  let meleeOnlyAtk = 0;
+  // Per-creature flanking (+2, melee only per RAW — RAW-CORRECTNESS-SPEC.md §2)
+  if (c.flanking) { b.a += 2; meleeOnlyAtk += 2; }
   // Situational toggles: Earth/Water Mastery
   if (c.earthMastery) { b.a += 1; b.d += 1; }
   if (c.waterMastery) { b.a += 1; b.d += 1; }
+  // Animal Growth (size +1): +8 Str −1 size = +3 net atk, +4 dmg; dice step up (picked below).
+  // AC net 0 (−1 size, −1 Dex, +2 natural). HP/Fort/Ref/reach handled statefully in togGrowth().
+  // The +3 is Str-driven (melee only) — excluded from ranged rows.
+  const grow = !!c.growth;
+  if (grow) { b.a += 3; b.d += 4; meleeOnlyAtk += 3; }
+  b.meleeOnlyAtk = meleeOnlyAtk;
+
+  // Str-to-damage multiplier (RAW-CORRECTNESS-SPEC.md §1): b.d already carries the Str-boost buffs'
+  // damage at the PRIMARY rate (rage +1, Animal Growth +4). Per melee row we adjust ONLY that Str
+  // portion to the attack's real multiplier — secondary ×½, a lone natural attack ×1½ — leaving the
+  // non-Str part of b.d (prayer/destruction/mastery/GMF) and all auto/ranged rows untouched.
+  const buffOn = (id) => c.buffOvr[id]===true || (!!S.buffs[id] && c.buffOvr[id]!==false);
+  let strModDelta = 0;
+  if (buffOn('rage')) strModDelta += 1; // rage: +2 Str = +1 mod (already in b.d)
+  if (grow) strModDelta += 4;           // Animal Growth: +8 Str = +4 mod (already in b.d)
+  const baseStrMod = mod(c.str);
+  const strMult = strModDelta ? strMultipliers(c) : null;
   // Greater Magic Fang (one natural weapon): enhancement applies to ONE weapon's rows only.
   // gmfAll (all weapons, flat +1) is already in b; enhancement doesn't stack, so the chosen weapon
   // gets max(gmfBonus, gmfAll) — i.e. an extra (gmfBonus - 1) on top of the uniform +1, else gmfBonus.
@@ -513,26 +604,34 @@ function computeRoll(c) {
     paDmg = visibleCount <= 1 ? c.paX * 3 : c.paX * 2;
   }
 
+  // Animal Growth: pick the size-stepped auto-damage roll + dice string when active.
+  const gAuto = (rawN, rawG, dice) => grow ? { raw: (rawG || rawN), dice: growDice(dice) } : { raw: rawN, dice };
+
   // Auto-damage rows: constrict (always shown if creature has it)
   if (c.rawRoll.constrictRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.constrictRaw, c.constrictDmg, b.d, 'Constrict', { isConstrict: true }));
+    const g = gAuto(c.rawRoll.constrictRaw, c.rawRoll.constrictRawG, c.constrictDmg);
+    autoRows.push(buildAutoRow(g.raw, g.dice, b.d, 'Constrict', { isConstrict: true }));
   }
   // Maintain mode = grappling AND past the round grapple started
   const maintainMode = c.grappling && S.round > (c.grappleRound || 0);
 
   // Death Roll auto-damage (grapple, same trigger as constrict)
   if (c.rawRoll.deathRollRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.deathRollRaw, c.deathRollDmg, b.d, 'Death Roll', { isDeathRoll: true, hasTrip: true }));
+    const g = gAuto(c.rawRoll.deathRollRaw, c.rawRoll.deathRollRawG, c.deathRollDmg);
+    autoRows.push(buildAutoRow(g.raw, g.dice, b.d, 'Death Roll', { isDeathRoll: true, hasTrip: true }));
   }
 
   // Gnaw auto-damage (grapple auto-bite)
   if (c.rawRoll.gnawRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.gnawRaw, c.gnawDmg, b.d, 'Gnaw', { isGnaw: true }));
+    const g = gAuto(c.rawRoll.gnawRaw, c.rawRoll.gnawRawG, c.gnawDmg);
+    autoRows.push(buildAutoRow(g.raw, g.dice, b.d, 'Gnaw', { isGnaw: true }));
   }
 
   // Maintain auto-damage: grab attack's damage (only in maintain mode)
   if (c.rawRoll.maintainDmgRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.maintainDmgRaw, c.rawRoll.grabAtkDmg || '?', b.d,
+    const mraw = grow ? (c.rawRoll.maintainDmgRawG || c.rawRoll.maintainDmgRaw) : c.rawRoll.maintainDmgRaw;
+    const mdice = (grow ? (c.rawRoll.grabAtkDmgG || c.rawRoll.grabAtkDmg) : c.rawRoll.grabAtkDmg) || '?';
+    autoRows.push(buildAutoRow(mraw, mdice, b.d,
       (c.rawRoll.grabAtkName || 'Attack') + ' (auto)', { isMaintainDmg: true }));
   }
 
@@ -556,7 +655,8 @@ function computeRoll(c) {
 
   // Trample autoRow (when trampling toggle is active)
   if (c.trampling && c.hasTrample && c.rawRoll.trampleRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.trampleRaw, c.trampleDmg, b.d, 'Trample', { isTrample: true, dc: c.trampleDC }));
+    const g = gAuto(c.rawRoll.trampleRaw, c.rawRoll.trampleRawG, c.trampleDmg);
+    autoRows.push(buildAutoRow(g.raw, g.dice, b.d, 'Trample', { isTrample: true, dc: c.trampleDC }));
   }
 
   for (const raw of c.rawRoll.rows) {
@@ -580,9 +680,20 @@ function computeRoll(c) {
     const gmfHit = !!gmfWeapon && raw.name.toLowerCase()===gmfWeapon;
     const rowExtra = gmfHit ? gmfExtra : 0;
 
+    // Animal Growth: swap in the size-stepped damage dice (rolled at summon time).
+    const gBaseDmg  = grow ? (raw.baseDmgG   ?? raw.baseDmg)   : raw.baseDmg;
+    const gCritRaw  = grow ? (raw.critDmgRawG ?? raw.critDmgRaw) : raw.critDmgRaw;
+    const gDmgDice  = grow ? (raw.dmgDiceG   ?? raw.dmgDice)   : raw.dmgDice;
+    const gDmgRolls = grow ? (raw.dmgRollsG  ?? raw.dmgRolls)  : raw.dmgRolls;
+    const gDmgMod   = grow ? (raw.dmgModG    ?? raw.dmgMod)    : raw.dmgMod;
+
+    // Str-multiplier adjustment: b.d holds Str at primary rate; shift it to this attack's real multiplier.
+    const m = strMult ? (strMult[natType(raw.name)] ?? 1) : 1;
+    const strAdj = strModDelta ? (strInc(baseStrMod, strModDelta, m) - strModDelta) : 0;
+
     const bonus = raw.baseBonus + b.a + paAtk + rowExtra;
     const total = raw.r + bonus;
-    const dmgBase = raw.baseDmg + b.d + paDmg + rowExtra;
+    const dmgBase = gBaseDmg + b.d + strAdj + paDmg + rowExtra;
     let dmgWithCrit = dmgBase;
     let critOk = false, critConfTotal = 0;
     let fumbleConfTotal = 0;
@@ -591,8 +702,8 @@ function computeRoll(c) {
       critConfTotal = raw.critConf + bonus;
       critOk = true;
       const extraMults = (raw.cm || 2) - 1;
-      // Flat damage bonuses (buff, GMF enhancement, Power Attack) all multiply on a crit.
-      dmgWithCrit = dmgBase + raw.critDmgRaw + ((b.d + rowExtra + paDmg) * extraMults);
+      // Flat damage bonuses (buff, GMF enhancement, Power Attack) plus the Str adjustment all multiply on a crit.
+      dmgWithCrit = dmgBase + gCritRaw + ((b.d + strAdj + rowExtra + paDmg) * extraMults);
     }
     if (raw.nat1) {
       fumbleConfTotal = raw.fumbleConf + raw.fumbleBonus + b.a + rowExtra;
@@ -607,7 +718,7 @@ function computeRoll(c) {
       critConf: raw.critConf, critConfTotal,
       fumbleConf: raw.fumbleConf, fumbleConfTotal,
       specials: raw.specials, isRake: raw.isRake, primary: raw.primary || false,
-      dmgDice: raw.dmgDice, dmgRolls: raw.dmgRolls, dmgMod: (raw.dmgMod||0)+b.d+paDmg+rowExtra, buffDmg: b.d+rowExtra, buffAtk: b.a+rowExtra, paAtk, paDmg, baseBonus: raw.baseBonus, gmfHit,
+      dmgDice: gDmgDice, dmgRolls: gDmgRolls, dmgMod: (gDmgMod||0)+b.d+strAdj+paDmg+rowExtra, buffDmg: b.d+strAdj+rowExtra, buffAtk: b.a+rowExtra, paAtk, paDmg, baseBonus: raw.baseBonus, gmfHit,
     });
   }
 
@@ -619,7 +730,8 @@ function computeRoll(c) {
 
   // Rend auto-row at BOTTOM (after rows built so we can reference claw hit count)
   if (c.rawRoll.rendRaw) {
-    autoRows.push(buildAutoRow(c.rawRoll.rendRaw, c.rendDmg, b.d, 'Rend', { isRend: true }));
+    const g = gAuto(c.rawRoll.rendRaw, c.rawRoll.rendRawG, c.rendDmg);
+    autoRows.push(buildAutoRow(g.raw, g.dice, b.d, 'Rend', { isRend: true }));
   }
 
   // Web: ranged touch attack row (no damage — entangle on hit)
@@ -674,17 +786,19 @@ function computeRoll(c) {
 
   // Powerful Charge: replace gore row damage when charging
   if (c.charging && c.rawRoll.chargeRaw) {
-    const ch = c.rawRoll.chargeRaw;
+    const ch = grow ? (c.rawRoll.chargeRawG || c.rawRoll.chargeRaw) : c.rawRoll.chargeRaw;
+    const chDice = grow ? (c.rawRoll.chargeDmgG || c.powerfulChargeDmg) : c.powerfulChargeDmg;
+    const chCritExtra = grow ? (c.rawRoll.chargeCritExtraG || c.rawRoll.chargeCritExtra) : c.rawRoll.chargeCritExtra;
     for (const row of rows) {
       if (row.name.toLowerCase().includes('gore')) {
         row.dmgNoCrit = Math.max(1, ch.t + b.d + paDmg);
         row.dmg = row.dmgNoCrit;
-        row.dmgDice = c.powerfulChargeDmg;
+        row.dmgDice = chDice;
         row.dmgRolls = ch.r;
         row.dmgMod = (ch.m || 0) + b.d + paDmg;
         row.isCharge = true;
         if (row.critOk) {
-          row.dmg = row.dmgNoCrit + (c.rawRoll.chargeCritExtra || 0) + b.d;
+          row.dmg = row.dmgNoCrit + (chCritExtra || 0) + b.d;
         }
         break;
       }
@@ -1005,7 +1119,7 @@ function mkCreature(bEntry, aug) {
     specialAbilities: data.special_abilities || [],
     snaLevel: bEntry.sna_level,
     preRoll:null, alive:true, buffOvr:{}, pouncing:false, grappling:false,
-    flanking:false,
+    flanking:false, growth:false,
     hasPowerAttack: (full.Feats||'').toLowerCase().includes('power attack'),
     paX: (full.Feats||'').toLowerCase().includes('power attack') ? 1+Math.floor((full.BAB||0)/4) : 0,
     powerAttacking:false,
@@ -1261,6 +1375,9 @@ function spLink(s) {
 }
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
+// Effective AC = base statblock AC + active buff AC mods (rage −2, haste +1 dodge, …). RAW-CORRECTNESS-SPEC.md §3.
+function acDelta(c) { return bTotal(c.buffOvr).ac || 0; }
+function effAC(c) { return c.ac + acDelta(c); }
 // Clean + abbreviate speed: strip ft., artifacts, flight quality symbols. Remove earth glide/sprint (surfaced as badges).
 function fmtSpeed(s) {
   if (!s) return '';
@@ -1301,6 +1418,7 @@ function renderBuffChips(c) {
 
 function renderDecisions(c) {
   const flankHTML = `<span class="toggle-btn situational ${c.flanking?'active':''}" onclick="event.stopPropagation();togFlanking('${c.id}')" title="Flanking: +2 attack (untyped)">${c.flanking?'FLANKING':'Flank'}</span>`;
+  const growHTML = `<span class="toggle-btn situational ${c.growth?'active':''}" onclick="event.stopPropagation();togGrowth('${c.id}')" title="Animal Growth (size +1): +3 atk net, +4 dmg, damage dice step up a size, +2 HP/HD, +2 Fort / -1 Ref, reach +5 ft. AC unchanged (natural armor offsets). Single target.">${c.growth?'GROWN':'Grow'}</span>`;
   const pounceHTML = c.hasPounce ?
     `<span class="toggle-btn decision ${c.pouncing?'active':''}" onclick="event.stopPropagation();togPounce('${c.id}')" title="Charge+pounce: rake without grapple">${c.pouncing?'POUNCING':'Pounce'}</span>` : '';
   const grapHTML = `<span class="toggle-btn state ${c.grappling?'active':''}" onclick="event.stopPropagation();togGrapple('${c.id}')" title="Grappling: maintain + constrict/rake (if available)">${c.grappling?'GRAPPLING':'Grapple'}</span>`;
@@ -1350,7 +1468,7 @@ function renderDecisions(c) {
 
   const allBadges = featBadges + tacHTML;
   const badgeRow = allBadges ? `<div class="feat-badge-row">${allBadges}</div>` : '';
-  return `<div class="decisions-row">${flankHTML} ${pounceHTML} ${chargeHTML} ${trampleHTML} ${vitalStrikeHTML} ${masteryHTML} ${paHTML} <span class="decisions-right">${grapHTML} ${whirlwindHTML} ${vortexHTML}</span></div>${badgeRow}`;
+  return `<div class="decisions-row">${flankHTML} ${growHTML} ${pounceHTML} ${chargeHTML} ${trampleHTML} ${vitalStrikeHTML} ${masteryHTML} ${paHTML} <span class="decisions-right">${grapHTML} ${whirlwindHTML} ${vortexHTML}</span></div>${badgeRow}`;
 }
 
 function renderRollTable(c, pr, refAC) {
@@ -1698,7 +1816,7 @@ function renderAbilities(c) {
 function renderStatBlock(c) {
   return `<div class="statblock">
     <div class="sb-row">
-      <span class="sb-label">AC</span><span class="sb-val">${c.ac} ${c.acBreak?'('+c.acBreak+')':''}</span>
+      <span class="sb-label">AC</span><span class="sb-val">${effAC(c)} ${c.acBreak?'('+c.acBreak+')':''}${acDelta(c)?` [buffs ${fmtMod(acDelta(c))}]`:''}</span>
     </div>
     <div class="sb-row">
       <span class="sb-label">HP</span><span class="sb-val">${c.maxHp} (${c.hd})</span>
@@ -1765,7 +1883,7 @@ function renderCard(c, group, refAC, groupIdx) {
       <span class="ccard-dur">${durBadge}</span>
     </div>
     <div class="ccard-head">
-      ${hpTap}<span class="ccard-ac">${c.ac}${IC.ac()}</span>
+      ${hpTap}<span class="ccard-ac${acDelta(c)>0?' ac-up':acDelta(c)<0?' ac-down':''}"${acDelta(c)?` title="Base AC ${c.ac}, buffs ${fmtMod(acDelta(c))}"`:''}>${effAC(c)}${IC.ac()}</span>
     </div>
     <div class="hpbar" onclick="event.stopPropagation();openNumpad('hp','${c.id}',this)"><div class="hpfill ${hpCls}" style="--hp-cur:${c.hp}; --hp-max:${c.maxHp}"></div></div>
     <div class="hp-row">
@@ -1807,6 +1925,29 @@ function togTrample(id){const c=findC(id);if(c){c.trampling=!c.trampling;render(
 function togVitalStrike(id){const c=findC(id);if(c){c.vitalStriking=!c.vitalStriking;render();}}
 function togWhirlwind(id){const c=findC(id);if(c){c.whirlwinding=!c.whirlwinding;if(c.whirlwinding)c.vortexing=false;render();}}
 function togVortex(id){const c=findC(id);if(c){c.vortexing=!c.vortexing;if(c.vortexing)c.whirlwinding=false;render();}}
+// Animal Growth (druid 5): single-target size increase. Stateful bits (HP, saves, reach, size label)
+// are applied/reversed here atomically; the render-time atk/dmg bonus + dice step-up live in computeRoll.
+function togGrowth(id){
+  const c=findC(id); if(!c) return;
+  c.growth=!c.growth;
+  if(c.growth){
+    const dhp=2*hdCount(c.hd); // +4 Con → +2 HP per HD
+    c._growHp=dhp; c.maxHp+=dhp; c.hp+=dhp;
+    c.fort+=2; c.ref-=1; // +4 Con, -2 Dex
+    c._growSize=c.size; c._growReach=c.reach; c._growSpace=c.space;
+    c.size=growSizeLabel(c.size);
+    c.reach=growFeet(c.reach,5); c.space=growFeet(c.space,5);
+  } else {
+    const dhp=c._growHp||0;
+    c.maxHp=Math.max(1,c.maxHp-dhp); c.hp=Math.min(c.hp,c.maxHp);
+    c.fort-=2; c.ref+=1;
+    if(c._growSize!==undefined) c.size=c._growSize;
+    if(c._growReach!==undefined) c.reach=c._growReach;
+    if(c._growSpace!==undefined) c.space=c._growSpace;
+    delete c._growHp; delete c._growSize; delete c._growReach; delete c._growSpace;
+  }
+  render();
+}
 let dismissed = []; // {creature, groupId, groupName}
 function dismissCreature(cid, gid) {
   for (const g of S.groups) {
@@ -2228,6 +2369,8 @@ if (typeof globalThis.__TEST__ === 'undefined') init();
 if (typeof module !== 'undefined') module.exports = {
   parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll,
   buildAutoRow, buildRangedRow, loadBestiary, gmfBestWeapon,
+  growDice, growSizeLabel, growFeet, hdCount,
+  strMultipliers, strContrib, strInc, natType,
   B, R, S, BD, SE, d20, dd,
   _setDice(fn) { dd = fn; d20 = () => fn(20); },
 };

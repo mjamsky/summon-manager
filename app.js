@@ -2324,21 +2324,24 @@ const COMPANION_DATA = {
       {name:'Devotion (Ex)', desc:'+4 morale bonus on Will saves vs enchantment spells and effects.'},
       {name:'Link (Ex)', desc:'Bond with Fennik: handle as a free action, push as a move action; +4 on wild empathy/Handle Animal.'},
       {name:'Share Spells (Ex)', desc:'Fennik may cast a spell with a target of "you" on Zerda when adjacent or riding.'},
+      {name:'Multiattack', desc:'Companion class feature: a second bite at -5, since she has fewer than 3 natural attacks.'},
+      {name:'Desert Runner (Ex)', desc:'+4 racial on Con checks and Fort saves vs fatigue, exhaustion, forced marches, thirst, and hot or cold environments.'},
+      {name:'Sand Hunter (Ex)', desc:'Creatures concealed by being buried or burrowing lose that concealment within her blindsense range.'},
     ],
     combat_card:{
-      AC:23, AC_breakdown:'23, touch 14, flat-footed 18 (Dex +4, size +1, dodge +1, natural +7, custom -2)',
-      HP:90, HD:'6d8+18', Fort:8, Ref:10, Will:4, Speed:'40 ft.',
-      // Two bites (+8/+3) is RAW: the animal-companion Multiattack class feature grants a 2nd attack
+      AC:23, AC_breakdown:'23, touch 16, flat-footed 18 (Dex +4, size +1, dodge +1, natural +6, amulet of natural armor +1)',
+      HP:90, HD:'9d8+18', Fort:8, Ref:10, Will:4, Speed:'40 ft.',
+      // Two bites (+11/+6) is RAW: the animal-companion Multiattack class feature grants a 2nd attack
       // with the primary natural weapon at -5 when the companion has <3 natural attacks. NOT BAB
       // iteration (natural weapons never iterate), NOT the Multiattack monster feat. Do not "fix" to one bite.
-      Melee:'bite +8 (1d4+1), bite +3 (1d4+1)',
+      Melee:'bite +11 (1d4+1), bite +6 (1d4+1)', // Weapon Finesse: Dex to hit
       CMB:6, CMB_full:'+6', CMD:21, CMD_full:'21',
-      Special_Attacks:'', Special_Qualities:'low-light vision, scent, evasion, devotion, link, share spells',
+      Special_Attacks:'', Special_Qualities:'blindsense 10 ft., low-light vision, evasion, devotion, link, share spells',
     },
     full_statblock:{
       Str:12, Dex:18, Con:15, Int:4, Wis:12, Cha:6, BAB:6,
-      Feats:'Dodge, Mobility, Acrobatic, Improved Steal, Multiattack',
-      Skills:'Acrobatics +13, Perception +20, Stealth +13, Survival +5, Sense Motive +2',
+      Feats:'Acrobatic, Dodge, Weapon Finesse, Mobility, Combat Reflexes',
+      Skills:'Acrobatics +13, Stealth +14, Fly +8, Perception +6, Climb +1, Swim +1',
       Space:'5 ft.', Reach:'5 ft.',
     },
   }},

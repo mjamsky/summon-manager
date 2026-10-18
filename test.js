@@ -480,11 +480,19 @@ suite('companions');
   eq(c.cmb, 6, 'CMB +6');
   eq(c.cmd, 21, 'CMD 21');
   eq(c.fort, 8, 'Fort +8');
-  eq(c.attacks.length, 2, 'two bite attacks (+8/+3)');
-  eq(c.attacks[0].bonus, 8, 'first bite +8');
-  eq(c.attacks[1].bonus, 3, 'second bite +3');
+  eq(c.attacks.length, 2, 'two bite attacks (+11/+6)');
+  eq(c.attacks[0].bonus, 11, 'first bite +11 (Weapon Finesse)');
+  eq(c.attacks[1].bonus, 6, 'second bite +6');
   eq(c.attacks[0].dmg, '1d4+1', 'bite 1d4+1');
   eq(c.str, 12, 'Str 12 (no augment — addCompanion always passes aug=false)');
+  // Matches vault Current Build.md (Zerda, ML10 / HD9)
+  eq(app.hdCount(c.hd), 9, 'HD 9');
+  const fs = bE.data.full_statblock, cc = bE.data.combat_card;
+  ok(!/improved steal/i.test(fs.Feats), 'no Improved Steal (ruled illegal)');
+  ok(/weapon finesse/i.test(fs.Feats) && /combat reflexes/i.test(fs.Feats), 'Weapon Finesse + Combat Reflexes');
+  ok(!/scent/i.test(cc.Special_Qualities), 'no scent (fennec, not dog)');
+  ok(/blindsense 10/i.test(cc.Special_Qualities), 'blindsense 10 ft.');
+  ok(/touch 16/.test(cc.AC_breakdown), 'touch AC 16');
 }
 
 // ── Greater Magic Fang ──

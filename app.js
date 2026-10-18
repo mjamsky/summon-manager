@@ -2341,7 +2341,7 @@ const COMPANION_DATA = {
     full_statblock:{
       Str:12, Dex:18, Con:15, Int:4, Wis:12, Cha:6, BAB:6,
       Feats:'Acrobatic, Dodge, Weapon Finesse, Mobility, Combat Reflexes',
-      Skills:'Acrobatics +13, Stealth +14, Fly +8, Perception +6, Climb +1, Swim +1',
+      Skills:'Acrobatics +13, Stealth +13, Fly +8, Perception +6, Climb +1, Swim +1, Linguistics -2',
       Space:'5 ft.', Reach:'5 ft.',
     },
   }},

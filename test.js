@@ -476,7 +476,7 @@ suite('companions');
   const c = app.mkCreature(bE, false);
   eq(c.name, 'Zerda', 'name');
   eq(c.maxHp, 90, 'HP 90');
-  eq(c.ac, 23, 'AC 23');
+  eq(c.ac, 24, 'AC 24 (bracers of armor +1)');
   eq(c.cmb, 6, 'CMB +6');
   eq(c.cmd, 21, 'CMD 21');
   eq(c.fort, 8, 'Fort +8');
@@ -492,7 +492,7 @@ suite('companions');
   ok(/weapon finesse/i.test(fs.Feats) && /combat reflexes/i.test(fs.Feats), 'Weapon Finesse + Combat Reflexes');
   ok(!/scent/i.test(cc.Special_Qualities), 'no scent (fennec, not dog)');
   ok(/blindsense 10/i.test(cc.Special_Qualities), 'blindsense 10 ft.');
-  ok(/touch 16/.test(cc.AC_breakdown), 'touch AC 16');
+  ok(/touch 16, flat-footed 19/.test(cc.AC_breakdown), 'touch 16, flat-footed 19 (bracers are an armor bonus)');
 }
 
 // ── Greater Magic Fang ──

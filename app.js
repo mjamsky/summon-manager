@@ -2329,7 +2329,7 @@ const COMPANION_DATA = {
       {name:'Sand Hunter (Ex)', desc:'Creatures concealed by being buried or burrowing lose that concealment within her blindsense range.'},
     ],
     combat_card:{
-      AC:23, AC_breakdown:'23, touch 16, flat-footed 18 (Dex +4, size +1, dodge +1, natural +6, amulet of natural armor +1)',
+      AC:24, AC_breakdown:'24, touch 16, flat-footed 19 (Dex +4, size +1, dodge +1, natural +6, amulet of natural armor +1, bracers of armor +1)',
       HP:90, HD:'9d8+18', Fort:8, Ref:10, Will:4, Speed:'40 ft.',
       // Two bites (+11/+6) is RAW: the animal-companion Multiattack class feature grants a 2nd attack
       // with the primary natural weapon at -5 when the companion has <3 natural attacks. NOT BAB

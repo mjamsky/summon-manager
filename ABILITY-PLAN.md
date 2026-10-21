@@ -38,7 +38,7 @@ Bestiary audit identified 10 patterns of creature abilities/feats, many invisibl
 |---|---|---|
 | **Flyby Attack** | 8 (air elementals, Manticore, Roc) | "Move → attack → continue moving. No AoO from target." |
 | **Spring Attack** | 4 (fire elementals) | "Move → melee attack during move → continue moving." |
-| **Combat Reflexes** | 10 | "X AoOs per round (Dex mod)." Compute X from creature Dex. |
+| **Combat Reflexes** | 10 | "X AoOs per round (1 + Dex bonus)." Compute X with `aooCount()`. |
 | **Diehard** | 2 (Woolly Rhino, T-Rex) | "Fights until -Con HP. Auto-stabilizes." Also: HP logic fix. |
 
 ### Pips (attack riders)

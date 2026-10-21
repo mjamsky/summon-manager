@@ -13,7 +13,7 @@
 ## Features
 - [x] Greater Magic Fang buff (dual nature) — `gmf` chip = one natural weapon, +1 per 4 CL (max +5, scales off Caster Level input, label shows live value); `gmfAll` chip = all natural weapons flat +1. New `enh` (enhancement) buff type: highest wins, doesn't stack with itself, stacks with morale/sacred/etc. Verified vs Archives of Nethys.
 - [x] GMF Mode A single-weapon targeting — pulled out of the uniform buff total; auto-targets the "best" natural weapon (`gmfBestWeapon()`: grouped by EXACT name = one appendage; most attacks of that weapon, tiebreak highest bonus then avg damage) and applies per-row only to that weapon. Strict RAW: multiple appendages are separate weapons, so only ONE benefits — Lion → bite only (claws untouched); Zerda → both bites (one weapon, two attacks). Chosen rows show a ✦ marker. Enhancement non-stacks with `gmfAll` (best weapon = max). Not yet applied to rake/auto-damage rows (future).
-- [x] Animal companion card — hand-authored statblocks in `COMPANION_DATA` (Zerda), registered into `B` at `sna_level:0` so they stay out of the summon dropdown. `addCompanion(key)` adds a non-expiring `src:'companion'` group (∞ duration badge, never decremented in `nextRound`). "Allies: Zerda" button in Summon tray. Reuses full mkCreature/render/buff/persist pipeline. Source numbers: `~/Downloads/Zerda_Companion_Sheet.pdf`.
+- [x] Animal companion card — hand-authored statblocks in `COMPANION_DATA` (Zerda), registered into `B` at `sna_level:0` so they stay out of the summon dropdown. `addCompanion(key)` adds a non-expiring `src:'companion'` group (∞ duration badge, never decremented in `nextRound`). "Allies: Zerda" button in Summon tray. Reuses full mkCreature/render/buff/persist pipeline. Source of truth: vault `Current Build.md` (Zerda section); RPG Scribe should agree.
 - [x] Constrict auto-damage — no-roll row in attack table (muted until grapple toggled). Maintain auto-dmg row (grab attack damage) shown when grappling. Maintain CMB includes +4 grab +5 circumstance.
 - [x] Buff/toggle rework — decisions row (flank/pounce/grapple/PA) above attack table, buff chips muted below. Flanking per-creature. Per-creature local buff [+] button. No toggles reroll dice.
 - [x] Power Attack toggle — detected from creature feats, -X atk/+2X dmg (3x for single natural attack). 38 creatures have it. Notable feats (CE, Lunge, Cleave) surfaced as badges.
@@ -21,6 +21,8 @@
 - [x] Target AC affordance — "TARGET AC" label + border on dock AC touchpoint.
 - [x] Bestiary feat/ability data layer — build_bestiary.py parses badges, CMB feats, 15+ ability flags. Triceratops crit fix.
 - [x] Tactical badges with tooltips — Flyby, Spring Attack, Combat Reflexes, Diehard
+- [x] Combat Reflexes AoO count is 1 + Dex bonus (`aooCount()`), not the Dex bonus alone; Zerda shows 5. RAW: the feat's AoOs are additional to the normal one.
+- [x] Zerda synced to the vault build (2026-10-19/21): bite +11/+6 (Weapon Finesse), 9d8, AC 24 / touch 16 / flat-footed 19 with Bracers of Armor +1, feats, fennec senses (blindsense, no scent), Desert Runner and Sand Hunter, skills (Stealth +13, Linguistics -2). Tests in `test.js`.
 - [x] Disease + Stun pip icons
 - [x] CMB feat lines in ability section — Bull Rush, Overrun, Sunder, Awesome Blow, Greater variants
 - [x] Bleeding/Staggering Critical — conditional legend text on crit confirm

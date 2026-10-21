@@ -493,6 +493,8 @@ suite('companions');
   ok(!/scent/i.test(cc.Special_Qualities), 'no scent (fennec, not dog)');
   ok(/blindsense 10/i.test(cc.Special_Qualities), 'blindsense 10 ft.');
   ok(/touch 16, flat-footed 19/.test(cc.AC_breakdown), 'touch 16, flat-footed 19 (bracers are an armor bonus)');
+  eq(app.aooCount(c), 5, 'Combat Reflexes: 1 + Dex bonus 4 = 5 AoOs');
+  eq(app.aooCount({ dex: 9 }), 1, 'Combat Reflexes never drops below the normal 1 AoO');
 }
 
 // ── Greater Magic Fang ──

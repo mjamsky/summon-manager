@@ -1374,6 +1374,8 @@ function spLink(s) {
   return url ? `<a class="sp-link" href="${url}" target="_blank" onclick="event.stopPropagation()">${s}</a>` : s;
 }
 function mod(score) { return Math.floor((score - 10) / 2); }
+// Combat Reflexes: the normal 1 AoO plus additional AoOs equal to the Dex bonus.
+function aooCount(c) { return 1 + Math.max(0, mod(c.dex)); }
 function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
 // Effective AC = base statblock AC + active buff AC mods (rage −2, haste +1 dodge, …). RAW-CORRECTNESS-SPEC.md §3.
 function acDelta(c) { return bTotal(c.buffOvr).ac || 0; }
@@ -1454,8 +1456,8 @@ function renderDecisions(c) {
   if (featsStr.includes('flyby attack')) tacBadges.push({name:'Flyby', tip:'Move → attack → continue moving. No AoO from target.'});
   if (featsStr.includes('spring attack')) tacBadges.push({name:'Spring Atk', tip:'Move → melee attack during move → continue moving.'});
   if (featsStr.includes('combat reflexes')) {
-    const aoos = Math.max(1, mod(c.dex));
-    tacBadges.push({name:`${aoos} AoO`, tip:`Combat Reflexes: ${aoos} AoOs/round (Dex mod).`});
+    const aoos = aooCount(c);
+    tacBadges.push({name:`${aoos} AoO`, tip:`Combat Reflexes: ${aoos} AoOs/round (1 + Dex bonus).`});
   }
   if (featsStr.includes('diehard')) tacBadges.push({name:'Diehard', tip:`Fights until -${c.con} HP. Auto-stabilizes.`});
   // Movement/utility badges from specials + speed + qualities
@@ -2372,7 +2374,7 @@ if (typeof globalThis.__TEST__ === 'undefined') init();
 if (typeof module !== 'undefined') module.exports = {
   parseMelee, parseAbilityDmg, rdice, bTotal, mkCreature, preRoll, computeRoll,
   buildAutoRow, buildRangedRow, loadBestiary, gmfBestWeapon,
-  growDice, growSizeLabel, growFeet, hdCount,
+  growDice, growSizeLabel, growFeet, hdCount, aooCount,
   strMultipliers, strContrib, strInc, natType,
   B, R, S, BD, SE, d20, dd,
   _setDice(fn) { dd = fn; d20 = () => fn(20); },
